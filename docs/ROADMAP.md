@@ -20,14 +20,16 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 in progress |
-| Next step | Finish M0 (repo, packaging, CI), then M1 |
-| Waiting on you | The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts). Also the regnal-key fix in your scraper (see U2) |
-| Blocked | Nothing |
+| Current milestone | M0 ✅, M1 ✅ (UK). Next: M2 |
+| Next step | M2: licence record (re-check OGL and legislation.gov.uk fair-use terms, `data/MANIFEST.json`, `NOTICE`, `scripts/check_licences.py`) |
+| Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts, see U5). (2) The regnal-key fix in your scraper (U2). (3) Answer to **Q-M1-1** (case collisions), needed before M6 |
+| Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M1 done (UK).** `coordinate.py` (jurisdiction-neutral, per-scheme arity), `grammars/uk.py` (UK scheme, element-id/URL ↔ provision mapping, checked against 2.0M real ids), `docs/grammar.md` v1 (UK surface forms, case catalogue, row IDs). 105 tests, 98.8 % coverage. Resume at M2.
+- 2026-09-27: **M0 done.** Packaging, tooling, CI, CodeQL, Dependabot, wheel check. Local commit.
 - 2026-09-27: roadmap approved (D1–D3). UK-first ordering and the regnal decision recorded (§U). Starting M0.
 
 ---
@@ -84,6 +86,14 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - The current listing starts at 1970. It misses `apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`, `uksro`, `nisro`, `ukdsi`, `sdsi`, `wdsi`, `nidsr`, `ukmo`, `ukmd`, … and pre-1970 years.
   - Without the fix, citations to these would be *refused* when they should be marked out of coverage.
   - The same harvest also writes a regnal-correct catalogue of `ukpga`/`uksi`, which measures the U2 gap.
+- **U5 — 24 large Acts are still pending** (as of 27 Sept), probably failing on size.
+  - The Acts are: Companies Act 2006, ITA 2007, CTA 2009/2010, FSMA 2000, TCGA 1992, Communications Act 2003, Criminal Procedure (Scotland) Act 1995, and 16 smaller pre-1970 Acts.
+  - Also pending: SI 2011/3006 and SI 2026/310 (the s.124 cap Orders).
+  - The M4-UK fixture needs CA 2006 and SI 2011/3006. 🧑 Please check that your downloader handles very large responses (CA 2006 `data.xml` is tens of MB).
+- **U6 — Findings that shaped M1.**
+  - 697 files under `uksi/` are canonically `wsi/…` or `nisi/…` (their `IdURI`). They keep that canonical coordinate and resolve from `SI yyyy/n` through the numbers table.
+  - Provision ids inside `<BlockAmendment>` are quoted text from another Act and are never indexed.
+  - Lower-case designators occur only on schedules and paragraphs in older Acts (`sch13/parab`).
 
 ---
 
@@ -126,7 +136,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M1 — Coordinate format and citation grammar spec (plan step 1) · day 1
 
-- [ ] `docs/grammar.md` v1. It is the source of truth for tests and is versioned with the index format.
+- [x] `docs/grammar.md` v1 (UK; ES in Stage C). It is the source of truth for tests and is versioned with the index format.
   - **Coordinate EBNF per jurisdiction:**
     - UK: `s124`, `s124A`, `s124/1ZA/a/ii`, `art2`, `reg3`, `sch2/para4`, `pt2`, with the mapping from legislation.gov.uk element ids (`section-124-1ZA-a` → `s124/1ZA/a`).
     - ES: `art42`, `art42bis`, `art42/1/b`, and `da|dt|dd|df` + n, with ordinal words mapped up to *vigésima*.
@@ -134,11 +144,11 @@ Each of these changes order or method but not what gets delivered. See §4.
   - **Surface-form table:** each row has a **stable row ID** (e.g. `UK-SF-012`) so battery rows can cite it. Covers every form listed in plan step 1 and step 7 and in the Spanish and UK sections of the case catalogue.
   - **Unsupported-forms table:** each form with the behaviour it gets (recitals, EU/US forms, case citations, concept-only queries, relative references).
   - **Case catalogue:** every entry from the plan, each with a row ID. Test rows reference these IDs.
-- [ ] `coordinate.py`:
+- [x] `coordinate.py`:
   - A frozen, slotted `Coordinate(jurisdiction, series, year, number, provision: tuple[str, ...])`.
   - `parse()`, `__str__`, `instrument_id`, `parent`, `is_instrument`, and `key` (casefolded).
   - Segment validation with anchored regexes only, per-jurisdiction arity, and case kept in the canonical string.
-- [ ] README: extension slots for `eu/`, `us/`, `contract/` (01 §2).
+- [x] README: extension slots for `eu/`, `us/`, `contract/` (01 §2).
 - **Done when:** every grammar.md example round-trips, and the hypothesis property `parse(str(c)) == c` passes, along with the negative parse cases.
 
 ### M2 — Licence record (plan step 3) · days 1–2
@@ -466,6 +476,10 @@ M9 docs are written alongside and finished before M10.
 3. **Laya:** deferred. The Phase 1 comparison (M11) covers Gemini and Jev only.
 4. **Normalised-record shards:** Phase 1 releases **the index only**. Record shards go out with `legal-rag-retriever` in Phase 4 (01 §5).
 5. **Coverage floor:** 90 % on `src/` to start, raised to 95 % after M7 (the default; tell me if you want it different).
+6. **UK first, Spain after UK is complete** (§U). Pre-1963 Acts use regnal coordinates (U1). The other-series listing harvest is written in the repo (U4). Porting the fetch code waits until the data is downloaded (U3).
+
+### Open questions
+- **Q-M1-1 — Case collisions.** In 5 instruments, siblings differ only by case (`para34/a` and `para34/A`; `schSECOND` and `schSecond`). The plan says the build fails on any casefold collision. *Proposal:* the build allows a collision only between coordinates that differ solely by case under the same parent, and records them in an explicit `case_variants` table in the index. A lookup that hits such a key binds only on an exact-case match; otherwise it returns `ROUTE_AMBIGUOUS` listing both. Every other collision still fails the build.
 
 ---
 

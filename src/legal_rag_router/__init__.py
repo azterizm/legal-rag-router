@@ -8,9 +8,14 @@ no disk I/O per query.
 
 from importlib.metadata import PackageNotFoundError, version
 
+from legal_rag_router import grammars as _grammars  # registers bundled coordinate schemes
+from legal_rag_router.coordinate import Coordinate, CoordinateError
+
 try:
     __version__ = version("legal-rag-router")
 except PackageNotFoundError:  # pragma: no cover - only when run from a bare source tree
     __version__ = "0.0.0+unknown"
 
-__all__ = ["__version__"]
+del _grammars
+
+__all__ = ["Coordinate", "CoordinateError", "__version__"]
