@@ -1,0 +1,18 @@
+legal-rag-router index data — attribution notice
+
+The router index distributed with legal-rag-router releases is derived from the
+following sources. The code of legal-rag-router is licensed separately under
+AGPL-3.0-only (see LICENSE).
+
+United Kingdom legislation
+  Source:      legislation.gov.uk (The National Archives)
+  Licence:     Open Government Licence v3.0
+               https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+  Attribution: Contains public sector information licensed under the Open
+               Government Licence v3.0. Source: legislation.gov.uk,
+               © Crown and database right.
+  Note:        Material on legislation.gov.uk derived from EUR-Lex is reused
+               under Commission Decision 2011/833/EU.
+
+The index contains coordinates, titles, official numbers and derived lookup
+tables. It does not reproduce the text of any provision.

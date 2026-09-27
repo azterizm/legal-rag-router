@@ -63,7 +63,9 @@ include = [
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
+    "NOTICE",
     "SECURITY.md",
+    "data/MANIFEST.json",
     "pyproject.toml",
 ]
 

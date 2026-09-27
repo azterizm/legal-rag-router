@@ -20,14 +20,16 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK). M2 started: terms checked, ⛔ halted on U7 |
-| Next step | M2: licence record (re-check OGL and legislation.gov.uk fair-use terms, `data/MANIFEST.json`, `NOTICE`, `scripts/check_licences.py`) |
-| Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts, see U5). (2) The regnal-key fix in your scraper (U2). (3) Answer to **Q-M1-1** (case collisions), needed before M6 |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK). Next: M3-UK |
+| Next step | M3-UK: fetch layer (`ingest/cache.py`, offline-tested, used only in Stage B), `ingest/records.py` (`ProvisionRecord`), `ingest/uk.py` reading `uk_scrap_data/`, the listing harvest (`ingest/uk_catalogue.py`, offline-tested), `docs/sources.md` |
+| Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M2 done (UK).** `data/MANIFEST.json`, `NOTICE`, `scripts/check_licences.py` (runs in CI). Resume at M3-UK.
+- 2026-09-27: U7 resolved (your fetch is compliant; faster rate requested). Continuing Stage A with the data on disk.
 - 2026-09-27: **Halted in M2 on U7** (legislation.gov.uk fair-use terms vs the running scraper and the plan's 1 req/s). Resume M2 (`MANIFEST.json`, `NOTICE`, `check_licences.py`) once U7 is decided.
 - 2026-09-27: **M1 done (UK).** `coordinate.py` (jurisdiction-neutral, per-scheme arity), `grammars/uk.py` (UK scheme, element-id/URL ↔ provision mapping, checked against 2.0M real ids), `docs/grammar.md` v1 (UK surface forms, case catalogue, row IDs). 105 tests, 98.8 % coverage. Resume at M2.
 - 2026-09-27: **M0 done.** Packaging, tooling, CI, CodeQL, Dependabot, wheel check. Local commit.
@@ -91,7 +93,13 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - The Acts are: Companies Act 2006, ITA 2007, CTA 2009/2010, FSMA 2000, TCGA 1992, Communications Act 2003, Criminal Procedure (Scotland) Act 1995, and 16 smaller pre-1970 Acts.
   - Also pending: SI 2011/3006 and SI 2026/310 (the s.124 cap Orders).
   - The M4-UK fixture needs CA 2006 and SI 2011/3006. 🧑 Please check that your downloader handles very large responses (CA 2006 `data.xml` is tens of MB).
-- **U7 — legislation.gov.uk fair-use terms (checked 27 Sept 2026). ⛔ Needs a decision.**
+- **U7 — legislation.gov.uk fair-use terms (checked 27 Sept 2026). Resolved 27 Sept.**
+  - **Resolution:**
+    - `harvest_catalog.py` was an experimental script and is not the running fetch.
+    - The running fetch follows the fair-use policy with a real contact.
+    - You have emailed legislation@nationalarchives.gov.uk asking for a faster rate.
+    - Stage B starts when the fetch completes, or sooner if they grant a faster rate.
+  - **Rule for the repo:** any fetch run from the repo (the U4 listing harvest, single fixture files) must not overlap with your fetch from the same IP. The two together must stay under the crawl-delay. The repo's fetch layer defaults to 1 request per 5 s, with a real contact in the User-Agent.
   - Sources: `legislation.gov.uk/fair-use-policy` and `robots.txt`.
   - **Rate:** the policy says "You must not exceed the request rate limit of 1,500 requests in any 5-minute period". It also says to follow the robots.txt crawl-delay, which is **`Crawl-delay: 5`** (one request every 5 s).
   - **Identification:** "Anonymous user agents are not accepted"; a non-browser client must give contact details.
@@ -166,12 +174,12 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M2 — Licence record (plan step 3) · days 1–2
 
-- [ ] Re-check both sets of terms and record the URL and date checked (🧑 if anything has changed):
+- [x] Re-check both (UK checked 27 Sept, see U7; BOE in Stage C) sets of terms and record the URL and date checked (🧑 if anything has changed):
   - legislation.gov.uk: OGL v3.0, plus its **fair-use / API rate terms** (plan step 4 says to check these first).
   - BOE: reuse conditions of 27 June 2024; attribution string plus link; *Biblioteca Jurídica Digital* excluded.
-- [ ] `data/MANIFEST.json` (with a schema): per source, the licence, URL, date checked, attribution, and `document_count`, which ingest fills in.
-- [ ] `NOTICE`, with attribution text for both sources. It ships with the index release.
-- [ ] `scripts/check_licences.py`, wired into CI. It fails on a `data/` subtree with no manifest entry or a count mismatch, and it also checks `tests/fixtures/index/`.
+- [x] `data/MANIFEST.json` (with a schema): per source, the licence, URL, date checked, attribution, and `document_count`, which ingest fills in.
+- [x] `NOTICE`, with attribution text for both sources. It ships with the index release.
+- [x] `scripts/check_licences.py`, wired into CI. It fails on a `data/` subtree with no manifest entry or a count mismatch, and it also checks `tests/fixtures/index/`.
 - **Done when:** the script passes in CI on the empty data tree and the fixture tree, and fails on a planted bad case in its tests.
 
 ### M3 — Fetch layer and source reconnaissance (prep for plan steps 4–5) · day 2
@@ -491,8 +499,12 @@ M9 docs are written alongside and finished before M10.
 5. **Coverage floor:** 90 % on `src/` to start, raised to 95 % after M7 (the default; tell me if you want it different).
 6. **UK first, Spain after UK is complete** (§U). Pre-1963 Acts use regnal coordinates (U1). The other-series listing harvest is written in the repo (U4). Porting the fetch code waits until the data is downloaded (U3).
 
-### Open questions
-- **Q-M1-1 — Case collisions.** In 5 instruments, siblings differ only by case (`para34/a` and `para34/A`; `schSECOND` and `schSecond`). The plan says the build fails on any casefold collision. *Proposal:* the build allows a collision only between coordinates that differ solely by case under the same parent, and records them in an explicit `case_variants` table in the index. A lookup that hits such a key binds only on an exact-case match; otherwise it returns `ROUTE_AMBIGUOUS` listing both. Every other collision still fails the build.
+7. **Q-M1-1 (case collisions), decided 27 Sept:** use a case-variant table.
+   - The build allows a collision only between coordinates that differ solely by case under the same parent, and records them in a `case_variants` index table.
+   - A lookup that hits such a key binds only on an exact-case match; otherwise it returns `ROUTE_AMBIGUOUS` listing both.
+   - Every other collision still fails the build.
+8. **Fixture data (27 Sept):** you move CA 2006, SI 2011/3006 and SI 2026/310 to the front of your fetch queue. Meanwhile I build the fixture from what's on disk and add these when they land.
+9. **U4 listing harvest (27 Sept):** written and tested offline now, against recorded feed pages. It runs in Stage B, after your fetch completes, so the two never overlap.
 
 ---
 
