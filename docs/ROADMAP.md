@@ -20,14 +20,26 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). Next: **M7-UK** (parser and router) |
-| Next step | M7-UK: public types (`RouteResult`, `ParsedCitation`, statuses, `next_action`), the identifier scanner, the UK grammar (anchors, provisions), title n-gram lookup, resolution with typo tiers, `filters.py`, then the M7 tests |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress** |
+| Next step | M7-UK remaining:
+- `identifiers.py`;
+- `typo.py`;
+- `router.py`: title n-gram matching, linking, exclusion, context, resolution, result assembly, miss logging;
+- `filters.py`;
+- M7 tests (grammar unit tests, invariants, `test_collision_rate.py`, golden probes, fuzz, threads).
+
+Done so far: `result.py` (public types), `grammars/base.py` (plugin protocol), `grammars/uk_grammar.py` (UK provision, number and cue patterns; smoke-tested). |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: M7-UK part 1:
+  - Public result types.
+  - Grammar plugin protocol.
+  - UK citation grammar: provisions incl. lists, ranges, nested schedule/part units and subsection forms; SI, SSI, SR, chapter and regnal numbers; negation, context, temporal and out-of-coverage cues.
+  - Decisions 13–15 recorded.
 - 2026-09-27: **M4-UK and M6 done (Stage A).**
   - Index format v1 = memory-mapped sorted tables (decision 12).
   - Partial UK: load 132 ms, 29 MB, lookups ~5 µs (`docs/measurements.md`).
@@ -549,6 +561,13 @@ M9 docs are written alongside and finished before M10.
     - Citing the instrument binds normally.
     - A *provision* citation to one returns `ROUTE_OUT_OF_COVERAGE`, reason "provision structure not available", `next_action` `VERIFY_LIVE`. It is never refused.
     - The index records `structure: full | metadata_only` per instrument.
+13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
+14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
+15. **Linking and exclusion (27 Sept):** an unlinked provision attaches to the one instrument the query names, if there is exactly one that is not negated.
+    - **Exclusion is handled at both levels, provision and instrument.** A cue ("except", "other than", "apart from", "excluding", "save for", "with the exception of", "not", "but not", "rather than", "instead of") marks the mention straight after it (and any list joined to it) as excluded.
+    - An excluded mention is never a bound target. It appears in `citations` with `resolution="excluded"` and in the new `RouteResult.excluded`, and `partition_filter` removes it (`and not (coordinate == … or coordinate like …/%)`).
+    - Example: "…all sections except section 124" of ERA 1996 → bound to the whole Act minus s.124.
+    - If the cue's scope is unclear, the result is `ROUTE_AMBIGUOUS`.
 12. **Q-M6-1 index storage (27 Sept):** memory-mapped sorted tables (`*.tbl` + `*.off`, SHA-256 verified).
     - Replaces the JSON tables and the frozenset / node trie. The plan anticipated this past about 1M coordinates.
     - Titles are found by n-gram lookups, not an in-memory trie.

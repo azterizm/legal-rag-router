@@ -234,6 +234,10 @@ Outcomes:
 | UK-C-05 | Context coordinates are re-validated against the index | An invalid context coordinate is ignored |
 | UK-C-06 | Negation: "s.124, not the Companies Act one, the ERA" | **B** ERA s.124. The negated instrument is never in the filter |
 | UK-C-07 | Unclear negation scope | **A** |
+| UK-C-19 | Provision-level exclusion: "In the ERA 1996, what applies across all sections except section 124?" | **B** to `uk/ukpga/1996/18` with `excluded=[…/s124]`. The filter removes s.124 and its subtree (decision 15) |
+| UK-C-20 | A provision with no connector, when the query names exactly one (non-negated) instrument: "In the Employment Rights Act 1996, what does section 124 cover?" | Linked to that instrument (decision 15). With two or more instruments: **A** |
+| UK-C-21 | A citation resolving to a coordinate the source publishes twice (`duplicated_provisions`) | **A**: "which Part?" (decision 13) |
+| UK-C-22 | One covered and one out-of-coverage citation: "ERA 1996 s.124 and Article 82 UK GDPR" | **O**, with both citations listed (decision 14) |
 | UK-C-08 | Time qualifiers: "as it stood in 2012", "original version", "as enacted" | Raw `temporal_hint`; never read as the instrument year |
 | UK-C-09 | Several citations in one query | **B** with every coordinate |
 | UK-C-10 | Several citations where one abstains | The whole query abstains |
