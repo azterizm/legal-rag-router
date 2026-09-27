@@ -52,7 +52,14 @@ from legal_rag_router.grammars.uk import (
     provision_from_legislation_tokens,
 )
 
-__all__ = ["IngestError", "ParsedInstrument", "main", "parse_clml"]
+__all__ = [
+    "IngestError",
+    "ParsedInstrument",
+    "clean_title",
+    "coordinate_from_uri",
+    "main",
+    "parse_clml",
+]
 
 log = logging.getLogger("ingest.uk")
 
@@ -186,6 +193,16 @@ def coordinate_from_uri(uri: str | None) -> Coordinate | None:
         return instrument.child(*provision) if provision is not None else None
     except CoordinateError:
         return None
+
+
+def clean_title(published: str) -> tuple[str, bool]:
+    """Strip legislation.gov.uk's "(repealed …)" / "(revoked …)" suffix.
+
+    Returns ``(title, repealed)``; the suffix is how the source marks a whole instrument
+    as no longer in force.
+    """
+    title = _REPEAL_SUFFIX.sub("", published).strip()
+    return (title or published.strip()), _REPEAL_SUFFIX.search(published) is not None
 
 
 def _date(value: str | None) -> date | None:
@@ -532,7 +549,7 @@ def parse_clml(data: bytes, *, source_sha256: str | None = None) -> ParsedInstru
     published_title = _text_of(metadata.find(f"{DC}title"))
     if not published_title:
         raise IngestError("document has no title")
-    title = _REPEAL_SUFFIX.sub("", published_title).strip() or published_title
+    title, repealed = clean_title(published_title)
     year_value, number_value = meta_value("Year"), meta_value("Number")
     if not (year_value and year_value.isdigit() and number_value and number_value.isdigit()):
         raise IngestError("document has no numeric Year/Number")
@@ -563,7 +580,7 @@ def parse_clml(data: bytes, *, source_sha256: str | None = None) -> ParsedInstru
         ),
         enactment_date=meta_date("EnactmentDate"),
         made_date=meta_date("Made"),
-        repealed=_REPEAL_SUFFIX.search(published_title) is not None,
+        repealed=repealed,
         structure="full" if parser.provisions else "metadata_only",
         provision_count=len(parser.provisions),
         alternative_versions=parser.alternative_versions,

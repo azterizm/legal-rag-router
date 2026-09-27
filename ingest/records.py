@@ -33,6 +33,7 @@ from legal_rag_router.coordinate import Coordinate, CoordinateError
 __all__ = [
     "RECORD_SCHEMA_VERSION",
     "AlternativeNumber",
+    "CatalogueEntry",
     "HarvestedCitation",
     "InstrumentRecord",
     "ProvisionRecord",
@@ -166,6 +167,38 @@ class ProvisionRecord(_Record):
         if parent is None or not parent.is_ancestor_of(coordinate):
             raise ValueError("parent must be an ancestor of the coordinate")
         return self
+
+
+class CatalogueEntry(BaseModel):
+    """One instrument known to exist from the source's listings, with or without its text.
+
+    The catalogue covers every series, including those whose provisions are not ingested,
+    so a citation to them is answered "out of coverage" rather than "does not exist"
+    (plan, "Coverage honesty").
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    coordinate: str
+    series: str
+    year: int = Field(ge=1000, le=2999)
+    number: int = Field(ge=1)
+    title: str | None = None
+    """``None`` when the listing gave no title (the instrument is still known to exist)."""
+    title_as_published: str | None = None
+    repealed: bool = False
+    source: str = Field(min_length=1)
+
+    @field_validator("coordinate")
+    @classmethod
+    def _instrument_coordinate(cls, value: str) -> str:
+        try:
+            coordinate = Coordinate.parse(value)
+        except CoordinateError as exc:
+            raise ValueError(str(exc)) from exc
+        if not coordinate.is_instrument:
+            raise ValueError("catalogue entries name instruments")
+        return value
 
 
 class HarvestedCitation(BaseModel):

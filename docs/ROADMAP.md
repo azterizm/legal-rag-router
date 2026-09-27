@@ -20,14 +20,21 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK). M3-UK in progress (records + UK parser ✅; fetch layer, listing harvest, `docs/sources.md` to do) |
-| Next step | M3-UK: fetch layer (`ingest/cache.py`, offline-tested, used only in Stage B), `ingest/records.py` (`ProvisionRecord`), `ingest/uk.py` reading `uk_scrap_data/`, the listing harvest (`ingest/uk_catalogue.py`, offline-tested), `docs/sources.md` |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅. Next: M4-UK (fixture slice) |
+| Next step | M4-UK: choose the fixture instruments from what's on disk, write `aliases/uk.toml` (first pass), then start `ingest/build_index.py` (M6) against the fixture |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M3-UK done.**
+  - `ingest/cache.py`: polite fetch layer, 23 offline tests.
+  - `ingest/uk_catalogue.py`: importer (run: 42,365 entries in `data/catalogue/uk_catalogue.jsonl`) and Atom harvester for Stage B.
+  - `docs/sources.md`.
+  - Found: 6,656 Welsh rows in your listing have no title. They are kept as untitled entries and fixed by the Stage B harvest.
+
+  Resume at M4-UK.
 - 2026-09-27: **M3-UK part 1.** `ingest/records.py` and `ingest/uk.py` read `uk_scrap_data/`. A full run over all 33,788 files takes 35 s with 0 failures:
   - 10,720 instruments with full structure and 23,068 metadata-only (decision 10);
   - 1,992,290 provisions;
@@ -195,7 +202,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M3 — Fetch layer and source reconnaissance (prep for plan steps 4–5) · day 2
 
-- [ ] `ingest/cache.py`, shared by both sources:
+- [x] `ingest/cache.py`, shared by both sources:
   - Content-addressed disk cache under `.cache/`.
   - Token-bucket limit of 1 req/s.
   - Declared User-Agent with contact details.
@@ -203,8 +210,8 @@ Each of these changes order or method but not what gets delivered. See §4.
   - Conditional GETs (ETag / Last-Modified).
   - `defusedxml` for all XML.
   - Structured progress log. Resumable and idempotent.
-- [ ] `ingest/records.py`: pydantic `ProvisionRecord` (01 §4) with a per-record `checksum_sha256`. Canonical JSON serialisation.
-- [ ] **Reconnaissance, written up in `docs/sources.md`:**
+- [x] `ingest/records.py`: pydantic `ProvisionRecord` (01 §4) with a per-record `checksum_sha256`. Canonical JSON serialisation.
+- [x] **Reconnaissance, written up in `docs/sources.md`:**
   - legislation.gov.uk:
     - Atom feed paging per type and year.
     - `data.xml` element-id conventions for sections, subsections, schedules, parts and SI articles/regulations.
