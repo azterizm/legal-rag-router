@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Raw scrape cache and externally scraped source data: build machine only, never published
+.cache/
+uk_scrap_data/
+
+# Corpus data: published as release assets, never committed (except the licence manifest)
+data/*
+!data/MANIFEST.json
+
+# Raw per-call benchmark output (sealed summaries are committed under results/)
+results/raw/
