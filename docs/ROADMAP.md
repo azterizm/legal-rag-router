@@ -22,19 +22,23 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress** |
 | Next step | M7-UK remaining:
-- `identifiers.py`;
-- `typo.py`;
-- `router.py`: title n-gram matching, linking, exclusion, context, resolution, result assembly, miss logging;
-- `filters.py`;
-- M7 tests (grammar unit tests, invariants, `test_collision_rate.py`, golden probes, fuzz, threads).
+- ⛔ **Q-M7-2** (4 KB random-noise latency, see §4 open questions).
+- `eval/sweep.py`: harvest split rule (D3) plus coverage-sweep tooling. The sweep itself runs in Stage B on the full harvest.
+- Raise coverage to 95 % (router.py is at 89 %).
+- `docs/grammar.md`: rows for the new behaviours (soft particles, prefilter, work caps).
+- `docs/contract.md`.
 
-Done so far: `result.py` (public types), `grammars/base.py` (plugin protocol), `grammars/uk_grammar.py` (UK provision, number and cue patterns; smoke-tested). |
+Done: router pipeline, identifiers, typo tiers, filters, and the M7 test suite (480 tests, 93 % coverage). |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M7-UK part 2.** Router, identifiers, typo tiers, partition filter, prefilter and the M7 test suite: 480 pass, 2 skip until CA 2006 / Spanish data land, 93 % coverage.
+  - Every UK probe in the plan's Verification section behaves as specified.
+  - Typical queries take 0.003–0.3 ms; realistic 4 KB prose 1.3 ms.
+  - Random 4 KB noise: p50 ≈ 2 ms, p99 ≈ 4–5 ms (Q-M7-2).
 - 2026-09-27: M7-UK part 1:
   - Public result types.
   - Grammar plugin protocol.
@@ -254,6 +258,13 @@ Each of these changes order or method but not what gets delivered. See §4.
 - ⛔ **Halt if reconnaissance contradicts the plan.** For example: referencias need a second call per norm (≈ +10k calls), fair-use terms forbid 1 req/s, or the element-id depth doesn't reach `1ZA`.
 - **Done when:** cache unit tests pass (rate limit, backoff, resume, conditional GET, all using a fake transport), and `docs/sources.md` records the confirmed field names.
 
+
+### M7 open question
+- **Q-M7-2 — Latency budget for random 4 KB noise.** Plan step 7 says hypothesis fuzz inputs of up to 4 KB finish in < 2 ms (the ReDoS guard). Measured on the Mac, with random inputs of 0–4 KB:
+  - printable noise: p50 1.9 ms, p99 3.8 ms, max 4.9 ms;
+  - Unicode mix: p99 5.0 ms.
+  - For comparison: typical queries 0.003–0.3 ms; realistic 4 KB legal prose 1.3 ms.
+  - Time is linear: no pattern backtracks. The remaining cost is tokenising thousands of characters in CPython.
 
 ### M3-UK open question
 - **Q-M7-1 — Provisions the source publishes twice** (0.17 %).
