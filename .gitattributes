@@ -1,0 +1,2 @@
+tests/fixtures/index/** -diff linguist-generated=true
+*.off binary

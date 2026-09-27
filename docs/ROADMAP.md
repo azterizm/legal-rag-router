@@ -20,14 +20,21 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅. M4-UK/M6: builder and loader drafted; ⛔ **halted on Q-M6-1** (index load time and memory) |
-| Next step | After Q-M6-1: finalise the index storage format, add loader and builder tests, build and commit the fixture index (`tests/fixtures/index/`), then M7 |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). Next: **M7-UK** (parser and router) |
+| Next step | M7-UK: public types (`RouteResult`, `ParsedCitation`, statuses, `next_action`), the identifier scanner, the UK grammar (anchors, provisions), title n-gram lookup, resolution with typo tiers, `filters.py`, then the M7 tests |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M4-UK and M6 done (Stage A).**
+  - Index format v1 = memory-mapped sorted tables (decision 12).
+  - Partial UK: load 132 ms, 29 MB, lookups ~5 µs (`docs/measurements.md`).
+  - Committed fixture index `tests/fixtures/index/`: 2.8 MB, 32 instruments, 64,909 coordinates. It is deterministic, rebuilt by `python -m scripts.build_fixture`, and marked partial until CA 2006, SI 2011/3006, SI 2026/310 and FSMA 2000 are downloaded.
+  - 253 tests, 97.75 % coverage.
+
+  Resume at M7-UK.
 - 2026-09-27: **Halted at M6 on Q-M6-1.**
   - Drafted:
     - `normalise.py`: folding with offsets, tokeniser, title keys; tested.
@@ -235,8 +242,6 @@ Each of these changes order or method but not what gets delivered. See §4.
 - ⛔ **Halt if reconnaissance contradicts the plan.** For example: referencias need a second call per norm (≈ +10k calls), fair-use terms forbid 1 req/s, or the element-id depth doesn't reach `1ZA`.
 - **Done when:** cache unit tests pass (rate limit, backoff, resume, conditional GET, all using a fake transport), and `docs/sources.md` records the confirmed field names.
 
-### M6 open question
-- **Q-M6-1 — Index storage.** At 2M coordinates (partial UK), JSON tables + frozenset load in 2.0 s and use about 1 GB. The target is < 450 ms, and full UK will be 2–3× larger. See `docs/measurements.md`.
 
 ### M3-UK open question
 - **Q-M7-1 — Provisions the source publishes twice** (0.17 %).
@@ -544,6 +549,10 @@ M9 docs are written alongside and finished before M10.
     - Citing the instrument binds normally.
     - A *provision* citation to one returns `ROUTE_OUT_OF_COVERAGE`, reason "provision structure not available", `next_action` `VERIFY_LIVE`. It is never refused.
     - The index records `structure: full | metadata_only` per instrument.
+12. **Q-M6-1 index storage (27 Sept):** memory-mapped sorted tables (`*.tbl` + `*.off`, SHA-256 verified).
+    - Replaces the JSON tables and the frozenset / node trie. The plan anticipated this past about 1M coordinates.
+    - Titles are found by n-gram lookups, not an in-memory trie.
+    - Case variants are stored in the coordinate table value.
 11. **Record text (27 Sept):** each provision record's `text` holds its own text only, excluding child provisions. Records carry `parent` and `order`, and full text is rebuilt by joining descendants.
 9. **U4 listing harvest (27 Sept):** written and tested offline now, against recorded feed pages. It runs in Stage B, after your fetch completes, so the two never overlap.
 

@@ -1,113 +1,128 @@
-"""The router index: plain data files, verified on load, held immutable in memory.
+"""The router index: plain data files, verified on load, memory-mapped, immutable.
 
-The index is a release asset that third parties download, so it is stored as data (a
-sorted, gzipped coordinate list plus JSON tables), never as a pickle, and every file is
-checked against the SHA-256 in ``index-manifest.json`` before use. Loading refuses a
-manifest with an unknown format version.
+The index is a release asset that third parties download, so it is stored as data, never
+as a pickle, and every file is checked against the SHA-256 in ``index-manifest.json``
+before use. Loading refuses a manifest with an unknown format version.
 
-Files (format version 1):
+Large tables are memory-mapped :class:`~legal_rag_router.table.SortedTable` files (roadmap
+decision Q-M6-1): load time does not grow with the index and memory is only the pages
+touched. Format version 1:
 
-``coordinates.txt.gz``   every indexed coordinate, one per line, sorted by casefolded key
-``instruments.json``     instrument_id → metadata (title, year, series, repealed, structure …)
-``titles.json``          title key → instrument_ids (several key variants per title)
-``aliases.json``         alias key → {id, salient}
-``numbers.json``         official-number key (``si/2011/3006``, ``c/1996/18`` …) → instrument_ids
-``wordsets.json``        sorted content words|year → instrument_id (unique word sets only)
-``words.json``           content word → instrument_ids (for ranking suggestions)
-``typo.json``            symmetric-delete variant → title vocabulary words
-``coverage.json``        instruments known to exist but not indexed (out of coverage)
-``case_variants.json``   casefolded key → the canonical coordinates that share it
+=========================  ================================================================
+``coordinates``            casefolded coordinate → canonical spelling(s) (``|``-joined when
+                           siblings differ only by case, roadmap decision 7)
+``instruments``            instrument_id → JSON metadata (title, year, series, structure …)
+``titles``                 title key → instrument_ids (several key variants per title)
+``numbers``                official-number key (``si/2011/3006``, ``c/1996/18``) → ids
+``wordsets``               sorted content words|year → instrument_id (unique sets only)
+``words``                  content word → instrument_ids (ranking suggestions)
+``typo``                   symmetric-delete variant → title vocabulary words
+``coverage_instruments``   out-of-coverage coordinate → JSON (title, year, series …)
+``coverage_titles``        title key → out-of-coverage coordinates
+``coverage_numbers``       official-number key → out-of-coverage coordinates
+``aliases.json``           alias key → {id, salient, form} (small; plain JSON)
+=========================  ================================================================
 
-Queries never touch the disk: everything is loaded once; routing is lock-free and
-thread-safe because nothing is mutated after :func:`load_index` returns.
+List values are comma-joined (ids, words and coordinates never contain commas).
 """
 
 from __future__ import annotations
 
-import gzip
 import hashlib
 import json
-from bisect import bisect_left
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Final
 
-from legal_rag_router.coordinate import Coordinate
+from legal_rag_router.table import SortedTable
 
 __all__ = [
     "FORMAT_VERSION",
     "INDEX_FILES",
+    "JSON_FILES",
     "MANIFEST_NAME",
+    "TABLES",
     "CoordinateIndex",
     "IndexLoadError",
     "InstrumentInfo",
     "RouterIndex",
     "load_index",
+    "split_list",
 ]
 
 FORMAT_VERSION: Final = 1
 MANIFEST_NAME: Final = "index-manifest.json"
-INDEX_FILES: Final = (
-    "coordinates.txt.gz",
-    "instruments.json",
-    "titles.json",
-    "aliases.json",
-    "numbers.json",
-    "wordsets.json",
-    "words.json",
-    "typo.json",
-    "coverage.json",
-    "case_variants.json",
+TABLES: Final = (
+    "coordinates",
+    "instruments",
+    "titles",
+    "numbers",
+    "wordsets",
+    "words",
+    "typo",
+    "coverage_instruments",
+    "coverage_titles",
+    "coverage_numbers",
 )
-_MAX_FILE_BYTES: Final = 2 << 30
+JSON_FILES: Final = ("aliases.json",)
+INDEX_FILES: Final = (*(f"{t}.{ext}" for t in TABLES for ext in ("tbl", "off")), *JSON_FILES)
 
 
 class IndexLoadError(RuntimeError):
     """Raised when an index cannot be loaded: missing file, bad hash, unknown format."""
 
 
-class CoordinateIndex:
-    """Exact existence and prefix lookups over an immutable, sorted coordinate list.
+def split_list(value: str | None) -> tuple[str, ...]:
+    """Decode a comma-joined table value."""
+    return tuple(value.split(",")) if value else ()
 
-    Lookups are by casefolded key; :meth:`canonical` returns the stored spelling.
+
+class CoordinateIndex:
+    """Exact existence and prefix lookups over the sorted coordinate table.
+
+    Lookups are case-insensitive; :meth:`spellings` returns the canonical spelling(s).
     ``descendants`` uses a ``/`` boundary so ``s124`` never matches ``s124A``.
     """
 
-    __slots__ = ("_canonical", "_exists", "_sorted")
+    __slots__ = ("_table",)
 
-    def __init__(self, coordinates: list[str]) -> None:
-        keys = [c.casefold() for c in coordinates]
-        self._sorted: list[str] = sorted(set(keys))
-        self._exists: frozenset[str] = frozenset(self._sorted)
-        # Only store canonical spellings that differ from their key (source case: "1ZA").
-        self._canonical: dict[str, str] = {
-            k: c for k, c in zip(keys, coordinates, strict=True) if k != c
-        }
+    def __init__(self, table: SortedTable) -> None:
+        self._table = table
 
     def __len__(self) -> int:
-        return len(self._sorted)
+        return len(self._table)
 
     def __contains__(self, coordinate: object) -> bool:
-        if isinstance(coordinate, Coordinate):
-            return coordinate.key in self._exists
-        return isinstance(coordinate, str) and coordinate.casefold() in self._exists
+        return isinstance(coordinate, str) and self._table.get(coordinate.casefold()) is not None
+
+    @staticmethod
+    def _decode(key: str, value: str) -> tuple[str, ...]:
+        return tuple(value.split("|")) if value else (key,)
+
+    def spellings(self, coordinate: str) -> tuple[str, ...]:
+        """Every canonical spelling for ``coordinate`` (case-insensitive); ``()`` if absent.
+
+        More than one spelling means siblings differ only by case (``…/a`` and ``…/A``).
+        """
+        key = coordinate.casefold()
+        value = self._table.get(key)
+        return () if value is None else self._decode(key, value)
 
     def canonical(self, coordinate: str) -> str | None:
-        """The stored spelling of ``coordinate`` (any case), or ``None`` if absent."""
-        key = coordinate.casefold()
-        if key not in self._exists:
-            return None
-        return self._canonical.get(key, key)
+        """The canonical spelling, or ``None`` if absent or ambiguous by case alone.
+
+        An exact-case match always wins (decision 7: bind only on an exact-case match).
+        """
+        spellings = self.spellings(coordinate)
+        if coordinate in spellings:
+            return coordinate
+        return spellings[0] if len(spellings) == 1 else None
 
     def descendants(self, coordinate: str) -> Iterator[str]:
         """Every coordinate strictly beneath ``coordinate``, canonical, in key order."""
-        prefix = coordinate.casefold() + "/"
-        i = bisect_left(self._sorted, prefix)
-        while i < len(self._sorted) and self._sorted[i].startswith(prefix):
-            key = self._sorted[i]
-            yield self._canonical.get(key, key)
-            i += 1
+        for key, value in self._table.prefix(coordinate.casefold() + "/"):
+            yield from self._decode(key, value)
 
     def children(self, coordinate: str) -> Iterator[str]:
         """Direct children of ``coordinate``."""
@@ -150,24 +165,29 @@ class InstrumentInfo:
 
 @dataclass(frozen=True, slots=True)
 class RouterIndex:
-    """Everything the router looks up, loaded once and never mutated."""
+    """Everything the router looks up. Immutable; safe to share between threads."""
 
     manifest: Mapping[str, Any]
     coordinates: CoordinateIndex
-    instruments: Mapping[str, InstrumentInfo]
-    titles: Mapping[str, tuple[str, ...]]
+    tables: Mapping[str, SortedTable]
     aliases: Mapping[str, Mapping[str, Any]]
-    numbers: Mapping[str, tuple[str, ...]]
-    wordsets: Mapping[str, str]
-    words: Mapping[str, tuple[str, ...]]
-    typo: Mapping[str, tuple[str, ...]]
-    coverage: Mapping[str, Any]
-    case_variants: Mapping[str, tuple[str, ...]]
 
     @property
     def snapshot(self) -> str:
         """Date the index is complete through ("not in the statute book as of …")."""
         return str(self.manifest["snapshot"])
+
+    def instrument(self, instrument_id: str) -> InstrumentInfo | None:
+        raw = self.tables["instruments"].get(instrument_id)
+        return None if raw is None else InstrumentInfo.from_json(instrument_id, json.loads(raw))
+
+    def ids(self, table: str, key: str) -> tuple[str, ...]:
+        """Decode a comma-joined list value (titles, numbers, words, typo, coverage …)."""
+        return split_list(self.tables[table].get(key))
+
+    def coverage(self, coordinate: str) -> Mapping[str, Any] | None:
+        raw = self.tables["coverage_instruments"].get(coordinate)
+        return None if raw is None else json.loads(raw)
 
 
 def _sha256(path: Path) -> str:
@@ -178,33 +198,27 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _read_verified(directory: Path, name: str, expected: Mapping[str, Any]) -> bytes:
-    entry = expected.get(name)
-    if not isinstance(entry, Mapping) or "sha256" not in entry:
-        raise IndexLoadError(f"{MANIFEST_NAME} has no hash for {name}")
-    path = directory / name
-    if not path.is_file():
-        raise IndexLoadError(f"missing index file {name}")
-    if path.stat().st_size > _MAX_FILE_BYTES:
-        raise IndexLoadError(f"index file {name} is implausibly large")
-    if _sha256(path) != entry["sha256"]:
-        raise IndexLoadError(f"hash mismatch for {name}: the index is corrupt or was modified")
-    return path.read_bytes()
-
-
-def _json(data: bytes, name: str) -> Any:
-    try:
-        return json.loads(data)
-    except ValueError as exc:
-        raise IndexLoadError(f"{name} is not valid JSON") from exc
+def _verify(root: Path, manifest: Mapping[str, Any]) -> None:
+    files = manifest.get("files")
+    if not isinstance(files, Mapping):
+        raise IndexLoadError(f"{MANIFEST_NAME} lists no files")
+    for name in INDEX_FILES:
+        entry = files.get(name)
+        if not isinstance(entry, Mapping) or "sha256" not in entry:
+            raise IndexLoadError(f"{MANIFEST_NAME} has no hash for {name}")
+        path = root / name
+        if not path.is_file():
+            raise IndexLoadError(f"missing index file {name}")
+        if _sha256(path) != entry["sha256"]:
+            raise IndexLoadError(f"hash mismatch for {name}: the index is corrupt or was modified")
 
 
 def load_index(directory: str | Path) -> RouterIndex:
-    """Load and verify an index directory.
+    """Load, verify and map an index directory.
 
     Raises:
-        IndexLoadError: if the manifest is missing or has an unsupported format version, or
-            any file is missing or does not match its SHA-256.
+        IndexLoadError: if the manifest is missing or has an unsupported format version,
+            or any file is missing or does not match its SHA-256.
     """
     root = Path(directory)
     try:
@@ -218,23 +232,15 @@ def load_index(directory: str | Path) -> RouterIndex:
         raise IndexLoadError(
             f"unsupported index format version {found!r}; this router reads {FORMAT_VERSION}"
         )
-    files = manifest.get("files", {})
-    raw = {name: _read_verified(root, name, files) for name in INDEX_FILES}
-
-    coordinates = gzip.decompress(raw["coordinates.txt.gz"]).decode("utf-8").split("\n")
-    instruments_raw = _json(raw["instruments.json"], "instruments.json")
+    _verify(root, manifest)
+    tables = {t: SortedTable.open(root / f"{t}.tbl", root / f"{t}.off") for t in TABLES}
+    try:
+        aliases = json.loads((root / "aliases.json").read_text(encoding="utf-8"))
+    except ValueError as exc:
+        raise IndexLoadError("aliases.json is not valid JSON") from exc
     return RouterIndex(
         manifest=manifest,
-        coordinates=CoordinateIndex([c for c in coordinates if c]),
-        instruments={k: InstrumentInfo.from_json(k, v) for k, v in instruments_raw.items()},
-        titles={k: tuple(v) for k, v in _json(raw["titles.json"], "titles.json").items()},
-        aliases=_json(raw["aliases.json"], "aliases.json"),
-        numbers={k: tuple(v) for k, v in _json(raw["numbers.json"], "numbers.json").items()},
-        wordsets=_json(raw["wordsets.json"], "wordsets.json"),
-        words={k: tuple(v) for k, v in _json(raw["words.json"], "words.json").items()},
-        typo={k: tuple(v) for k, v in _json(raw["typo.json"], "typo.json").items()},
-        coverage=_json(raw["coverage.json"], "coverage.json"),
-        case_variants={
-            k: tuple(v) for k, v in _json(raw["case_variants.json"], "case_variants.json").items()
-        },
+        coordinates=CoordinateIndex(tables["coordinates"]),
+        tables=tables,
+        aliases=aliases,
     )

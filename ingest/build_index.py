@@ -20,9 +20,7 @@ The build fails (exit 1, nothing written) on any integrity problem:
 from __future__ import annotations
 
 import argparse
-import gzip
 import hashlib
-import io
 import json
 import logging
 import sys
@@ -41,6 +39,7 @@ from legal_rag_router.coordinate import Coordinate
 from legal_rag_router.grammars.uk import INSTRUMENT_TYPE_WORDS, number_keys
 from legal_rag_router.index import FORMAT_VERSION, INDEX_FILES, MANIFEST_NAME
 from legal_rag_router.normalise import split_title_year, title_key, title_words
+from legal_rag_router.table import encode_table
 
 __all__ = ["BuildError", "IndexBuild", "build_index", "main", "title_variants"]
 
@@ -290,7 +289,10 @@ def _build_aliases(out: IndexBuild, entries: list[dict[str, Any]], *, allow_miss
             existing = out.aliases.get(key)
             if existing is not None and existing["id"] != iid:
                 raise BuildError(f"alias {form!r} names two targets: {existing['id']} and {iid}")
-            shadowed = [i for i in out.titles.get(key, []) if i != iid]
+            # Read as a title, the form must not name some other instrument.
+            shadowed = sorted(
+                {i for k in title_variants(str(form)) for i in out.titles.get(k, []) if i != iid}
+            )
             if shadowed:
                 raise BuildError(f"alias {form!r} shadows the title of {shadowed}")
             out.aliases[key] = {
@@ -309,29 +311,54 @@ def _json_bytes(data: Any) -> bytes:
     ).encode()
 
 
-def _gzip_lines(lines: Iterable[str]) -> bytes:
-    buffer = io.BytesIO()
-    with gzip.GzipFile(fileobj=buffer, mode="wb", mtime=0, compresslevel=9) as gz:
-        gz.write("\n".join(lines).encode("utf-8"))
-        gz.write(b"\n")
-    return buffer.getvalue()
+def _compact(data: Any) -> str:
+    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _joined(values: Iterable[str]) -> str:
+    items = sorted(set(values))
+    if any("," in v for v in items):
+        raise BuildError(f"list value contains a comma: {items}")
+    return ",".join(items)
+
+
+def _coordinate_rows(build: IndexBuild) -> Iterator[tuple[str, str]]:
+    """casefolded key → "" (canonical == key), the canonical spelling, or "a|A" variants."""
+    by_key: dict[str, set[str]] = defaultdict(set)
+    for coordinate in build.coordinates:
+        by_key[coordinate.casefold()].add(coordinate)
+    for key, spellings in by_key.items():
+        if len(spellings) > 1:
+            yield key, "|".join(sorted(spellings))
+        else:
+            (only,) = spellings
+            yield key, "" if only == key else only
 
 
 def serialise(build: IndexBuild) -> dict[str, bytes]:
     """Every index file's bytes (manifest excluded), deterministically."""
-    ordered = sorted(set(build.coordinates), key=lambda c: (c.casefold(), c))
-    return {
-        "coordinates.txt.gz": _gzip_lines(ordered),
-        "instruments.json": _json_bytes(build.instruments),
-        "titles.json": _json_bytes({k: sorted(set(v)) for k, v in build.titles.items()}),
-        "aliases.json": _json_bytes(build.aliases),
-        "numbers.json": _json_bytes({k: sorted(set(v)) for k, v in build.numbers.items()}),
-        "wordsets.json": _json_bytes(build.wordsets),
-        "words.json": _json_bytes({k: sorted(set(v)) for k, v in build.words.items()}),
-        "typo.json": _json_bytes({k: sorted(set(v)) for k, v in build.typo.items()}),
-        "coverage.json": _json_bytes(build.coverage),
-        "case_variants.json": _json_bytes(build.case_variants),
+    tables: dict[str, Iterable[tuple[str, str]]] = {
+        "coordinates": _coordinate_rows(build),
+        "instruments": ((k, _compact(v)) for k, v in build.instruments.items()),
+        "titles": ((k, _joined(v)) for k, v in build.titles.items()),
+        "numbers": ((k, _joined(v)) for k, v in build.numbers.items()),
+        "wordsets": build.wordsets.items(),
+        "words": ((k, _joined(v)) for k, v in build.words.items()),
+        "typo": ((k, _joined(v)) for k, v in build.typo.items()),
+        "coverage_instruments": (
+            (k, _compact(v)) for k, v in build.coverage.get("instruments", {}).items()
+        ),
+        "coverage_titles": ((k, _joined(v)) for k, v in build.coverage.get("titles", {}).items()),
+        "coverage_numbers": ((k, _joined(v)) for k, v in build.coverage.get("numbers", {}).items()),
     }
+    files: dict[str, bytes] = {}
+    for name, rows in tables.items():
+        try:
+            files[f"{name}.tbl"], files[f"{name}.off"] = encode_table(rows)
+        except ValueError as exc:
+            raise BuildError(f"table {name}: {exc}") from exc
+    files["aliases.json"] = _json_bytes(build.aliases)
+    return files
 
 
 def write_index(
@@ -339,7 +366,8 @@ def write_index(
 ) -> dict[str, Any]:
     """Write the files and a manifest carrying each file's SHA-256. Returns the manifest."""
     files = serialise(build)
-    assert set(files) == set(INDEX_FILES)  # noqa: S101 - keep the loader and builder in step
+    if set(files) != set(INDEX_FILES):
+        raise BuildError("builder and loader disagree on the index file set")
     manifest: dict[str, Any] = {
         "format_version": FORMAT_VERSION,
         "grammar_version": GRAMMAR_VERSION,
@@ -349,6 +377,7 @@ def write_index(
         "sources": list(sources),
         "partial": bool(build.dropped_aliases),
         "dropped_alias_targets": sorted(set(build.dropped_aliases)),
+        "coverage_series": build.coverage.get("series", []),
         "counts": {
             "coordinates": len(set(build.coordinates)),
             "instruments": len(build.instruments),
@@ -374,6 +403,9 @@ def write_index(
         },
     }
     out_dir.mkdir(parents=True, exist_ok=True)
+    for stale in out_dir.iterdir():  # never leave files from an older format behind
+        if stale.is_file() and stale.name not in files and stale.name != MANIFEST_NAME:
+            stale.unlink()
     for name, data in files.items():
         tmp = out_dir / f".{name}.tmp"
         tmp.write_bytes(data)

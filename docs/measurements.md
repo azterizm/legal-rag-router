@@ -38,4 +38,19 @@ Reading:
 - Plan step 6 anticipated this: past about 1M coordinates, switch to a memory-mapped sorted blob searched with bisect.
 - Raw sorted coordinate blob: 54 MB. A Python scan for line offsets takes 158 ms; precomputing the offsets at build time makes that 0 ms.
 
-Decision pending: roadmap Q-M6-1.
+Decided 2026-09-27: memory-mapped sorted tables (next section).
+
+## 2026-09-27: same data, memory-mapped sorted tables (decision Q-M6-1)
+
+| Measure | frozenset + JSON | mmap sorted tables |
+|---|---|---|
+| Build time (`--no-verify`) | 21.0 s | 17.8 s |
+| Index size on disk (uncompressed; release tarball is compressed) | 59 MB | 121 MB |
+| **Load time** (incl. SHA-256 of every file) | 2,028 ms | **132 ms** ✓ (import 34 ms extra) |
+| **Resident memory after load + lookups** | ≈ 990 MB | **29 MB** ✓ |
+| Coordinate existence lookup | 80 ns | 5.7 µs |
+| Title key lookup | — | 4.6 µs |
+
+- Load time is dominated by hashing the files, and grows linearly with index size (roughly 1 ms per MB). Parsing no longer does.
+- Lookups stay far inside the < 2 ms routing budget.
+- The in-memory token trie is dropped: titles are found by looking up the query's n-grams in the title table.
