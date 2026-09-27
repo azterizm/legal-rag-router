@@ -18,6 +18,7 @@ import hashlib
 import logging
 import re
 import time
+from bisect import bisect_left, bisect_right
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field, replace
 from datetime import date
@@ -61,6 +62,7 @@ miss_log = logging.getLogger("legal_rag_router.misses")
 MAX_ANCHORS: Final = 16
 MAX_MENTIONS: Final = 24
 MAX_TITLE_WORDS: Final = 16
+MAX_CUES: Final = 64
 MAX_TITLE_LOOKUPS: Final = 320
 """Work cap per query. Past it the query is too complex to route safely: it fails safe to
 ``ROUTE_UNRESOLVED`` rather than binding on a partial reading (DoS and misroute guard)."""
@@ -192,6 +194,34 @@ class _Scan:
     cues: list[Cue]
     blocked: list[tuple[int, int]]
     lookups: int = 0
+    _blocked_starts: list[int] = field(default_factory=list)
+    _blocked_ends: list[int] = field(default_factory=list)
+    _token_starts: list[int] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        merged: list[list[int]] = []
+        for start, end in sorted(self.blocked):
+            if merged and start <= merged[-1][1]:
+                merged[-1][1] = max(merged[-1][1], end)
+            else:
+                merged.append([start, end])
+        self._blocked_starts = [m[0] for m in merged]
+        self._blocked_ends = [m[1] for m in merged]
+        self._token_starts = [t.start for t in self.tokens]
+
+    def is_blocked(self, position: int) -> bool:
+        """True when ``position`` lies inside an identifier, number, provision or cue span."""
+        i = bisect_right(self._blocked_starts, position) - 1
+        return i >= 0 and position < self._blocked_ends[i]
+
+    def gap_words(self, start: int, end: int) -> list[str]:
+        """Token texts lying wholly within ``[start, end)``."""
+        i = bisect_left(self._token_starts, start)
+        out: list[str] = []
+        while i < len(self.tokens) and self.tokens[i].end <= end:
+            out.append(self.tokens[i].text)
+            i += 1
+        return out
 
     def words(self, start: int, end: int) -> tuple[str, ...]:
         """``title_words`` of the text from token ``start`` to token ``end`` (inclusive).
@@ -211,10 +241,6 @@ class _Scan:
 
 def _overlaps(a: tuple[int, int], b: tuple[int, int]) -> bool:
     return a[0] < b[1] and b[0] < a[1]
-
-
-def _inside(position: int, spans: Iterable[tuple[int, int]]) -> bool:
-    return any(s <= position < e for s, e in spans)
 
 
 # ---------------------------------------------------------------------------- router
@@ -250,6 +276,8 @@ class Router:
         self._redact = redact
         self._policy = typo_policy or TypoPolicy()
         self._alias_last_words = frozenset(key.split()[-1] for key in index.aliases)
+        self._alias_words = {tuple(key.split()) for key in index.aliases}
+        self._alias_max_words = max((len(k) for k in self._alias_words), default=0)
         self._salient = tuple(
             dict.fromkeys(str(v["id"]) for v in index.aliases.values() if v.get("salient"))
         )
@@ -318,10 +346,9 @@ class Router:
         if not self._prefilter.search(folded.text):
             return self._result(RouteStatus.UNRESOLVED)
         scan = self._scan(query, folded)
-        if len(scan.provisions) > MAX_MENTIONS:
-            return self._result(
-                RouteStatus.UNRESOLVED, reason="too_many_citations", citation_signal=True
-            )
+        too_big = self._too_big(scan)
+        if too_big is not None:
+            return too_big
         instruments = self._instruments(scan)
         if scan.lookups > MAX_TITLE_LOOKUPS:
             return self._result(RouteStatus.UNRESOLVED, reason="too_complex", citation_signal=True)
@@ -350,6 +377,17 @@ class Router:
         return self._assemble(scan, outcomes, temporal=temporal, signal=signal)
 
     # ------------------------------------------------------------------ scanning
+
+    def _too_big(self, scan: _Scan) -> RouteResult | None:
+        """Caps checked before any pairwise work, so every later loop is bounded and routing
+        stays linear in the query length. Past a cap the query fails safe (DoS guard)."""
+        if max(len(scan.provisions), len(scan.numbers), len(scan.identifiers)) > MAX_MENTIONS:
+            return self._result(
+                RouteStatus.UNRESOLVED, reason="too_many_citations", citation_signal=True
+            )
+        if len(scan.cues) > MAX_CUES:
+            return self._result(RouteStatus.UNRESOLVED, reason="too_complex", citation_signal=True)
+        return None
 
     def _precheck(self, query: object, jurisdictions: Iterable[str] | None) -> RouteResult | None:
         """Queries the router declines before scanning, failing safe to ROUTE_UNRESOLVED."""
@@ -475,11 +513,11 @@ class Router:
                 kind = "year"
             elif token.text in grammar.type_words:
                 kind = "type"
-            elif token.text in self._alias_last_words:
+            elif token.text in self._alias_last_words and self._completes_alias(scan, pos):
                 kind = "alias"
             else:
                 continue
-            if not _inside(token.start, scan.blocked):
+            if not scan.is_blocked(token.start):
                 anchors.append((pos, kind))
         for pos, kind in reversed(anchors[-MAX_ANCHORS:]):  # right to left: longest titles win
             if pos in claimed:
@@ -491,6 +529,17 @@ class Router:
                 found.append(mention)
         return found
 
+    def _completes_alias(self, scan: _Scan, pos: int) -> bool:
+        """True when the words ending at token ``pos`` spell a whole alias ("TULR(C)A 1992")."""
+        first = max(0, pos - 3 * self._alias_max_words)
+        for start in range(pos, first - 1, -1):
+            words = scan.words(start, pos)
+            if words in self._alias_words:
+                return True
+            if len(words) > self._alias_max_words:
+                return False
+        return False
+
     def _window(self, scan: _Scan, anchor: int, claimed: set[int], limit: int) -> list[int]:
         """Word-token positions left of ``anchor`` a title may start at, nearest first."""
         tokens = scan.tokens
@@ -499,7 +548,7 @@ class Router:
         words = 0
         while pos >= 0 and words < limit:
             token = tokens[pos]
-            if pos in claimed or _inside(token.start, scan.blocked):
+            if pos in claimed or scan.is_blocked(token.start):
                 break
             if token.kind == "punct":
                 if token.text in _STOP_PUNCT:
@@ -582,7 +631,7 @@ class Router:
         words = 0
         while pos >= 0 and words < MAX_CITED_WORDS:
             token = tokens[pos]
-            if pos in claimed or _inside(token.start, scan.blocked):
+            if pos in claimed or scan.is_blocked(token.start):
                 break
             if token.kind == "punct":
                 if token.text in _STOP_PUNCT:
@@ -605,7 +654,7 @@ class Router:
         return (
             token.kind == "word"
             and token.text not in self._grammar.boundary_words
-            and not _inside(token.start, scan.blocked)
+            and not scan.is_blocked(token.start)
         )
 
     def _check_embedded(
@@ -786,8 +835,9 @@ class Router:
 
     # ------------------------------------------------------------------ exclusion and linking
 
-    def _gap_words(self, scan: _Scan, start: int, end: int) -> list[str]:
-        return [t.text for t in scan.tokens if start <= t.start and t.end <= end]
+    @staticmethod
+    def _gap_words(scan: _Scan, start: int, end: int) -> list[str]:
+        return scan.gap_words(start, end)
 
     def _apply_exclusions(self, scan: _Scan, instruments: list[_Instrument]) -> set[int]:
         """Mark mentions right after a negation cue (and lists joined to them) as excluded.

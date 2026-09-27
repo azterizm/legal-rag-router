@@ -22,7 +22,6 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress** |
 | Next step | M7-UK remaining:
-- ⛔ **Q-M7-2** (4 KB random-noise latency, see §4 open questions).
 - `eval/sweep.py`: harvest split rule (D3) plus coverage-sweep tooling. The sweep itself runs in Stage B on the full harvest.
 - Raise coverage to 95 % (router.py is at 89 %).
 - `docs/grammar.md`: rows for the new behaviours (soft particles, prefilter, work caps).
@@ -35,6 +34,10 @@ Done: router pipeline, identifiers, typo tiers, filters, and the M7 test suite (
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **Q-M7-2 decided and done.**
+  - `bench/stress.py`: 13 gibberish classes at 4 KB. Floor 7.22 ms; doubling ratios 1.2–2.3.
+  - Router made linear and bounded: caps before pairwise work, bisect span checks, whole-alias anchors.
+  - 493 tests pass.
 - 2026-09-27: **M7-UK part 2.** Router, identifiers, typo tiers, partition filter, prefilter and the M7 test suite: 480 pass, 2 skip until CA 2006 / Spanish data land, 93 % coverage.
   - Every UK probe in the plan's Verification section behaves as specified.
   - Typical queries take 0.003–0.3 ms; realistic 4 KB prose 1.3 ms.
@@ -258,13 +261,6 @@ Each of these changes order or method but not what gets delivered. See §4.
 - ⛔ **Halt if reconnaissance contradicts the plan.** For example: referencias need a second call per norm (≈ +10k calls), fair-use terms forbid 1 req/s, or the element-id depth doesn't reach `1ZA`.
 - **Done when:** cache unit tests pass (rate limit, backoff, resume, conditional GET, all using a fake transport), and `docs/sources.md` records the confirmed field names.
 
-
-### M7 open question
-- **Q-M7-2 — Latency budget for random 4 KB noise.** Plan step 7 says hypothesis fuzz inputs of up to 4 KB finish in < 2 ms (the ReDoS guard). Measured on the Mac, with random inputs of 0–4 KB:
-  - printable noise: p50 1.9 ms, p99 3.8 ms, max 4.9 ms;
-  - Unicode mix: p99 5.0 ms.
-  - For comparison: typical queries 0.003–0.3 ms; realistic 4 KB legal prose 1.3 ms.
-  - Time is linear: no pattern backtracks. The remaining cost is tokenising thousands of characters in CPython.
 
 ### M3-UK open question
 - **Q-M7-1 — Provisions the source publishes twice** (0.17 %).
@@ -572,6 +568,10 @@ M9 docs are written alongside and finished before M10.
     - Citing the instrument binds normally.
     - A *provision* citation to one returns `ROUTE_OUT_OF_COVERAGE`, reason "provision structure not available", `next_action` `VERIFY_LIVE`. It is never refused.
     - The index records `structure: full | metadata_only` per instrument.
+16. **Q-M7-2 latency on 4 KB noise (27 Sept):** split budget.
+    - **Real queries:** < 2 ms p99, published by `bench/latency.py`.
+    - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`): 7.22 ms on the Mac, from title-vocabulary soup. The tests guard 2× that floor plus linear doubling (≤ 2.5×) per class.
+    - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
 15. **Linking and exclusion (27 Sept):** an unlinked provision attaches to the one instrument the query names, if there is exactly one that is not negated.

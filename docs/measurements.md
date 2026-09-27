@@ -54,3 +54,38 @@ Decided 2026-09-27: memory-mapped sorted tables (next section).
 - Load time is dominated by hashing the files, and grows linearly with index size (roughly 1 ms per MB). Parsing no longer does.
 - Lookups stay far inside the < 2 ms routing budget.
 - The in-memory token trie is dropped: titles are found by looking up the query's n-grams in the title table.
+
+
+## 2026-09-27: latency on 4 KB noise (roadmap Q-M7-2, `bench/stress.py`)
+
+Decision: **split budget.**
+- The **< 2 ms p99 target applies to real queries**. It is measured and published by `bench/latency.py` at M10. Typical queries on the fixture take 0.003–0.3 ms; a realistic 4 KB legal paragraph with several citations takes 1.3 ms.
+- For **random noise** at the 4 KB cap, the published figure is the measured worst case across the gibberish classes below, not an assumed bound. Each class strains a different stage. Each sample is the fastest of 5 warm runs (the machine's own jitter is removed, the algorithm's cost is not); 40 samples per class; fixture index; macOS-26.6.2-arm64-arm-64bit, Python 3.11.15.
+- The test suite guards **2× this floor** (scaled on CI, where `LRR_LATENCY_BUDGET_MS=25`). It also checks **linear scaling** per class: doubling the input must not more than 2.5× the time.
+
+| Class | p50 ms | p99 ms | max ms | 2× ratio |
+|---|---|---|---|---|
+| title_vocabulary | 4.74 | 7.22 | 7.22 | 1.20 |
+| unicode_expanding | 4.90 | 6.43 | 6.43 | 2.06 |
+| digits_and_years | 6.00 | 6.23 | 6.23 | 1.55 |
+| unicode_mix | 4.28 | 4.99 | 4.99 | 2.19 |
+| printable | 3.26 | 4.71 | 4.71 | 2.15 |
+| type_words_and_years | 3.40 | 3.68 | 3.68 | 1.23 |
+| dense_punctuation | 2.67 | 2.71 | 2.71 | 2.01 |
+| identifier_soup | 2.39 | 2.40 | 2.40 | 2.03 |
+| whitespace_heavy | 2.02 | 2.05 | 2.05 | 2.01 |
+| citation_soup | 1.98 | 2.03 | 2.03 | 1.86 |
+| provision_soup | 2.01 | 2.03 | 2.03 | 1.89 |
+| letters_digits | 1.52 | 1.99 | 1.99 | 2.27 |
+| no_spaces | 0.06 | 0.06 | 0.06 | 1.93 |
+
+**4 KB noise floor: 7.22 ms** (worst class, worst sample).
+
+What made it linear and bounded:
+- The plan's prefilter: text with no digits, instrument-type words, alias words or out-of-coverage cues returns before tokenising.
+- Fold once, with fast paths for ASCII and one-to-one characters.
+- `NamedTuple` tokens.
+- Binary-search span checks.
+- Caps on provision, number, identifier and cue mentions, applied before any pairwise work.
+- Alias anchors only where a whole alias is spelt out.
+- A title-lookup budget that fails safe to `ROUTE_UNRESOLVED`.

@@ -96,6 +96,7 @@ ignore = [
 "tests/**" = ["S101", "PLR2004", "FBT", "S311"]
 "scripts/**" = ["T20"]
 "ingest/**" = ["T20"]
+"bench/**" = ["T20", "S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["legal_rag_router", "ingest"]

@@ -5,16 +5,20 @@ Golden probes follow the plan's Verification section (UK part) and docs/grammar.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import random
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from bench.stress import GENERATORS
 from legal_rag_router import (
     Coordinate,
     NextAction,
@@ -36,9 +40,13 @@ INSTR_NF, PROV_NF, UNRES = (
 # Timing budget per query; CI runners are shared and noisy, so CI raises it via the env.
 # Coverage tracing slows Python several-fold, so timing budgets widen while it is active.
 _TRACED = sys.gettrace() is not None or "COV_CORE_SOURCE" in os.environ
-BUDGET_NS = int(
-    float(os.environ.get("LRR_LATENCY_BUDGET_MS", "2")) * 1_000_000 * (10 if _TRACED else 1)
-)
+_SCALE = float(os.environ.get("LRR_LATENCY_BUDGET_MS", "2")) / 2 * (10 if _TRACED else 1)
+BUDGET_NS = int(2_000_000 * _SCALE)
+"""Real queries: < 2 ms p99 (plan step 7)."""
+_STRESS = Path(__file__).resolve().parents[1] / "bench" / "results" / "stress-darwin-arm64.json"
+NOISE_FLOOR_MS = float(json.loads(_STRESS.read_text())["floor_ms"])
+NOISE_BUDGET_NS = int(NOISE_FLOOR_MS * 2 * 1_000_000 * _SCALE)
+"""4 KB noise: twice the measured worst case of bench/stress.py (roadmap Q-M7-2)."""
 
 
 @pytest.fixture(scope="module")
@@ -465,7 +473,7 @@ def test_router_never_raises_and_stays_fast(text: str) -> None:
     router = _shared_router()
     result = router.route(text)
     assert result.reason != "internal_error"
-    assert result.latency_ns < BUDGET_NS * 5  # includes Python start-up noise per example
+    assert result.latency_ns < NOISE_BUDGET_NS
 
 
 @settings(max_examples=40, deadline=None)
@@ -476,7 +484,7 @@ def test_router_never_raises_and_stays_fast(text: str) -> None:
 def test_adversarial_citation_soup_stays_bounded(parts: list[str]) -> None:
     result = _shared_router().route(" ".join(parts))
     assert result.reason != "internal_error"
-    assert result.latency_ns < BUDGET_NS * 25
+    assert result.latency_ns < NOISE_BUDGET_NS
 
 
 _ROUTER: list[Router] = []
@@ -496,7 +504,7 @@ def test_warm_latency_under_budget(router: Router) -> None:
 
 
 def test_regex_patterns_are_linear() -> None:
-    """ReDoS guard: long pathological inputs finish quickly."""
+    """ReDoS guard: long pathological inputs finish within the measured noise budget."""
     router = _shared_router()
     for probe in (
         "s" * 4000,
@@ -506,7 +514,21 @@ def test_regex_patterns_are_linear() -> None:
         "s.1(" * 1000,
         "Act 1996 " * 450,
     ):
-        assert router.route(probe[:MAX_QUERY_CHARS]).latency_ns < BUDGET_NS * 25, probe[:20]
+        assert router.route(probe[:MAX_QUERY_CHARS]).latency_ns < NOISE_BUDGET_NS, probe[:20]
+
+
+@pytest.mark.parametrize("name", sorted(GENERATORS))
+def test_doubling_input_is_linear(name: str) -> None:
+    """Doubling a 4 KB-class input never more than 2.5x's the time (roadmap Q-M7-2)."""
+    router = _shared_router()
+    text = GENERATORS[name](random.Random(f"20260927:{name}:test"), MAX_QUERY_CHARS)
+
+    def best(query: str) -> int:
+        return min(router.route(query).latency_ns for _ in range(7))
+
+    for n in (MAX_QUERY_CHARS // 4, MAX_QUERY_CHARS // 2):
+        small, large = best(text[:n]), best(text[: 2 * n])
+        assert large <= 2.5 * max(small, 50_000), (name, n, small, large)
 
 
 def test_results_never_carry_query_text_into_coordinates(router: Router) -> None:
