@@ -35,6 +35,7 @@ EXAMPLES = [
     ("uk/ukpga/Edw7and1Geo5/10/15", "uk_ukpga_Edw7and1Geo5_10_15", True),
     ("uk/ukpga/Geo6and1Eliz2/15-16/2/s3", "uk_ukpga_Geo6and1Eliz2_15-16_2", False),
     ("uk/ukpga/VictSess2/63/2", "uk_ukpga_VictSess2_63_2", True),
+    ("uk/ukpga/Geo6/12-13-14/1", "uk_ukpga_Geo6_12-13-14_1", True),
     ("uk/ukpga/Will4and1Vict/7/40", "uk_ukpga_Will4and1Vict_7_40", True),
 ]
 

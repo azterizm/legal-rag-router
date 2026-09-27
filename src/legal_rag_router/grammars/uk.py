@@ -36,7 +36,7 @@ _YEAR: Final = r"[12][0-9]{3}"
 # Edw7and1Geo5, Geo6and1Eliz2, VictSess2, WillandMar …
 _REIGN: Final = r"[A-Z][a-z]{1,5}[0-9]{0,2}"
 _REGNAL: Final = rf"{_REIGN}(?:and[0-9]{{0,2}}{_REIGN})*(?:Sess[0-9])?"
-_SESSION: Final = r"[0-9]{1,3}(?:-[0-9]{1,3})?"
+_SESSION: Final = r"[0-9]{1,3}(?:-[0-9]{1,3}){0,3}"  # 47, 8-9, 12-13-14
 _NUMBER: Final = r"[1-9][0-9]{0,5}"
 
 _YEAR_RE: Final = re.compile(_YEAR)

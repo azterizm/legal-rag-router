@@ -47,7 +47,7 @@ year     = ( "1" | "2" ) digit{3} ;
 number   = nonzero-digit , digit{0,5} ;        (* no leading zeros *)
 regnal   = reign , { "and" , digit{0,2} , reign } , [ "Sess" , digit ] ;
 reign    = upper , lower{1,5} , digit{0,2} ;   (* Vict, Geo3, Will4, Edw7, Eliz2, WillandMar *)
-session  = digit{1,3} , [ "-" , digit{1,3} ] ; (* regnal year(s): 47, 8-9, 15-16 *)
+session  = digit{1,3} , { "-" , digit{1,3} } ; (* regnal year(s): 47, 8-9, 12-13-14; at most 4 *)
 ```
 
 The arity is chosen from the second instrument segment. A four-digit year means the calendar layout; a reign token means the regnal layout.
@@ -60,6 +60,7 @@ The arity is chosen from the second instrument segment. A four-digit year means 
 | `uk/ukpga/Eliz2/8-9/69` | Act of the 8 & 9 Eliz. 2 session (1960), chapter 69 |
 | `uk/ukpga/Geo3Sess2/47/78` | 47 Geo. 3 Sess. 2 c. 78 (1807) |
 | `uk/ukpga/Edw7and1Geo5/10/15` | 10 Edw. 7 & 1 Geo. 5 c. 15 (1910) |
+| `uk/ukpga/Geo6/12-13-14/1` | 12, 13 & 14 Geo. 6 c. 1 (1948–49 session) |
 
 Regnal Acts are still cited by title and calendar year in practice ("Law of Property Act 1925"). The title tables resolve these to the regnal coordinate. Their chapter numbers restart every session, so a calendar year plus chapter number is **not** unique before 1963.
 
@@ -107,6 +108,7 @@ Element ids and URL paths use the same token sequence, with `-` and `/` as the s
 | Alternative-version suffixes (`section-7-8n1`, `…-an1`) | The base id is indexed |
 | Generated ids (`c00001`, `p00134`, `f00001`) | Not provision ids |
 | Malformed source ids (`section-2930.`) | Reported by ingest, not indexed |
+| Everything inside `<Versions>` | Alternative texts for other extents (e.g. the N.I. wording of a section whose main text is E+W). The main text is indexed; the count of alternatives is kept on the instrument record for Phase 2 |
 
 On the corpus as scraped on 27 Sept 2026, 2,005,209 ids map. The 32,133 that don't all fall into the excluded kinds above.
 
@@ -242,6 +244,7 @@ Outcomes:
 | UK-C-15 | ALL CAPS | Lower-case rules (UK-I-02) |
 | UK-C-16 | Over-long query (> 4 KB) | **U**, flagged |
 | UK-C-17 | `jurisdictions=["uk"]` scoping | Only UK candidates |
+| UK-C-18 | A provision cited in a PDF-only instrument (`structure: metadata_only`): "art. 3 of the Sugar Beet (Research and Education) Order 1981" | **O**, reason "provision structure not available", `next_action` `VERIFY_LIVE`. Citing the instrument itself binds (**B**) |
 
 ### Robustness (normalisation)
 

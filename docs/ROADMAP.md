@@ -20,7 +20,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK). Next: M3-UK |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK). M3-UK in progress (records + UK parser ✅; fetch layer, listing harvest, `docs/sources.md` to do) |
 | Next step | M3-UK: fetch layer (`ingest/cache.py`, offline-tested, used only in Stage B), `ingest/records.py` (`ProvisionRecord`), `ingest/uk.py` reading `uk_scrap_data/`, the listing harvest (`ingest/uk_catalogue.py`, offline-tested), `docs/sources.md` |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
@@ -28,6 +28,17 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **M3-UK part 1.** `ingest/records.py` and `ingest/uk.py` read `uk_scrap_data/`. A full run over all 33,788 files takes 35 s with 0 failures:
+  - 10,720 instruments with full structure and 23,068 metadata-only (decision 10);
+  - 1,992,290 provisions;
+  - 2,434,792 harvested citations.
+
+  Bugs found and fixed on real data:
+  - `InternalLink` ids were taken as provisions;
+  - `<Versions>` alternative texts were duplicated;
+  - three-year regnal sessions (`12-13-14`) were rejected.
+
+  3,407 provision ids are duplicated in the source itself; these are recorded as `duplicated_provisions` (**Q-M7-1**). Resume: `ingest/cache.py`, `ingest/uk_catalogue.py`, `docs/sources.md`.
 - 2026-09-27: **M2 done (UK).** `data/MANIFEST.json`, `NOTICE`, `scripts/check_licences.py` (runs in CI). Resume at M3-UK.
 - 2026-09-27: U7 resolved (your fetch is compliant; faster rate requested). Continuing Stage A with the data on disk.
 - 2026-09-27: **Halted in M2 on U7** (legislation.gov.uk fair-use terms vs the running scraper and the plan's 1 req/s). Resume M2 (`MANIFEST.json`, `NOTICE`, `check_licences.py`) once U7 is decided.
@@ -208,6 +219,13 @@ Each of these changes order or method but not what gets delivered. See §4.
   - Real request counts and time estimates for both sources.
 - ⛔ **Halt if reconnaissance contradicts the plan.** For example: referencias need a second call per norm (≈ +10k calls), fair-use terms forbid 1 req/s, or the element-id depth doesn't reach `1ZA`.
 - **Done when:** cache unit tests pass (rate limit, backoff, resume, conditional GET, all using a fake transport), and `docs/sources.md` records the confirmed field names.
+
+### M3-UK open question
+- **Q-M7-1 — Provisions the source publishes twice** (0.17 %).
+  - Example: a schedule whose Parts restart paragraph numbering under one id, so `sch2/para1` stands for several paragraphs.
+  - Existence checks are correct, but only the first occurrence's text is in the records.
+  - *Proposal for M7:* a citation that resolves to a coordinate in `duplicated_provisions` returns `ROUTE_AMBIGUOUS` ("this schedule numbers paragraphs per Part; which Part?"), never a silent bind.
+  - To be confirmed at the M7 halt.
 
 ### M4 — Fixture vertical slice (D1; feeds plan steps 6–7 early) · days 2–3
 
@@ -504,6 +522,11 @@ M9 docs are written alongside and finished before M10.
    - A lookup that hits such a key binds only on an exact-case match; otherwise it returns `ROUTE_AMBIGUOUS` listing both.
    - Every other collision still fails the build.
 8. **Fixture data (27 Sept):** you move CA 2006, SI 2011/3006 and SI 2026/310 to the front of your fetch queue. Meanwhile I build the fixture from what's on disk and add these when they land.
+10. **PDF-only instruments (27 Sept):** 21,731 of the 33,788 scraped files have no provision structure (legislation.gov.uk holds them as PDFs only).
+    - Citing the instrument binds normally.
+    - A *provision* citation to one returns `ROUTE_OUT_OF_COVERAGE`, reason "provision structure not available", `next_action` `VERIFY_LIVE`. It is never refused.
+    - The index records `structure: full | metadata_only` per instrument.
+11. **Record text (27 Sept):** each provision record's `text` holds its own text only, excluding child provisions. Records carry `parent` and `order`, and full text is rebuilt by joining descendants.
 9. **U4 listing harvest (27 Sept):** written and tested offline now, against recorded feed pages. It runs in Stage B, after your fetch completes, so the two never overlap.
 
 ---

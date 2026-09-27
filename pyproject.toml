@@ -42,8 +42,13 @@ dev = [
     "mypy>=1.13",
     "ruff>=0.8",
     "pydantic>=2.8",
+    "types-defusedxml>=0.7.0.20260504",
 ]
-ingest = ["httpx>=0.28", "defusedxml>=0.7.1", "pydantic>=2.8"]
+ingest = [
+    "httpx>=0.28",
+    "defusedxml>=0.7.1",
+    "pydantic>=2.8",
+]
 eval = ["pydantic>=2.8"]
 bench = ["httpx>=0.28"]
 
@@ -105,9 +110,6 @@ mypy_path = "src"
 files = ["src", "tests", "scripts", "ingest"]
 exclude = ["^uk_scrap_data/"]
 
-[[tool.mypy.overrides]]
-module = ["defusedxml.*"]
-ignore_missing_imports = true
 
 # ---------------------------------------------------------------- tests
 [tool.pytest.ini_options]
