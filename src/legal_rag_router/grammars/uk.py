@@ -21,10 +21,12 @@ from typing import Final
 from legal_rag_router.coordinate import CoordinateScheme, register_scheme
 
 __all__ = [
+    "INSTRUMENT_TYPE_WORDS",
     "JURISDICTION",
     "SCHEME",
     "UNIT_PREFIXES",
     "legislation_path",
+    "number_keys",
     "provision_from_legislation_tokens",
 ]
 
@@ -58,6 +60,18 @@ UNIT_PREFIXES: Final[dict[str, str]] = {
 """legislation.gov.uk unit word → coordinate segment prefix."""
 
 _UNIT_WORDS: Final = {prefix: word for word, prefix in UNIT_PREFIXES.items()}
+
+INSTRUMENT_TYPE_WORDS: Final = frozenset(
+    {
+        "act", "acts", "order", "orders", "regulations", "regulation", "rules", "rule",
+        "measure", "scheme", "schemes", "directions", "direction", "byelaws", "bylaws",
+        "code", "declaration", "determination", "instrument", "warrant", "resolution",
+        "statute", "sederunt", "adjournal",
+    }
+)  # fmt: skip
+"""Folded words that name a kind of UK instrument when they end a title ("… Act 1996",
+"… Order 2011"). A title is also indexed without its type word ("employment rights|1996").
+"""
 
 # A unit designator: 124, 124A, 1ZA, A1, I, IV, 2A, 3.1 (CPR-style rule numbers).
 _DESIGNATOR: Final = re.compile(r"[0-9A-Z][0-9A-Za-z]{0,11}(?:\.[0-9A-Za-z]{1,6}){0,2}")
@@ -179,3 +193,36 @@ def legislation_path(provision: Sequence[str]) -> str:
         else:
             parts.append(segment)
     return "/".join(parts)
+
+
+# Series whose official number is a UK SI number ("SI 2013/2729" may be canonically wsi).
+_UK_SI_SERIES: Final = frozenset({"uksi", "wsi", "nisi"})
+_NUMBERED_SERIES_KEYS: Final = {
+    "ssi": "ssi",  # Scottish SI: "SSI 2003/623"
+    "nisr": "sr",  # Northern Ireland Statutory Rules: "SR 1996/123"
+    "asp": "asp",
+    "nia": "nia",
+    "anaw": "anaw",
+    "asc": "asc",
+    "eur": "eur",
+}
+
+
+def number_keys(instrument: Sequence[str]) -> tuple[str, ...]:
+    """Official-number lookup keys for an instrument (its segments after ``uk``).
+
+    ``("uksi", "2011", "3006")`` → ``("si/2011/3006",)``;
+    ``("ukpga", "1996", "18")`` → ``("c/1996/18",)`` (chapter 18 of 1996);
+    ``("ukpga", "Eliz2", "8-9", "69")`` → ``("rc/eliz2/8-9/69",)`` (8 & 9 Eliz. 2 c. 69).
+    The router builds the same keys from a parsed citation.
+    """
+    series = instrument[0]
+    if len(instrument) == 4:  # noqa: PLR2004 - regnal
+        return (f"rc/{instrument[1].casefold()}/{instrument[2]}/{instrument[3]}",)
+    year, number = instrument[1], instrument[2]
+    if series in _UK_SI_SERIES:
+        return (f"si/{year}/{number}",)
+    if series == "ukpga":
+        return (f"c/{year}/{number}",)
+    prefix = _NUMBERED_SERIES_KEYS.get(series)
+    return (f"{prefix}/{year}/{number}",) if prefix else ()

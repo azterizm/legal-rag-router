@@ -1,0 +1,87 @@
+# Hand-written aliases for UK instruments (versioned with the index; plan step 6).
+#
+# Each [[alias]] names one target instrument coordinate and the written forms that mean it.
+# Forms are matched after the same folding as titles (case, accents, punctuation, particles).
+#
+# Rules enforced by ingest/build_index.py:
+#   * the target must exist in the index (a partial Stage A build may downgrade this to a
+#     recorded warning with --allow-missing-alias-targets; a release build never does);
+#   * one form may not name two different targets;
+#   * a form must not equal a real instrument's title key (an alias never shadows a title).
+#
+# Year-less forms are only listed where the abbreviation is unambiguous in practice
+# ("ERA" alone is not: Employment Rights Act 1996 / Education Reform Act 1988).
+#
+# `salient = true` puts the instrument in the candidate set for a bare provision with no
+# instrument ("section 124" → ERA 1996, CA 2006, EqA 2010 …), so the router never lists
+# hundreds of instruments. Salience is a product choice; review it with the batteries.
+
+[[alias]]
+target = "uk/ukpga/1996/18"
+forms = ["ERA 1996", "ERA 96", "ERA '96", "E.R.A. 1996"]
+salient = true
+
+[[alias]]
+target = "uk/ukpga/2006/46"
+forms = ["CA 2006", "CA 06", "CA '06", "Companies Act 06"]
+salient = true
+
+[[alias]]
+target = "uk/ukpga/2010/15"
+forms = ["EqA 2010", "EqA"]
+salient = true
+
+[[alias]]
+target = "uk/ukpga/1992/52"
+forms = ["TULRCA 1992", "TULRCA", "TULR(C)A 1992", "TULR(C)A"]
+salient = true
+
+[[alias]]
+target = "uk/ukpga/1986/45"
+forms = ["IA 1986", "IA 86"]
+salient = true
+
+[[alias]]
+target = "uk/ukpga/1998/42"
+forms = ["HRA 1998", "HRA 98", "HRA"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/2018/12"
+forms = ["DPA 2018", "DPA 18"]
+salient = false
+
+[[alias]]
+target = "uk/uksi/1998/3132"
+forms = ["CPR", "CPR 1998", "Civil Procedure Rules"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/1974/37"
+forms = ["HSWA 1974", "HSWA", "Health and Safety at Work Act 1974"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/2015/15"
+forms = ["CRA 2015"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/1988/40"
+forms = ["ERA 1988", "ERA 88"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/2000/8"
+forms = ["FSMA 2000", "FSMA"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/Geo5/15-16/20"
+forms = ["LPA 1925"]
+salient = false
+
+[[alias]]
+target = "uk/ukpga/Vict/24-25/100"
+forms = ["OAPA 1861", "OAPA"]
+salient = false

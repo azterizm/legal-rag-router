@@ -20,14 +20,22 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅. Next: M4-UK (fixture slice) |
-| Next step | M4-UK: choose the fixture instruments from what's on disk, write `aliases/uk.toml` (first pass), then start `ingest/build_index.py` (M6) against the fixture |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅. M4-UK/M6: builder and loader drafted; ⛔ **halted on Q-M6-1** (index load time and memory) |
+| Next step | After Q-M6-1: finalise the index storage format, add loader and builder tests, build and commit the fixture index (`tests/fixtures/index/`), then M7 |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **Halted at M6 on Q-M6-1.**
+  - Drafted:
+    - `normalise.py`: folding with offsets, tokeniser, title keys; tested.
+    - `index.py`: v1 loader with SHA-256 and format checks.
+    - `ingest/build_index.py`: deterministic, with integrity failures, case variants and coverage.
+    - `aliases/uk.toml`.
+  - A trial build on all Stage A data passes every integrity rule, but loads in 2.0 s using about 1 GB (`docs/measurements.md`).
+  - Fixture candidates chosen (see M4 notes). Resume once Q-M6-1 is answered.
 - 2026-09-27: **M3-UK done.**
   - `ingest/cache.py`: polite fetch layer, 23 offline tests.
   - `ingest/uk_catalogue.py`: importer (run: 42,365 entries in `data/catalogue/uk_catalogue.jsonl`) and Atom harvester for Stage B.
@@ -226,6 +234,9 @@ Each of these changes order or method but not what gets delivered. See §4.
   - Real request counts and time estimates for both sources.
 - ⛔ **Halt if reconnaissance contradicts the plan.** For example: referencias need a second call per norm (≈ +10k calls), fair-use terms forbid 1 req/s, or the element-id depth doesn't reach `1ZA`.
 - **Done when:** cache unit tests pass (rate limit, backoff, resume, conditional GET, all using a fake transport), and `docs/sources.md` records the confirmed field names.
+
+### M6 open question
+- **Q-M6-1 — Index storage.** At 2M coordinates (partial UK), JSON tables + frozenset load in 2.0 s and use about 1 GB. The target is < 450 ms, and full UK will be 2–3× larger. See `docs/measurements.md`.
 
 ### M3-UK open question
 - **Q-M7-1 — Provisions the source publishes twice** (0.17 %).
