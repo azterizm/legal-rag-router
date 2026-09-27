@@ -223,6 +223,9 @@ def _add_coverage(out: IndexBuild, catalogue: Path | None, vocabulary: set[str])
     for entry in read_catalogue(catalogue):
         if entry.coordinate in indexed or entry.coordinate in instruments:
             continue
+        keys = number_keys(Coordinate.parse(entry.coordinate).instrument)
+        if any(k in out.numbers for k in keys):
+            continue  # e.g. uksi/2013/2729 is indexed under its canonical wsi coordinate
         instruments[entry.coordinate] = {
             "c": entry.coordinate,
             "t": entry.title,
@@ -290,10 +293,13 @@ def _build_aliases(out: IndexBuild, entries: list[dict[str, Any]], *, allow_miss
             existing = out.aliases.get(key)
             if existing is not None and existing["id"] != iid:
                 raise BuildError(f"alias {form!r} names two targets: {existing['id']} and {iid}")
-            # Read as a title, the form must not name some other instrument.
-            shadowed = sorted(
-                {i for k in title_variants(str(form)) for i in out.titles.get(k, []) if i != iid}
-            )
+            # Read as a full title (with or without its year), the form must not name some
+            # other instrument: at runtime an exact title match wins over an alias. Core-word
+            # variants ("civil procedure" for "Civil Procedure Rules") do not count.
+            text, year = split_title_year(str(form))
+            full = title_words(text)
+            full_keys = {title_key(full, year)} if full else set()  # like for like: year or none
+            shadowed = sorted({i for k in full_keys for i in out.titles.get(k, []) if i != iid})
             if shadowed:
                 raise BuildError(f"alias {form!r} shadows the title of {shadowed}")
             out.aliases[key] = {

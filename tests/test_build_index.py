@@ -208,6 +208,14 @@ def test_alias_integrity(tmp_path: Path, data: Path, toml: str, message: str) ->
         build_index(data, catalogue=None, aliases_dir=write_aliases(tmp_path / "aliases", toml))
 
 
+def test_alias_may_share_core_words_with_other_titles(tmp_path: Path, data: Path) -> None:
+    # "Employment Rights" is the core of ERA 1996's title, but the alias's full form names
+    # EqA 2010 only: allowed (an exact title match wins at runtime anyway).
+    toml = '[[alias]]\ntarget = "uk/ukpga/2010/15"\nforms = ["Employment Rights Act 2010"]\n'
+    built = build_index(data, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", toml))
+    assert built.aliases["employment rights act 2010"]["id"] == "uk_ukpga_2010_15"
+
+
 def test_missing_alias_target_can_be_allowed_and_is_recorded(tmp_path: Path, data: Path) -> None:
     aliases = write_aliases(
         tmp_path / "aliases", '[[alias]]\ntarget = "uk/ukpga/2006/46"\nforms = ["CA 2006"]\n'

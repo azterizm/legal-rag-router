@@ -1,0 +1,13 @@
+{
+  "salt": "lrr-harvest-split-v1",
+  "heldout_percent": 20,
+  "identity_fields": [
+    "source_coordinate",
+    "citation_id",
+    "text",
+    "target_uri"
+  ],
+  "rule": "heldout iff int(sha256(salt|identity)[:8], 16) % 100 < heldout_percent",
+  "created": "2026-09-27",
+  "note": "Fixed before the grammar saw any harvested citation (roadmap D3)."
+}

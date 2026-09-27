@@ -96,6 +96,11 @@ _BEFORE_CONNECTORS: Final = frozenset({"s", "at", "in", "under"})
 _LIST_JOINERS: Final = frozenset({"and", "or", "nor", "&"})
 _NEGATION_FILLERS: Final = frozenset({"the", "a", "an", "in", "under", "any", "of", "for", "to"})
 _YEAR_RE: Final = re.compile(r"1[2-9]\d\d|20\d\d")
+# "Housing and Planning Act 2016 (c. 22)", "(c.42, SIF 81:1, 2)": a chapter number in brackets
+# right after a cited title belongs to that citation.
+_CHAPTER_NOTE_RE: Final = re.compile(
+    r"\s*\(\s*c\s*\.?\s*(?P<n>\d{1,3})\b[^()]{0,40}\)", re.IGNORECASE
+)
 # Words that can start a citation without a digit: unit words (with Roman numbers),
 # context references, and out-of-coverage cues ("Bill", "GDPR", "CdC", "código", "ley" …).
 _TRIGGER_WORDS: Final = frozenset(
@@ -421,7 +426,9 @@ class Router:
             *((p.start, p.end) for p in provisions),
             *((n.start, n.end) for n in numbers),
         ]
-        blocked += [(c.start, c.end) for c in cues if c.kind in ("temporal", "out_of_coverage")]
+        blocked += [
+            (c.start, c.end) for c in cues if c.kind in ("temporal", "date", "out_of_coverage")
+        ]
         return _Scan(query, tokens, identifiers, provisions, numbers, cues, blocked)
 
     def _instruments(self, scan: _Scan) -> list[_Instrument]:
@@ -551,7 +558,7 @@ class Router:
             if pos in claimed or scan.is_blocked(token.start):
                 break
             if token.kind == "punct":
-                if token.text in _STOP_PUNCT:
+                if token.text in _STOP_PUNCT and token.text != ",":  # commas occur in titles
                     break
             else:
                 starts.append(pos)
@@ -610,8 +617,20 @@ class Router:
                 reason="series" if coverage else ("title_without_year" if len(ids) > 1 else None),
                 narrow_by_provision=len(ids) > 1,
             )
-            return self._check_embedded(scan, start, mention, claimed)
+            return self._absorb_chapter(scan, self._check_embedded(scan, start, mention, claimed))
         return None
+
+    def _absorb_chapter(self, scan: _Scan, mention: _Instrument) -> _Instrument:
+        """Extend a title mention over a following "(c. N)" and check N against the Act."""
+        note = _CHAPTER_NOTE_RE.match(scan.query, mention.end)
+        if note is None:
+            return mention
+        mention = replace(mention, end=note.end(), number=note.group("n"))
+        if mention.verdict == "resolved" and mention.ids:
+            info = self._index.instrument(mention.ids[0])
+            if info is not None and info.series == "ukpga" and str(info.number) != note.group("n"):
+                return replace(mention, verdict="ambiguous", reason="chapter_mismatch")
+        return mention
 
     def _type_word(self, content: Sequence[str]) -> str | None:
         return next((w for w in reversed(content) if w in self._grammar.type_words), None)
@@ -756,9 +775,9 @@ class Router:
             return None
         has_type = any(w in type_words for w in content)
         clear = has_type and year is not None
-        known_core = any(self._index.tables["words"].get(w) is not None for w in core)
-        if not clear and not known_core:
-            return None
+        known_core = sum(self._index.tables["words"].get(w) is not None for w in core)
+        if not clear and (known_core == 0 or (not has_type and known_core < 2)):  # noqa: PLR2004
+            return None  # a year after one ordinary word ("substituted 2007") is no claim
         verdict: TitleVerdict = analyse_title(
             self._index, content, year, type_words=type_words, policy=self._policy
         )
@@ -886,12 +905,21 @@ class Router:
             )
             if target is None:
                 live = [m for m in named if not m.excluded]
-                target = live[0] if len(live) == 1 else None  # decision 15
+                lone = live[0] if len(live) == 1 else None  # decision 15
+                if lone is not None and not self._agentive(scan, provision, lone):
+                    target = lone
             if target is None:
                 unlinked.append(provision)
             else:
                 target.provisions.append(provision)
         return unlinked
+
+    def _agentive(self, scan: _Scan, p: ProvisionMention, instrument: _Instrument) -> bool:
+        """True for "s. 79 amended by <Act>": the instrument is the agent acting on the
+        provision, which belongs to something else, so it must not be linked by default."""
+        if p.end > instrument.start:
+            return False
+        return "by" in self._gap_words(scan, p.end, instrument.start)
 
     def _linked_after(
         self, scan: _Scan, p: ProvisionMention, targets: list[_Instrument]
@@ -974,6 +1002,28 @@ class Router:
             return (typed,)
         return spellings
 
+    def _sibling_paths(self, path: tuple[str, ...]) -> list[tuple[str, ...]]:
+        """Editorial lists: "s. 6(1)(2)" means s.6(1) and s.6(2), not s.6(1)(2).
+
+        The trailing run of same-kind sub-divisions (all numbers, all letters, all roman) is
+        read as siblings under the rest. Used only when the nested reading does not exist.
+        """
+
+        def kind(segment: str) -> str:
+            return (
+                "n" if segment[:1].isdigit() else "r" if re.fullmatch(r"[ivxl]+", segment) else "a"
+            )
+
+        if len(path) < 3:  # noqa: PLR2004 - a unit and at least two sub-divisions
+            return []
+        tail_kind = kind(path[-1])
+        cut = len(path) - 1
+        while cut > 1 and kind(path[cut - 1]) == tail_kind:
+            cut -= 1
+        if len(path) - cut < 2:  # noqa: PLR2004
+            return []
+        return [(*path[:cut], item) for item in path[cut:]]
+
     def _resolve_ref(
         self, info: InstrumentInfo, ref: ProvisionRef
     ) -> tuple[str, list[Coordinate], str | None]:
@@ -997,6 +1047,11 @@ class Router:
                     None,
                 )
             return "bound", coordinates, None
+        for path in paths:  # nested reading absent: try "(1)(2)" as siblings (1) and (2)
+            siblings = self._sibling_paths(path)
+            found = [self._lookup(info, sibling) for sibling in siblings]
+            if siblings and all(len(f) == 1 for f in found):
+                return "bound", [Coordinate.parse(f[0]) for f in found], None
         return "missing", [], None
 
     def _resolve_range(

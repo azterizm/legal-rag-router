@@ -20,7 +20,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-09-27 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress** |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress: coverage sweep (see stop log)** |
 | Next step | M7-UK remaining:
 - `eval/sweep.py`: harvest split rule (D3) plus coverage-sweep tooling. The sweep itself runs in Stage B on the full harvest.
 - Raise coverage to 95 % (router.py is at 89 %).
@@ -34,6 +34,25 @@ Done: router pipeline, identifiers, typo tiers, filters, and the M7 test suite (
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-27: **STOPPED HERE (usage limit). M7-UK coverage sweep in progress.**
+  - Added:
+    - `eval/sweep.py`: harvest split rule, committed as `reports/harvest-split.json` (D3), plus the sweep runner.
+    - A queue-db catalogue import (162,290 known instruments; SIs not yet downloaded now read as out of coverage, not invented).
+  - Fixes from the sweep:
+    - SI number lists;
+    - agentive "by" blocks default linking;
+    - "(c. N)" chapter notes;
+    - dates are never years;
+    - commas inside titles;
+    - the provision scan restarts correctly;
+    - sibling sub-division lists ("s. 6(1)(2)").
+  - Stage A sweep (20k citations), before → after: correct 3,090 → 7,101; false abstention 9,321 → 2,611; ambiguous 8,745; miss 214; misroute 3.
+  - **Resume:**
+    1. Inspect the remaining ambiguous and false-abstention examples: `uv run python -m eval.sweep run --harvest <scratch>/full/harvest/uk_citations.jsonl --index <scratch>/index --sample 20000 --out <scratch>/sweep.md`. The Stage A index was rebuilt from a full scratch ingest; to redo it, run `python -m ingest.uk` and then `python -m ingest.build_index` with `--allow-missing-alias-targets`.
+    2. Add tests for the new behaviours (SI lists, agentive "by", chapter notes, dates, sibling lists, `import-queue`, sweep split).
+    3. Coverage to 95 %.
+    4. grammar.md rows, `docs/contract.md`.
+    5. Commit the M7 report.
 - 2026-09-27: **Q-M7-2 decided and done.**
   - `bench/stress.py`: 13 gibberish classes at 4 KB. Floor 7.22 ms; doubling ratios 1.2–2.3.
   - Router made linear and bounded: caps before pairwise work, bisect span checks, whole-alias anchors.

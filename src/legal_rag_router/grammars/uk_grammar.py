@@ -140,6 +140,13 @@ _SI_RE: Final = re.compile(
     rf"(?<![a-z0-9])(?:s\s?\.?\s?i\s?\.?|statutory\s+instruments?)\s*(?:no\.?\s*)?{_Y}"
     rf"\s*(?:/|\s+no\.?\s*|\s+number\s+)(?P<n>\d{{1,5}})(?!\d)"
 )
+# List continuation after an SI number: "S.I. 2008/2767, 2010/641 and 2011/2425" or
+# "S.I. 1988/663 and 1445" (same year). A bare continuation needs 3+ digits, so
+# "S.I. 2011/3006, 2 employees" is not read as SI 2011/2.
+_SI_CONTINUATION_RE: Final = re.compile(
+    r"\s*(?:,|;|&|\band\b|\bor\b)\s*(?:s\s?\.?\s?i\s?\.?\s*)?"
+    r"(?:(?P<y>(?:19|20)\d\d)\s*/\s*(?P<n>\d{1,5})|(?P<bare>\d{3,5}))(?![\d/])"
+)
 _BARE_SI_RE: Final = re.compile(rf"(?<![a-z0-9/.]){_Y}\s+no\.?\s*(?P<n>\d{{1,5}})(?!\d)")
 _SSI_RE: Final = re.compile(
     rf"(?<![a-z0-9])s\s?\.?\s?s\s?\.?\s?i\s?\.?\s*{_Y}\s*/\s*(?P<n>\d{{1,5}})(?!\d)"
@@ -189,6 +196,18 @@ _TEMPORAL_RE: Final = re.compile(
     rf"|(?:version|text|wording)\s+(?:of|from|as\s+at|at|in)\s+{_DATE}"
     r"|(?:before|prior\s+to|after|since|until)\s+(?:the\s+)?(?:\d{1,4}\s+)?amendments?"
     r")(?![a-z])"
+)
+# Dates ("1.3.2007", "1 April 1996", "6th April 2020") and territorial extents ("(E.W.)"):
+# never citations, and their years are never instrument years (grammar.md UK-C-12).
+_MONTHS: Final = (
+    "january|february|march|april|may|june|july|august|september|october|november|december|"
+    "jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec"
+)
+_DATE_RE: Final = re.compile(
+    r"(?<![\d.])\d{1,2}\s*[./]\s*\d{1,2}\s*[./]\s*(?:1[2-9]|20)\d\d(?!\d)"
+    rf"|(?<![a-z\d])\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{_MONTHS})\.?,?\s+(?:1[2-9]|20)\d\d(?!\d)"
+    rf"|(?<![a-z])(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s+(?:1[2-9]|20)\d\d(?!\d)"
+    r"|\((?:e|w|s|n\.?\s?i|e\.?\s?w|e\.?\s?w\.?\s?s|s\.?\s?w)\.?\)"
 )
 _OUT_OF_COVERAGE_RES: Final = (
     ("bill", re.compile(r"(?<![a-z])bill(?![a-z])")),
@@ -473,11 +492,18 @@ class UKGrammar:
             )
             if claims.take(m.start(), m.end()):
                 found.append(self._mention(folded, m.start(), m.end(), (ref,)))
-        for m in _PROVISION_RE.finditer(text):
-            if _PLURAL_TYPE_YEAR_RE.match(text, m.start()):
+        position = 0
+        while (hit := _PROVISION_RE.search(text, position)) is not None:
+            # Resume where the mention really ended: a list that stops at a different unit
+            # ("s. 84, Sch. 14 para. 46") must leave "Sch. 14 ..." to be read again.
+            position = hit.start() + 1
+            if _PLURAL_TYPE_YEAR_RE.match(text, hit.start()):
                 continue
-            parsed = self._parse(reader, m)
-            if parsed is not None and claims.take(m.start(), parsed[1]):
+            parsed = self._parse(reader, hit)
+            if parsed is None:
+                continue
+            position = max(position, parsed[1])
+            if claims.take(hit.start(), parsed[1]):
                 found.append(parsed[0])
             if limit is not None and len(found) > limit:
                 break  # the caller will refuse to route this many; stop working
@@ -655,13 +681,12 @@ class UKGrammar:
         )
         for pattern, prefix, kind in numbered:
             for m in pattern.finditer(text):
-                add(
-                    m,
-                    f"{prefix}/{m.group('y')}/{int(m.group('n'))}",
-                    kind,
-                    m.group("y"),
-                    m.group("n"),
-                )
+                year = m.group("y")
+                add(m, f"{prefix}/{year}/{int(m.group('n'))}", kind, year, m.group("n"))
+                for more in self._continuation(text, m.end()):
+                    year = more.group("y") or year
+                    number = more.group("n") or more.group("bare")
+                    add(more, f"{prefix}/{year}/{int(number)}", kind, year, number)
         for m in _CHAPTER_RE.finditer(text):
             year = m.group("y") or m.group("y2")
             number = m.group("n") or m.group("n2")
@@ -669,6 +694,18 @@ class UKGrammar:
         for m in _BARE_SI_RE.finditer(text):
             add(m, f"si/{m.group('y')}/{int(m.group('n'))}", "si", m.group("y"), m.group("n"))
         return sorted(found, key=lambda n: n.start)
+
+    @staticmethod
+    def _continuation(text: str, position: int) -> list[re.Match[str]]:
+        """The rest of an SI number list starting at ``position`` (bounded)."""
+        found: list[re.Match[str]] = []
+        while len(found) < 24:  # noqa: PLR2004 - the router refuses longer lists anyway
+            more = _SI_CONTINUATION_RE.match(text, position)
+            if more is None:
+                break
+            found.append(more)
+            position = more.end()
+        return found
 
     # ------------------------------------------------------------------ cues
 
@@ -686,6 +723,7 @@ class UKGrammar:
         scan(_NEGATION_RE, "negation", lambda _: None)
         scan(_CONTEXT_REF_RE, "context_ref", lambda m: m.group("y"))
         scan(_TEMPORAL_RE, "temporal", lambda _: None)
+        scan(_DATE_RE, "date", lambda _: None)
         for name, pattern in _OUT_OF_COVERAGE_RES:
             scan(pattern, "out_of_coverage", lambda _, name=name: name)  # type: ignore[misc]
         return sorted(cues, key=lambda c: c.start)

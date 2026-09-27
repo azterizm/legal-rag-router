@@ -154,6 +154,45 @@ def import_listing(lines: Iterable[str], *, source: str) -> Iterator[CatalogueEn
         )
 
 
+def import_queue(db: Path, *, source: str) -> Iterator[CatalogueEntry]:
+    """Instruments listed in the external download queue (``legislation_queue.db``).
+
+    Every ``uksi`` row and every ``ukpga`` row from 1963 on (calendar-numbered, so the key
+    is sound; earlier Acts are regnal and keyed wrongly by the queue, roadmap U2).
+    Instruments not downloaded yet then read as known to exist (out of coverage) rather
+    than as invented.
+    """
+    import sqlite3  # noqa: PLC0415 - only this importer needs it
+
+    with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as connection:
+        rows = connection.execute(
+            "SELECT series, year, number, title FROM download_queue"
+        ).fetchall()
+    for series, year, number, published in rows:
+        if series not in ("uksi", "ukpga") or not str(year).isdigit() or not str(number).isdigit():
+            continue
+        if series == "ukpga" and int(year) < 1963:  # noqa: PLR2004 - regnal numbering
+            continue
+        coordinate = Coordinate.try_parse(f"uk/{series}/{int(year)}/{int(number)}")
+        if coordinate is None:
+            continue
+        title, repealed = clean_title(str(published)) if published else (None, False)
+        yield CatalogueEntry(
+            coordinate=str(coordinate), series=series, year=int(year), number=int(number),
+            title=title, title_as_published=str(published) if published else None,
+            repealed=repealed, source=source,
+        )  # fmt: skip
+
+
+def read_catalogue(path: Path) -> Iterator[CatalogueEntry]:
+    if not path.exists():
+        return
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            if line.strip():
+                yield CatalogueEntry.model_validate_json(line)
+
+
 def harvest(fetcher: Fetcher, series: Sequence[str]) -> Iterator[CatalogueEntry]:
     """Walk each series' Atom feed by its ``rel="next"`` links."""
     for name in series:
@@ -192,6 +231,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     imp = sub.add_parser("import", help="convert an existing listing (offline)")
     imp.add_argument("--listing", type=Path, required=True)
     imp.add_argument("--out", type=Path, required=True)
+    queue = sub.add_parser("import-queue", help="merge the download queue's instruments (offline)")
+    queue.add_argument("--db", type=Path, required=True)
+    queue.add_argument("--out", type=Path, required=True, help="catalogue to merge into")
     har = sub.add_parser("harvest", help="read the Atom feeds (network; Stage B)")
     har.add_argument("--out", type=Path, required=True)
     har.add_argument("--contact", required=True, help="e-mail or URL for the User-Agent")
@@ -201,7 +243,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-    if args.command == "import":
+    if args.command == "import-queue":
+        existing = list(read_catalogue(args.out))  # existing entries win on duplicates
+        count = write_catalogue(
+            [*existing, *import_queue(args.db, source=f"import:{args.db.name}")], args.out
+        )
+    elif args.command == "import":
         with args.listing.open(encoding="utf-8") as fh:
             count = write_catalogue(
                 import_listing(fh, source=f"import:{args.listing.name}"), args.out

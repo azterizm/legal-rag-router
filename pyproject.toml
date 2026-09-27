@@ -97,9 +97,10 @@ ignore = [
 "scripts/**" = ["T20"]
 "ingest/**" = ["T20"]
 "bench/**" = ["T20", "S311"]
+"eval/**" = ["T20"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["legal_rag_router", "ingest"]
+known-first-party = ["legal_rag_router", "ingest", "eval", "bench"]
 
 # ---------------------------------------------------------------- types
 [tool.mypy]
@@ -108,7 +109,7 @@ strict = true
 warn_unreachable = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 mypy_path = "src"
-files = ["src", "tests", "scripts", "ingest"]
+files = ["src", "tests", "scripts", "ingest", "eval", "bench"]
 exclude = ["^uk_scrap_data/"]
 
 

@@ -25,7 +25,7 @@ __all__ = [
     "ProvisionRef",
 ]
 
-CueKind = Literal["negation", "context_ref", "temporal", "out_of_coverage", "open_range"]
+CueKind = Literal["negation", "context_ref", "temporal", "date", "out_of_coverage", "open_range"]
 
 
 @dataclass(frozen=True, slots=True)
