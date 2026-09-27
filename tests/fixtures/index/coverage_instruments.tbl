@@ -1,38 +1,38 @@
-uk/anaw/2012/1	{"r":false,"s":"anaw","t":null,"y":2012}
-uk/anaw/2012/2	{"r":false,"s":"anaw","t":null,"y":2012}
-uk/anaw/2013/1	{"r":false,"s":"anaw","t":null,"y":2013}
-uk/asc/2020/1	{"r":false,"s":"asc","t":null,"y":2020}
-uk/asc/2020/2	{"r":false,"s":"asc","t":null,"y":2020}
-uk/asc/2021/1	{"r":false,"s":"asc","t":null,"y":2021}
-uk/asp/1999/1	{"r":true,"s":"asp","t":"Mental Health (Public Safety and Appeals) (Scotland) Act 1999","y":1999}
-uk/asp/2000/1	{"r":false,"s":"asp","t":"Public Finance and Accountability (Scotland) Act 2000","y":2000}
-uk/asp/2000/10	{"r":false,"s":"asp","t":"National Parks (Scotland) Act 2000","y":2000}
-uk/asp/2010/13	{"r":false,"s":"asp","t":"Criminal Justice and Licensing (Scotland) Act 2010","y":2010}
-uk/eur/1970/1011	{"r":true,"s":"eur","t":"Regulation (EEC) No 1011/70 of the Commission of 29 May 1970 on certain quality requirements for maize groats and meal used by the Community brewing industry","y":1970}
-uk/eur/1970/1014	{"r":true,"s":"eur","t":"Regulation (EEC) No 1014/70 of the Commission of 29 May 1970 on import licences for wine","y":1970}
-uk/eur/1970/1017	{"r":false,"s":"eur","t":"Regulation (EEC) No 1017/70 of the Commission of 29 May 1970 applying additional classes to certain fruit","y":1970}
-uk/nia/2000/1	{"r":false,"s":"nia","t":"Financial Assistance for Political Parties Act (Northern Ireland) 2000","y":2000}
-uk/nia/2000/2	{"r":false,"s":"nia","t":"Appropriation Act (Northern Ireland) 2000","y":2000}
-uk/nia/2000/3	{"r":true,"s":"nia","t":"Allowances to Members of the Assembly Act (Northern Ireland) 2000","y":2000}
-uk/nisi/1972/1072	{"r":false,"s":"nisi","t":"The Electricity Supply (Northern Ireland) Order 1972","y":1972}
-uk/nisi/1972/1073	{"r":false,"s":"nisi","t":"Superannuation (Northern Ireland) Order 1972","y":1972}
-uk/nisi/1972/1100	{"r":false,"s":"nisi","t":"Finance (Northern Ireland) Order 1972","y":1972}
-uk/nisr/1974/101	{"r":false,"s":"nisr","t":"The Seed Potato Marketing Scheme (Amendment) Order (Northern Ireland) 1974","y":1974}
-uk/nisr/1974/102	{"r":false,"s":"nisr","t":"The Foyle Area (Weekly Close Time) Regulations (Northern Ireland) 1974","y":1974}
-uk/nisr/1974/103	{"r":false,"s":"nisr","t":"The Road Traffic (Amendment) Order 1973 (Date of Commencement) Order (Northern Ireland) 1974","y":1974}
-uk/ssi/1999/1	{"r":false,"s":"ssi","t":"The Environmental Impact Assessment (Scotland) Regulations 1999","y":1999}
-uk/ssi/1999/104	{"r":false,"s":"ssi","t":"The Registration of Births, Still-Births, Deaths and Marriages (Prescription of Forms) (Scotland) Amendment Regulations 1999","y":1999}
-uk/ssi/1999/107	{"r":true,"s":"ssi","t":"The Organic Aid (Scotland) Amendment Regulations 1999","y":1999}
-uk/ukci/1991/1	{"r":false,"s":"ukci","t":"Diocesan Boards of Education Measure 1991 (Appointed Day Instrument 1991)","y":1991}
-uk/ukci/1992/1	{"r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
-uk/ukci/1992/2	{"r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
-uk/ukcm/1970/1	{"r":false,"s":"ukcm","t":"Collegiate Churches (Capital Endowments) Measure 1970","y":1970}
-uk/ukcm/1970/2	{"r":false,"s":"ukcm","t":"SHARING OF CHURCH BUILDINGS MEASURE 1970 (No. 2)","y":1970}
-uk/ukcm/1970/3	{"r":false,"s":"ukcm","t":"Church Commissioners Measure 1970","y":1970}
-uk/ukla/1970/1	{"r":false,"s":"ukla","t":"Glasgow Corporation Order Confirmation Act 1970","y":1970}
-uk/ukla/1970/10	{"r":false,"s":"ukla","t":"Huddersfield Corporation Act 1970","y":1970}
-uk/ukla/1970/11	{"r":false,"s":"ukla","t":"Bolton Corporation Act 1970","y":1970}
-uk/wsi/1999/2633	{"r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/1999/2641	{"r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/1999/2720	{"r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/2012/1427	{"r":false,"s":"wsi","t":null,"y":2012}
+uk/anaw/2012/1	{"c":"uk/anaw/2012/1","r":false,"s":"anaw","t":null,"y":2012}
+uk/anaw/2012/2	{"c":"uk/anaw/2012/2","r":false,"s":"anaw","t":null,"y":2012}
+uk/anaw/2013/1	{"c":"uk/anaw/2013/1","r":false,"s":"anaw","t":null,"y":2013}
+uk/asc/2020/1	{"c":"uk/asc/2020/1","r":false,"s":"asc","t":null,"y":2020}
+uk/asc/2020/2	{"c":"uk/asc/2020/2","r":false,"s":"asc","t":null,"y":2020}
+uk/asc/2021/1	{"c":"uk/asc/2021/1","r":false,"s":"asc","t":null,"y":2021}
+uk/asp/1999/1	{"c":"uk/asp/1999/1","r":true,"s":"asp","t":"Mental Health (Public Safety and Appeals) (Scotland) Act 1999","y":1999}
+uk/asp/2000/1	{"c":"uk/asp/2000/1","r":false,"s":"asp","t":"Public Finance and Accountability (Scotland) Act 2000","y":2000}
+uk/asp/2000/10	{"c":"uk/asp/2000/10","r":false,"s":"asp","t":"National Parks (Scotland) Act 2000","y":2000}
+uk/asp/2010/13	{"c":"uk/asp/2010/13","r":false,"s":"asp","t":"Criminal Justice and Licensing (Scotland) Act 2010","y":2010}
+uk/eur/1970/1011	{"c":"uk/eur/1970/1011","r":true,"s":"eur","t":"Regulation (EEC) No 1011/70 of the Commission of 29 May 1970 on certain quality requirements for maize groats and meal used by the Community brewing industry","y":1970}
+uk/eur/1970/1014	{"c":"uk/eur/1970/1014","r":true,"s":"eur","t":"Regulation (EEC) No 1014/70 of the Commission of 29 May 1970 on import licences for wine","y":1970}
+uk/eur/1970/1017	{"c":"uk/eur/1970/1017","r":false,"s":"eur","t":"Regulation (EEC) No 1017/70 of the Commission of 29 May 1970 applying additional classes to certain fruit","y":1970}
+uk/nia/2000/1	{"c":"uk/nia/2000/1","r":false,"s":"nia","t":"Financial Assistance for Political Parties Act (Northern Ireland) 2000","y":2000}
+uk/nia/2000/2	{"c":"uk/nia/2000/2","r":false,"s":"nia","t":"Appropriation Act (Northern Ireland) 2000","y":2000}
+uk/nia/2000/3	{"c":"uk/nia/2000/3","r":true,"s":"nia","t":"Allowances to Members of the Assembly Act (Northern Ireland) 2000","y":2000}
+uk/nisi/1972/1072	{"c":"uk/nisi/1972/1072","r":false,"s":"nisi","t":"The Electricity Supply (Northern Ireland) Order 1972","y":1972}
+uk/nisi/1972/1073	{"c":"uk/nisi/1972/1073","r":false,"s":"nisi","t":"Superannuation (Northern Ireland) Order 1972","y":1972}
+uk/nisi/1972/1100	{"c":"uk/nisi/1972/1100","r":false,"s":"nisi","t":"Finance (Northern Ireland) Order 1972","y":1972}
+uk/nisr/1974/101	{"c":"uk/nisr/1974/101","r":false,"s":"nisr","t":"The Seed Potato Marketing Scheme (Amendment) Order (Northern Ireland) 1974","y":1974}
+uk/nisr/1974/102	{"c":"uk/nisr/1974/102","r":false,"s":"nisr","t":"The Foyle Area (Weekly Close Time) Regulations (Northern Ireland) 1974","y":1974}
+uk/nisr/1974/103	{"c":"uk/nisr/1974/103","r":false,"s":"nisr","t":"The Road Traffic (Amendment) Order 1973 (Date of Commencement) Order (Northern Ireland) 1974","y":1974}
+uk/ssi/1999/1	{"c":"uk/ssi/1999/1","r":false,"s":"ssi","t":"The Environmental Impact Assessment (Scotland) Regulations 1999","y":1999}
+uk/ssi/1999/104	{"c":"uk/ssi/1999/104","r":false,"s":"ssi","t":"The Registration of Births, Still-Births, Deaths and Marriages (Prescription of Forms) (Scotland) Amendment Regulations 1999","y":1999}
+uk/ssi/1999/107	{"c":"uk/ssi/1999/107","r":true,"s":"ssi","t":"The Organic Aid (Scotland) Amendment Regulations 1999","y":1999}
+uk/ukci/1991/1	{"c":"uk/ukci/1991/1","r":false,"s":"ukci","t":"Diocesan Boards of Education Measure 1991 (Appointed Day Instrument 1991)","y":1991}
+uk/ukci/1992/1	{"c":"uk/ukci/1992/1","r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
+uk/ukci/1992/2	{"c":"uk/ukci/1992/2","r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
+uk/ukcm/1970/1	{"c":"uk/ukcm/1970/1","r":false,"s":"ukcm","t":"Collegiate Churches (Capital Endowments) Measure 1970","y":1970}
+uk/ukcm/1970/2	{"c":"uk/ukcm/1970/2","r":false,"s":"ukcm","t":"SHARING OF CHURCH BUILDINGS MEASURE 1970 (No. 2)","y":1970}
+uk/ukcm/1970/3	{"c":"uk/ukcm/1970/3","r":false,"s":"ukcm","t":"Church Commissioners Measure 1970","y":1970}
+uk/ukla/1970/1	{"c":"uk/ukla/1970/1","r":false,"s":"ukla","t":"Glasgow Corporation Order Confirmation Act 1970","y":1970}
+uk/ukla/1970/10	{"c":"uk/ukla/1970/10","r":false,"s":"ukla","t":"Huddersfield Corporation Act 1970","y":1970}
+uk/ukla/1970/11	{"c":"uk/ukla/1970/11","r":false,"s":"ukla","t":"Bolton Corporation Act 1970","y":1970}
+uk/wsi/1999/2633	{"c":"uk/wsi/1999/2633","r":false,"s":"wsi","t":null,"y":1999}
+uk/wsi/1999/2641	{"c":"uk/wsi/1999/2641","r":false,"s":"wsi","t":null,"y":1999}
+uk/wsi/1999/2720	{"c":"uk/wsi/1999/2720","r":false,"s":"wsi","t":null,"y":1999}
+uk/wsi/2012/1427	{"c":"uk/wsi/2012/1427","r":false,"s":"wsi","t":null,"y":2012}

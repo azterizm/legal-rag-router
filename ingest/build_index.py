@@ -224,6 +224,7 @@ def _add_coverage(out: IndexBuild, catalogue: Path | None, vocabulary: set[str])
         if entry.coordinate in indexed or entry.coordinate in instruments:
             continue
         instruments[entry.coordinate] = {
+            "c": entry.coordinate,
             "t": entry.title,
             "y": entry.year,
             "s": entry.series,
@@ -345,8 +346,8 @@ def serialise(build: IndexBuild) -> dict[str, bytes]:
         "wordsets": build.wordsets.items(),
         "words": ((k, _joined(v)) for k, v in build.words.items()),
         "typo": ((k, _joined(v)) for k, v in build.typo.items()),
-        "coverage_instruments": (
-            (k, _compact(v)) for k, v in build.coverage.get("instruments", {}).items()
+        "coverage_instruments": (  # keyed case-insensitively; canonical spelling in "c"
+            (k.casefold(), _compact(v)) for k, v in build.coverage.get("instruments", {}).items()
         ),
         "coverage_titles": ((k, _joined(v)) for k, v in build.coverage.get("titles", {}).items()),
         "coverage_numbers": ((k, _joined(v)) for k, v in build.coverage.get("numbers", {}).items()),

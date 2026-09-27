@@ -168,7 +168,9 @@ def test_coverage(fixture_index: RouterIndex) -> None:
     asp = fixture_index.coverage("uk/asp/2010/13")
     assert asp is not None
     assert asp["t"] == "Criminal Justice and Licensing (Scotland) Act 2010"
+    assert fixture_index.coverage("UK/ASP/2010/13") == asp  # case-insensitive
     assert fixture_index.coverage("uk/wsi/2012/1427") == {
+        "c": "uk/wsi/2012/1427",
         "r": False,
         "s": "wsi",
         "t": None,

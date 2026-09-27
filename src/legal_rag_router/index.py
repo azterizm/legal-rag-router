@@ -17,7 +17,7 @@ touched. Format version 1:
 ``wordsets``               sorted content words|year → instrument_id (unique sets only)
 ``words``                  content word → instrument_ids (ranking suggestions)
 ``typo``                   symmetric-delete variant → title vocabulary words
-``coverage_instruments``   out-of-coverage coordinate → JSON (title, year, series …)
+``coverage_instruments``   casefolded out-of-coverage coordinate → JSON (canonical, title …)
 ``coverage_titles``        title key → out-of-coverage coordinates
 ``coverage_numbers``       official-number key → out-of-coverage coordinates
 ``aliases.json``           alias key → {id, salient, form} (small; plain JSON)
@@ -186,7 +186,8 @@ class RouterIndex:
         return split_list(self.tables[table].get(key))
 
     def coverage(self, coordinate: str) -> Mapping[str, Any] | None:
-        raw = self.tables["coverage_instruments"].get(coordinate)
+        """Out-of-coverage instrument metadata (case-insensitive), or ``None``."""
+        raw = self.tables["coverage_instruments"].get(coordinate.casefold())
         return None if raw is None else json.loads(raw)
 
 
