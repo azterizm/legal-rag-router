@@ -54,6 +54,9 @@ class IdentifierMention:
     """Lower-case coordinate key: instrument segments plus any provision segments."""
     instrument_key: str
     """Lower-case key of the instrument part alone."""
+    typed_key: str
+    """``key`` with provision segments as typed: siblings that differ only by case bind on
+    an exact-case match (roadmap decision 7)."""
 
 
 def _split(parts: Sequence[str]) -> tuple[list[str], list[str]] | None:
@@ -68,17 +71,18 @@ def _split(parts: Sequence[str]) -> tuple[list[str], list[str]] | None:
     return list(parts[:arity]), list(parts[arity:])
 
 
-def _url_provision(tokens: list[str]) -> list[str] | None:
-    """legislation.gov.uk URL tokens (lower case) → provision key segments, leniently.
+def _url_provision(tokens: list[str], *, keep_case: bool = False) -> list[str] | None:
+    """legislation.gov.uk URL tokens -> provision key segments, leniently.
 
-    Leniency is safe: the key must still be found in the index to bind.
+    Unit words are matched case-insensitively; designators keep their case when
+    ``keep_case``. Leniency is safe: the key must still be found in the index to bind.
     """
     segments: list[str] = []
     i = 0
     while i < len(tokens):
-        prefix = UNIT_PREFIXES.get(tokens[i])
+        prefix = UNIT_PREFIXES.get(tokens[i].casefold() if keep_case else tokens[i])
         if prefix is not None:
-            if i + 1 < len(tokens) and tokens[i + 1] not in UNIT_PREFIXES:
+            if i + 1 < len(tokens) and tokens[i + 1].casefold() not in UNIT_PREFIXES:
                 segments.append(prefix + tokens[i + 1])
                 i += 2
                 continue
@@ -99,7 +103,11 @@ def scan_identifiers(query: str) -> list[IdentifierMention]:
     found: list[IdentifierMention] = []
 
     def add(
-        start: int, end: int, kind: Literal["coordinate", "instrument_id", "url"], parts: list[str]
+        start: int,
+        end: int,
+        kind: Literal["coordinate", "instrument_id", "url"],
+        parts: list[str],
+        typed: list[str] | None = None,
     ) -> None:
         if any(start < m.end and m.start < end for m in found):
             return
@@ -107,22 +115,30 @@ def scan_identifiers(query: str) -> list[IdentifierMention]:
         if split is None:
             return
         instrument, provision = split
+        typed_provision = (typed if typed is not None else parts)[len(instrument) :]
         instrument_key = "/".join(("uk", *instrument))
         key = "/".join((instrument_key, *provision)) if provision else instrument_key
-        found.append(IdentifierMention(start, end, kind, key, instrument_key))
+        typed_key = "/".join((instrument_key, *typed_provision)) if provision else instrument_key
+        found.append(IdentifierMention(start, end, kind, key, instrument_key, typed_key))
 
     for m in _URL_RE.finditer(query):
-        tokens = [t for t in m.group("path").casefold().rstrip("/.").split("/") if t]
-        while tokens and (tokens[-1] in _VIEW_SUFFIXES or _DATE_SEGMENT.fullmatch(tokens[-1])):
-            tokens.pop()
+        typed_tokens = [t for t in m.group("path").rstrip("/.").split("/") if t]
+        while typed_tokens and (
+            typed_tokens[-1].casefold() in _VIEW_SUFFIXES
+            or _DATE_SEGMENT.fullmatch(typed_tokens[-1])
+        ):
+            typed_tokens.pop()
+        tokens = [t.casefold() for t in typed_tokens]
         instrument_split = _split(tokens)
         if instrument_split is None:
             continue
         instrument, rest = instrument_split
         provision = _url_provision(rest) if rest else []
-        if provision is None:
+        typed_rest = typed_tokens[len(instrument) :]
+        typed_provision = _url_provision(typed_rest, keep_case=True) if typed_rest else []
+        if provision is None or typed_provision is None:
             continue
-        add(m.start(), m.end(), "url", [*instrument, *provision])
+        add(m.start(), m.end(), "url", [*instrument, *provision], [*instrument, *typed_provision])
     for m in _COORDINATE_RE.finditer(query):
         add(m.start(), m.end(), "coordinate", m.group("rest").rstrip(".").split("/"))
     for m in _INSTRUMENT_ID_RE.finditer(query):

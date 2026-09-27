@@ -47,7 +47,10 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python }}
       - run: uv sync --locked
+      # Shared runners are noisy: timing assertions get a wider budget than the Mac target.
       - run: uv run pytest --cov --cov-report=term-missing
+        env:
+          LRR_LATENCY_BUDGET_MS: "25"
 
   build:
     name: Build wheel and sdist

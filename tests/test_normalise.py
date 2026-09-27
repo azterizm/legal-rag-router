@@ -12,7 +12,10 @@ from legal_rag_router.normalise import (
 
 def test_fold_basics() -> None:
     assert fold("Art\u00edculo 42").text == "articulo 42"
-    assert fold("EMPLOYMENT  Rights\u00a0Act").text == "employment rights act"
+    assert (
+        fold("EMPLOYMENT  Rights\u00a0Act").text == "employment  rights act"
+    )  # 1:1, not collapsed
+    assert fold("a\tb").origin is None  # ASCII keeps offsets: no map needed
     assert fold("ss.124\u2013126").text == "ss.124-126"
     assert fold("\u201cthe Act\u201d").text == '"the act"'
     assert fold("\uff53\uff0e\uff11\uff12\uff14").text == "s.124"  # full-width → ASCII (NFKC)
@@ -74,3 +77,17 @@ def test_split_title_year() -> None:
     assert split_title_year("Statute of Marlborough 1267") == ("Statute of Marlborough", 1267)
     assert split_title_year("Civil Procedure Rules") == ("Civil Procedure Rules", None)
     assert split_title_year("1996") == ("1996", None)
+
+
+@given(st.text(alphabet=st.sampled_from(list("ab1 '.-&()\u00e9\u2019")), max_size=40))
+def test_router_span_words_match_title_words(text: str) -> None:
+    """The router's token-based title words equal ``title_words`` on the same text."""
+    from legal_rag_router.router import _Scan  # noqa: PLC0415
+
+    tokens = tokenise(text)
+    if not tokens:
+        return
+    scan = _Scan(text, tokens, [], [], [], [], [])
+    for start in range(len(tokens)):
+        span = text[tokens[start].start : tokens[-1].end]
+        assert scan.words(start, len(tokens) - 1) == title_words(span), (text, start)

@@ -32,10 +32,13 @@ from legal_rag_router.identifiers import IdentifierMention, scan_identifiers
 from legal_rag_router.index import InstrumentInfo, RouterIndex, load_index
 from legal_rag_router.normalise import (
     MAX_QUERY_CHARS,
+    PARTICLES,
+    Folded,
     Token,
     fold,
     title_key,
     title_words,
+    title_words_folded,
     tokenise,
 )
 from legal_rag_router.result import (
@@ -55,9 +58,12 @@ __all__ = ["Router"]
 log = logging.getLogger("legal_rag_router")
 miss_log = logging.getLogger("legal_rag_router.misses")
 
-MAX_ANCHORS: Final = 32
+MAX_ANCHORS: Final = 16
 MAX_MENTIONS: Final = 24
-MAX_TITLE_WORDS: Final = 24
+MAX_TITLE_WORDS: Final = 16
+MAX_TITLE_LOOKUPS: Final = 320
+"""Work cap per query. Past it the query is too complex to route safely: it fails safe to
+``ROUTE_UNRESOLVED`` rather than binding on a partial reading (DoS and misroute guard)."""
 MAX_CITED_WORDS: Final = 12
 MAX_RANGE: Final = 20
 MAX_CANDIDATES_SHOWN: Final = 8
@@ -88,6 +94,16 @@ _BEFORE_CONNECTORS: Final = frozenset({"s", "at", "in", "under"})
 _LIST_JOINERS: Final = frozenset({"and", "or", "nor", "&"})
 _NEGATION_FILLERS: Final = frozenset({"the", "a", "an", "in", "under", "any", "of", "for", "to"})
 _YEAR_RE: Final = re.compile(r"1[2-9]\d\d|20\d\d")
+# Words that can start a citation without a digit: unit words (with Roman numbers),
+# context references, and out-of-coverage cues ("Bill", "GDPR", "CdC", "código", "ley" …).
+_TRIGGER_WORDS: Final = frozenset(
+    {
+        "part", "parts", "pt", "chapter", "ch", "schedule", "sch", "the schedule", "bill",
+        "gdpr", "tfeu", "teu", "cdc", "lgt", "lec", "rdl", "rdleg", "codigo", "ley", "real",
+        "estatuto", "articulo", "apartado", "bgb", "hgb", "stgb", "usc", "cfr", "code",
+        "statute", "instrument",
+    }
+)  # fmt: skip
 # Words that occur inside titles ("Rights of Employment", "Offences against the Person",
 # "Health and Safety at Work"). Extending a cited title left crosses one only when a
 # content word follows it; otherwise it is a boundary.
@@ -175,6 +191,22 @@ class _Scan:
     numbers: list[NumberMention]
     cues: list[Cue]
     blocked: list[tuple[int, int]]
+    lookups: int = 0
+
+    def words(self, start: int, end: int) -> tuple[str, ...]:
+        """``title_words`` of the text from token ``start`` to token ``end`` (inclusive).
+
+        Rebuilt from the already-folded tokens (adjacent tokens touch, others are separated
+        by a space) and passed through the same function the index build uses.
+        """
+        parts: list[str] = []
+        previous_end: int | None = None
+        for token in self.tokens[start : end + 1]:
+            if previous_end is not None and token.start != previous_end:
+                parts.append(" ")
+            parts.append(token.text)
+            previous_end = token.end
+        return title_words_folded("".join(parts))
 
 
 def _overlaps(a: tuple[int, int], b: tuple[int, int]) -> bool:
@@ -222,6 +254,15 @@ class Router:
             dict.fromkeys(str(v["id"]) for v in index.aliases.values() if v.get("salient"))
         )
         self._snapshot_year = date.fromisoformat(index.snapshot).year
+        # Prefilter (plan pipeline): text with none of these cannot hold a citation.
+        triggers = sorted(
+            {*self._grammar.type_words, *self._alias_last_words, *_TRIGGER_WORDS},
+            key=len,
+            reverse=True,
+        )
+        self._prefilter = re.compile(
+            r"[0-9/_\u00a7]|(?<![a-z])(?:" + "|".join(map(re.escape, triggers)) + r")(?![a-z])"
+        )
 
     @classmethod
     def from_path(cls, path: str | Path, **options: object) -> Router:
@@ -269,16 +310,21 @@ class Router:
         context: RouteContext | Sequence[Coordinate | str] | None,
         jurisdictions: Iterable[str] | None,
     ) -> RouteResult:
-        if not isinstance(query, str):
-            return self._result(RouteStatus.UNRESOLVED, reason="not_a_string")
-        if len(query) > MAX_QUERY_CHARS:
+        rejected = self._precheck(query, jurisdictions)
+        if rejected is not None:
+            return rejected
+        assert isinstance(query, str)  # noqa: S101 - established by _precheck
+        folded = fold(query)
+        if not self._prefilter.search(folded.text):
+            return self._result(RouteStatus.UNRESOLVED)
+        scan = self._scan(query, folded)
+        if len(scan.provisions) > MAX_MENTIONS:
             return self._result(
-                RouteStatus.UNRESOLVED, reason="query_too_long", citation_signal=True
+                RouteStatus.UNRESOLVED, reason="too_many_citations", citation_signal=True
             )
-        if jurisdictions is not None and "uk" not in set(jurisdictions):
-            return self._result(RouteStatus.UNRESOLVED, reason="no_jurisdiction_in_scope")
-        scan = self._scan(query)
         instruments = self._instruments(scan)
+        if scan.lookups > MAX_TITLE_LOOKUPS:
+            return self._result(RouteStatus.UNRESOLVED, reason="too_complex", citation_signal=True)
         if len(instruments) + len(scan.provisions) > MAX_MENTIONS:
             return self._result(
                 RouteStatus.UNRESOLVED, reason="too_many_citations", citation_signal=True
@@ -295,21 +341,35 @@ class Router:
             for p in unlinked
         ]
         temporal = next((c.text for c in scan.cues if c.kind == "temporal"), None)
-        signal = bool(scan.identifiers or scan.numbers or scan.provisions or instruments) or any(
-            c.kind == "out_of_coverage" for c in scan.cues
+        signal = (
+            bool(scan.identifiers or scan.numbers or scan.provisions or instruments)
+            or any(c.kind == "out_of_coverage" for c in scan.cues)
+            or any(t.text in self._grammar.type_words for t in scan.tokens)
+            or "legislation.gov.uk" in scan.query.casefold()
         )
         return self._assemble(scan, outcomes, temporal=temporal, signal=signal)
 
     # ------------------------------------------------------------------ scanning
 
-    def _scan(self, query: str) -> _Scan:
-        folded = fold(query)
-        tokens = tokenise(query)
+    def _precheck(self, query: object, jurisdictions: Iterable[str] | None) -> RouteResult | None:
+        """Queries the router declines before scanning, failing safe to ROUTE_UNRESOLVED."""
+        if not isinstance(query, str):
+            return self._result(RouteStatus.UNRESOLVED, reason="not_a_string")
+        if len(query) > MAX_QUERY_CHARS:
+            return self._result(
+                RouteStatus.UNRESOLVED, reason="query_too_long", citation_signal=True
+            )
+        if jurisdictions is not None and "uk" not in set(jurisdictions):
+            return self._result(RouteStatus.UNRESOLVED, reason="no_jurisdiction_in_scope")
+        return None
+
+    def _scan(self, query: str, folded: Folded) -> _Scan:
+        tokens = tokenise(query, folded)
         identifiers = scan_identifiers(query)
         id_spans = [(m.start, m.end) for m in identifiers]
         provisions = [
             p
-            for p in self._grammar.provisions(query, folded)
+            for p in self._grammar.provisions(query, folded, limit=MAX_MENTIONS)
             if not any(_overlaps((p.start, p.end), s) for s in id_spans)
         ]
         numbers = [
@@ -318,7 +378,7 @@ class Router:
             if not any(_overlaps((n.start, n.end), s) for s in id_spans)
         ]
         cues = self._grammar.cues(query, folded)
-        blocked = [
+        blocked: list[tuple[int, int]] = [
             *id_spans,
             *((p.start, p.end) for p in provisions),
             *((n.start, n.end) for n in numbers),
@@ -349,7 +409,7 @@ class Router:
             coordinate = Coordinate.parse(canonical)
             return _Instrument(
                 m.start, m.end, "identifier", "resolved", ids=(coordinate.instrument_id,),
-                identifier_key=m.key, clear_claim=True,
+                identifier_key=m.typed_key, clear_claim=True,
             )  # fmt: skip
         covered = index.coverage(m.instrument_key)
         if covered is not None:
@@ -409,14 +469,18 @@ class Router:
         found: list[_Instrument] = []
         anchors: list[tuple[int, str]] = []
         for pos, token in enumerate(tokens):
-            if token.kind == "punct" or _inside(token.start, scan.blocked):
+            if token.kind == "punct":
                 continue
             if token.kind == "number" and len(token.text) == 4 and _YEAR_RE.fullmatch(token.text):  # noqa: PLR2004
-                anchors.append((pos, "year"))
+                kind = "year"
             elif token.text in grammar.type_words:
-                anchors.append((pos, "type"))
+                kind = "type"
             elif token.text in self._alias_last_words:
-                anchors.append((pos, "alias"))
+                kind = "alias"
+            else:
+                continue
+            if not _inside(token.start, scan.blocked):
+                anchors.append((pos, kind))
         for pos, kind in reversed(anchors[-MAX_ANCHORS:]):  # right to left: longest titles win
             if pos in claimed:
                 continue
@@ -448,7 +512,10 @@ class Router:
 
     def _key_for(self, text: str) -> tuple[tuple[str, ...], int | None, tuple[str, ...]]:
         """(content words without year, year, all words) for a candidate title span."""
-        words = title_words(text)
+        return self._split_year(title_words(text))
+
+    @staticmethod
+    def _split_year(words: tuple[str, ...]) -> tuple[tuple[str, ...], int | None, tuple[str, ...]]:
         if len(words) > 1 and _YEAR_RE.fullmatch(words[-1]):
             return words[:-1], int(words[-1]), words
         if len(words) > 1 and _YEAR_RE.fullmatch(words[0]):
@@ -460,11 +527,16 @@ class Router:
         query = scan.query
         index = self._index
         for start in reversed(self._window(scan, anchor, claimed, MAX_TITLE_WORDS)):
+            if tokens[start].text in PARTICLES:
+                continue  # "and Equality Act 2010" must not swallow the "and" joining two citations
             text = query[tokens[start].start : tokens[anchor].end]
-            content, year, words = self._key_for(text)
+            content, year, words = self._split_year(scan.words(start, anchor))
             if not content:
                 continue
             key = title_key(content, year)
+            scan.lookups += 1
+            if scan.lookups > MAX_TITLE_LOOKUPS:
+                return None
             ids = index.ids("titles", key)
             alias = index.aliases.get(" ".join(words))
             kind = "title"
@@ -1018,7 +1090,10 @@ class Router:
         chosen = self._choose(mention, excluded_ids)
         if isinstance(chosen, _Outcome):
             return chosen
-        if mention.identifier_key and mention.identifier_key != chosen.coordinate.casefold():
+        if (
+            mention.identifier_key
+            and mention.identifier_key.casefold() != chosen.coordinate.casefold()
+        ):
             return self._resolve_identifier_provision(mention, chosen)
         outcome = self._resolve_provisions(chosen, mention.provisions, excluded_ids)
         if mention.excluded:

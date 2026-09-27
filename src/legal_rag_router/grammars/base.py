@@ -102,7 +102,11 @@ class Grammar(Protocol):
     boundary_words: frozenset[str]
     """Folded words at which a cited title's span stops when extended left."""
 
-    def provisions(self, query: str, folded: Folded) -> list[ProvisionMention]: ...
+    def provisions(
+        self, query: str, folded: Folded, *, limit: int | None = None
+    ) -> list[ProvisionMention]:
+        """Provision mentions, left to right. Stops early once more than ``limit`` are found."""
+        ...
 
     def numbers(self, query: str, folded: Folded) -> list[NumberMention]: ...
 

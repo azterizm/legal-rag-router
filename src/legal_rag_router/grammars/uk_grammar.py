@@ -451,7 +451,9 @@ class UKGrammar:
 
     # ------------------------------------------------------------------ provisions
 
-    def provisions(self, query: str, folded: Folded) -> list[ProvisionMention]:
+    def provisions(
+        self, query: str, folded: Folded, *, limit: int | None = None
+    ) -> list[ProvisionMention]:
         reader = _Reader(query, folded)
         text = folded.text
         claims = _Claims()
@@ -477,6 +479,8 @@ class UKGrammar:
             parsed = self._parse(reader, m)
             if parsed is not None and claims.take(m.start(), parsed[1]):
                 found.append(parsed[0])
+            if limit is not None and len(found) > limit:
+                break  # the caller will refuse to route this many; stop working
 
         return sorted(found, key=lambda p: p.start)
 

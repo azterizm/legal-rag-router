@@ -19,7 +19,8 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import Final
+from functools import lru_cache
+from typing import Final, NamedTuple
 
 __all__ = [
     "MAX_QUERY_CHARS",
@@ -30,6 +31,7 @@ __all__ = [
     "split_title_year",
     "title_key",
     "title_words",
+    "title_words_folded",
     "tokenise",
 ]
 
@@ -63,22 +65,34 @@ _YEAR_SUFFIX: Final = re.compile(r"^(?P<title>.*?)[\s,]*\(?(?P<year>1[2-9]\d\d|2
 
 @dataclass(frozen=True, slots=True)
 class Folded:
-    """Folded text plus, for each folded character, its index in the original string."""
+    """Folded text plus a map from each folded character to its index in the original.
+
+    ``origin`` is ``None`` when folding kept every character in place (all-ASCII input),
+    so the common case pays nothing for the map.
+    """
 
     text: str
-    origin: tuple[int, ...]
+    origin: tuple[int, ...] | None
 
     def span(self, start: int, end: int) -> tuple[int, int]:
         """Map a ``[start, end)`` span of folded text back to the original string."""
+        if self.origin is None:
+            return start, end
         if start >= end:
             anchor = self.origin[start] if start < len(self.origin) else self._end()
             return anchor, anchor
         return self.origin[start], self.origin[end - 1] + 1
 
     def _end(self) -> int:
+        if self.origin is None:
+            return len(self.text)
         return self.origin[-1] + 1 if self.origin else 0
 
 
+_ASCII_WHITESPACE: Final = str.maketrans("\t\n\r\x0b\x0c", "     ")
+
+
+@lru_cache(maxsize=8192)
 def _fold_char(ch: str) -> str:
     if ch in _DASHES:
         return "-"
@@ -97,23 +111,21 @@ def _fold_char(ch: str) -> str:
 def fold(text: str) -> Folded:
     """Fold ``text`` for matching, keeping an offset map back to ``text``.
 
-    NFKC, casefold, accent folding (``artículo`` → ``articulo``), look-alike letters,
-    Unicode dashes → ``-``, curly quotes → straight, any whitespace → one space.
+    NFKC, casefold, accent folding (``artículo`` -> ``articulo``), look-alike letters,
+    Unicode dashes -> ``-``, curly quotes -> straight, any whitespace character -> a space.
+    Whitespace is mapped one to one (not collapsed); patterns match runs with ``\\s+``.
     """
-    chars: list[str] = []
-    origin: list[int] = []
-    for index, ch in enumerate(text):
-        folded = _fold_char(ch)
-        if folded == " " and chars and chars[-1] == " ":
-            continue  # collapse whitespace runs
-        for c in folded:
-            chars.append(c)
-            origin.append(index)
-    return Folded("".join(chars), tuple(origin))
+    if text.isascii():  # fast path: lower-casing keeps every offset
+        return Folded(text.lower().translate(_ASCII_WHITESPACE), None)
+    pieces = list(map(_fold_char, text))
+    folded = "".join(pieces)
+    if len(folded) == len(text) and all(pieces):
+        return Folded(folded, None)  # every character folded to exactly one: offsets kept
+    origin = tuple(index for index, piece in enumerate(pieces) for _ in piece)
+    return Folded(folded, origin)
 
 
-@dataclass(frozen=True, slots=True)
-class Token:
+class Token(NamedTuple):
     """One token of a query: folded text, kind, and its span in the original query."""
 
     text: str
@@ -122,16 +134,20 @@ class Token:
     end: int
 
 
-def tokenise(text: str) -> list[Token]:
-    """Split ``text`` into tokens (words, digit runs, single punctuation characters)."""
-    folded = fold(text)
-    tokens: list[Token] = []
-    for match in _TOKEN.finditer(folded.text):
-        value = match.group()
-        kind = "number" if value.isdigit() else "word" if value.isalpha() else "punct"
-        start, end = folded.span(match.start(), match.end())
-        tokens.append(Token(value, kind, start, end))
-    return tokens
+_KINDED_TOKEN: Final = re.compile(r"(?P<word>[^\W\d_]+)|(?P<number>\d+)|(?P<punct>\u00a7|\S)")
+
+
+def tokenise(text: str, folded: Folded | None = None) -> list[Token]:
+    """Split ``text`` into tokens (words, digit runs, single punctuation characters).
+
+    Pass ``folded`` (``fold(text)``) when it is already at hand, to fold only once.
+    """
+    folded = folded if folded is not None else fold(text)
+    matches = _KINDED_TOKEN.finditer(folded.text)
+    if folded.origin is None:  # offsets unchanged by folding: no mapping needed
+        return [Token(m.group(), m.lastgroup or "punct", m.start(), m.end()) for m in matches]
+    span = folded.span
+    return [Token(m.group(), m.lastgroup or "punct", *span(m.start(), m.end())) for m in matches]
 
 
 def split_title_year(title: str) -> tuple[str, int | None]:
@@ -149,8 +165,13 @@ def title_words(title: str) -> tuple[str, ...]:
     ``&`` reads as ``and`` (a particle); apostrophes join (``workers'`` → ``workers``);
     hyphens split (``anti-social`` → ``anti``, ``social``).
     """
-    folded = fold(title).text.replace("&", " and ").replace("'", "")
-    words = [t.group() for t in _TOKEN.finditer(folded) if t.group().isalnum()]
+    return title_words_folded(fold(title).text)
+
+
+def title_words_folded(folded: str) -> tuple[str, ...]:
+    """:func:`title_words` for text that is already folded."""
+    cleaned = folded.replace("&", " and ").replace("'", "")
+    words = [t.group() for t in _TOKEN.finditer(cleaned) if t.group().isalnum()]
     return tuple(w for w in words if w not in PARTICLES)
 
 
