@@ -49,6 +49,7 @@ def test_unicode_keys_sort_by_bytes(tmp_path: Path) -> None:
         [("", "1")],
         [("a\tb", "1")],
         [("a\nb", "1")],
+        [("a\x01b", "1")],
         [("a", "x\ny")],
     ],
 )
@@ -58,13 +59,15 @@ def test_invalid_tables_are_rejected(items: list[tuple[str, str]]) -> None:
 
 
 _KEY = st.text(
-    alphabet=st.characters(codec="utf-8", exclude_characters="\t\n"),
+    alphabet=st.characters(codec="utf-8", exclude_categories=["Cc"]),
     min_size=1,
     max_size=12,
 )
+# Probes may hold anything a query can: control characters never match a key.
+_PROBE = st.text(alphabet=st.characters(codec="utf-8"), min_size=1, max_size=12)
 
 
-@given(st.dictionaries(_KEY, st.text(alphabet="abc,|", max_size=5), max_size=40), _KEY)
+@given(st.dictionaries(_KEY, st.text(alphabet="abc,|", max_size=5), max_size=40), _PROBE)
 def test_lookup_matches_dict(mapping: dict[str, str], probe: str) -> None:
     table = SortedTable.from_items(mapping.items())
     for key, value in mapping.items():

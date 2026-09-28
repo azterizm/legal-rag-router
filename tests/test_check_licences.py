@@ -58,6 +58,7 @@ def test_count_mismatch_fails(data_dir: Path) -> None:
 
 def test_null_count_with_records_fails(data_dir: Path) -> None:
     _records(data_dir, 1)
+    _set_count(data_dir, None)
     [problem] = check_data(data_dir, load_manifest(data_dir / "MANIFEST.json"))
     assert "document_count is null" in problem
 

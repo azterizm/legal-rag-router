@@ -1,0 +1,91 @@
+{
+  "classes": {
+    "citation_soup": {
+      "max_ms": 2.302708,
+      "p50_ms": 2.256791,
+      "p99_ms": 2.302708
+    },
+    "dense_punctuation": {
+      "max_ms": 3.01475,
+      "p50_ms": 2.974375,
+      "p99_ms": 3.01475
+    },
+    "digits_and_years": {
+      "max_ms": 7.239667,
+      "p50_ms": 7.021583,
+      "p99_ms": 7.239667
+    },
+    "identifier_soup": {
+      "max_ms": 2.770584,
+      "p50_ms": 2.674416,
+      "p99_ms": 2.770584
+    },
+    "letters_digits": {
+      "max_ms": 2.794375,
+      "p50_ms": 1.887959,
+      "p99_ms": 2.794375
+    },
+    "no_spaces": {
+      "max_ms": 0.057959,
+      "p50_ms": 0.055334,
+      "p99_ms": 0.057959
+    },
+    "printable": {
+      "max_ms": 5.949459,
+      "p50_ms": 3.884875,
+      "p99_ms": 5.949459
+    },
+    "provision_soup": {
+      "max_ms": 2.338791,
+      "p50_ms": 2.316083,
+      "p99_ms": 2.338791
+    },
+    "title_vocabulary": {
+      "max_ms": 17.466917,
+      "p50_ms": 14.687042,
+      "p99_ms": 17.466917
+    },
+    "type_words_and_years": {
+      "max_ms": 4.730875,
+      "p50_ms": 4.610917,
+      "p99_ms": 4.730875
+    },
+    "unicode_expanding": {
+      "max_ms": 9.350834,
+      "p50_ms": 6.390334,
+      "p99_ms": 9.350834
+    },
+    "unicode_mix": {
+      "max_ms": 6.5025,
+      "p50_ms": 5.285125,
+      "p99_ms": 6.5025
+    },
+    "whitespace_heavy": {
+      "max_ms": 2.428292,
+      "p50_ms": 2.404334,
+      "p99_ms": 2.428292
+    }
+  },
+  "doubling_ratio": {
+    "citation_soup": 1.8452170862522883,
+    "dense_punctuation": 1.990828112934589,
+    "digits_and_years": 1.4684359224136836,
+    "identifier_soup": 2.0128650577519016,
+    "letters_digits": 2.7185161080377482,
+    "no_spaces": 2.0096264794118617,
+    "printable": 1.9655536621589933,
+    "provision_soup": 1.8884407224296236,
+    "title_vocabulary": 1.8248822148338402,
+    "type_words_and_years": 1.23590550270272,
+    "unicode_expanding": 2.056915900198465,
+    "unicode_mix": 2.221093202522775,
+    "whitespace_heavy": 2.0009790429393455
+  },
+  "floor_ms": 17.466917,
+  "index": "data/index",
+  "machine": "arm64",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.11.15",
+  "repeats": 5,
+  "samples": 40
+}

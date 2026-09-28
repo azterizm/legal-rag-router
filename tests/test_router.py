@@ -105,7 +105,7 @@ def test_bound(router: Router, query: str, expected: list[str]) -> None:
     assert result.status is BOUND, (result.status, result.reason, result.clarification)
     assert coords(result) == expected
     assert result.next_action is NextAction.RETRIEVE_BOUNDED
-    assert result.index_snapshot == "2026-09-27"
+    assert result.index_snapshot == "2026-09-28"
 
 
 def test_multiple_citations_bind_all(router: Router) -> None:
@@ -165,7 +165,7 @@ def test_refused_with_suggestion(router: Router, query: str, first_suggestion: s
     assert str(result.suggestions[0].coordinate) == first_suggestion
     assert result.next_action is NextAction.REFUSE
     assert result.coordinates == ()
-    assert "2026-09-27" in result.messages[0]
+    assert "2026-09-28" in result.messages[0]
 
 
 def test_codigo_style_particles_and_accents_fold(router: Router) -> None:

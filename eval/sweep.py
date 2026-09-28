@@ -42,8 +42,8 @@ WINDOW_BEFORE: Final = 160
 WINDOW_AFTER: Final = 120
 
 Outcome = Literal[
-    "correct", "misroute", "wrong_provision", "miss", "ambiguous", "false_abstention",
-    "out_of_coverage",
+    "correct", "misroute", "dropped", "wrong_provision", "miss", "ambiguous",
+    "false_abstention", "out_of_coverage",
 ]  # fmt: skip
 
 
@@ -73,7 +73,12 @@ _CLAUSE_END_RE: Final = re.compile(r";|\.\s+(?=[A-Z])")
 
 
 def replay_query(citation: dict[str, object]) -> str:
-    """The citation as its author wrote it: the clause of the source text that holds it.
+    """The citation as its author wrote it: the clause of the source text that holds it."""
+    return replay(citation)[0]
+
+
+def replay(citation: dict[str, object]) -> tuple[str, int, int]:
+    """:func:`replay_query`, with the cited text's span inside the returned query.
 
     Starts after the last clause break before the citation (``;``, a sentence end, or the
     agentive "by" of an amendment note, "Words in s. 109(1) inserted by <citation>", whose
@@ -97,7 +102,9 @@ def replay_query(citation: dict[str, object]) -> str:
     elif hi < len(context):
         cut = context.rfind(" ", end, hi)
         hi = cut if cut > end else hi
-    return context[lo:hi].strip()
+    clause = context[lo:hi]
+    lead = len(clause) - len(clause.lstrip())
+    return clause.strip(), start - lo - lead, end - lo - lead
 
 
 def _related(a: Coordinate, b: Coordinate) -> bool:
@@ -105,15 +112,21 @@ def _related(a: Coordinate, b: Coordinate) -> bool:
 
 
 def classify(router: Router, citation: dict[str, object]) -> tuple[Outcome, str]:
-    """Route a harvested citation and compare with the source's own target."""
-    query = replay_query(citation)
+    """Route a harvested citation and compare with the source's own target.
+
+    A bound result without the target is a ``misroute`` when one of the router's citations
+    covers the cited text (it read that citation and bound something else), and ``dropped``
+    when none does (it bound other citations in the clause and never saw this one).
+    """
+    query, cited_start, cited_end = replay(citation)
     target = Coordinate.parse(str(citation["target_coordinate"]))
     result = router.route(query)
     status = result.status
     if status is RouteStatus.BOUNDED:
         instruments = {c.instrument_id for c in result.coordinates}
         if target.instrument_id not in instruments:
-            return "misroute", query
+            seen = any(c.span[0] < cited_end and cited_start < c.span[1] for c in result.citations)
+            return ("misroute" if seen else "dropped"), query
         if target.is_instrument or any(
             _related(c, target)
             for c in result.coordinates
@@ -195,9 +208,19 @@ def render(report: SweepReport, *, index_label: str) -> str:
     ]
     for outcome, count in report.counts.most_common():
         lines.append(f"| {outcome} | {count} | {100 * count / total:.2f} % |")
+    lines += [
+        "",
+        (
+            "`misroute`: the router read the cited text and bound another instrument. "
+            "`dropped`: it bound other citations in the same clause and never recognised "
+            "this one."
+        ),
+    ]
     lines += ["", "## Most frequent missed citation shapes", "", "| Shape | Count |", "|---|---|"]
     lines += [f"| `{shape}` | {count} |" for shape, count in report.miss_shapes.most_common(40)]
-    for outcome in ("misroute", "wrong_provision", "false_abstention", "miss", "ambiguous"):
+    for outcome in (
+        "misroute", "dropped", "wrong_provision", "false_abstention", "miss", "ambiguous",
+    ):  # fmt: skip
         rows = report.examples.get(outcome, [])
         if not rows:
             continue

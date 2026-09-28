@@ -103,6 +103,7 @@ _ABBREVIATED: Final = (
 _ABBREVIATIONS: Final = frozenset(_ABBREVIATED.split())
 _NEGATION_FILLERS: Final = frozenset({"the", "a", "an", "in", "under", "any", "of", "for", "to"})
 _YEAR_RE: Final = re.compile(r"1[2-9]\d\d|20\d\d")
+_NUMBER_NAMES: Final = {"si": "SI number", "ssi": "SSI number", "sr": "SR number"}
 # "Housing and Planning Act 2016 (c. 22)", "(c.42, SIF 81:1, 2)": a chapter number in brackets
 # right after a cited title belongs to that citation.
 _CHAPTER_NOTE_RE: Final = re.compile(
@@ -251,6 +252,11 @@ class _Scan:
             parts.append(token.text)
             previous_end = token.end
         return title_words_folded("".join(parts))
+
+
+def _the(title: str) -> str:
+    """ "the Employment Rights Act 1996", but "The Transparency Regulations 2015" as titled."""
+    return title if title[:4].casefold() == "the " else f"the {title}"
 
 
 def _overlaps(a: tuple[int, int], b: tuple[int, int]) -> bool:
@@ -455,22 +461,38 @@ class Router:
         return self._refer_back(scan, self._merge_title_numbers(scan, kept))
 
     def _merge_title_numbers(self, scan: _Scan, mentions: list[_Instrument]) -> list[_Instrument]:
-        """ "Health Act 2009 c. 21": a title followed by its own official number is one citation."""
+        """A title followed by an official number is one citation.
+
+        "Health Act 2009 c. 21": the number is the title's own. "Marchwood Order 2017
+        (S.I. 2017/612)": no such title, but the number names a real instrument. The number
+        is the stronger identity, so this is asked, never refused (as for "(c. N)").
+        """
         merged: list[_Instrument] = []
         for mention in mentions:
             last = merged[-1] if merged else None
             if (
                 last is not None
-                and last.kind in ("title", "alias", "acronym", "anchor")
                 and mention.kind == "number"
                 and mention.verdict == "resolved"
-                and mention.ids[0] in last.ids
                 and not scan.query[last.end : mention.start].strip(" ,(")
             ):
-                merged[-1] = replace(
-                    mention, start=last.start, title_as_cited=last.title_as_cited, kind="number"
-                )
-                continue
+                if (
+                    last.kind in ("title", "alias", "acronym", "anchor")
+                    and mention.ids[0] in last.ids
+                ):
+                    merged[-1] = replace(
+                        mention, start=last.start, title_as_cited=last.title_as_cited, kind="number"
+                    )
+                    continue
+                if last.kind == "anchor" and last.verdict == "not_found":
+                    merged[-1] = replace(
+                        mention,
+                        start=last.start,
+                        title_as_cited=last.title_as_cited,
+                        verdict="ambiguous",
+                        reason="title_number_conflict",
+                    )
+                    continue
             merged.append(mention)
         return merged
 
@@ -620,7 +642,7 @@ class Router:
             year=int(tokens[pos].text),
             instrument_type="act",
             reason=None if info is not None else "acronym",
-            note=f"“{text}” read as the {info.title}." if info is not None else None,
+            note=f"“{text}” read as {_the(info.title)}." if info is not None else None,
         )
         return self._absorb_chapter(scan, mention)
 
@@ -727,7 +749,7 @@ class Router:
         current = set(title_words(info.title))
         if all(w in current for w in content):
             return None
-        return f"“{cited}” is a former title of the {info.title}."
+        return f"“{cited}” is a former title of {_the(info.title)}."
 
     def _absorb_chapter(self, scan: _Scan, mention: _Instrument) -> _Instrument:
         """Extend a title mention over a following "(c. N)" and check N against the Act."""
@@ -1300,7 +1322,7 @@ class Router:
                 outcome.status = RouteStatus.AMBIGUOUS
                 outcome.reason = "open_range"
                 after = provision.refs[0].label()
-                outcome.clarification = f"Which provisions of the {info.title} after {after}?"
+                outcome.clarification = f"Which provisions of {_the(info.title)} after {after}?"
                 return outcome
             if provision.is_range:
                 state, coords = self._resolve_range(info, provision)
@@ -1348,7 +1370,7 @@ class Router:
             both = " and ".join("/".join(c.provision) for c in coords)
             outcome.clarification = f"The {info.title} has both {both}. Which do you mean?"
         else:
-            outcome.clarification = f"Which provisions of the {info.title} do you mean?"
+            outcome.clarification = f"Which provisions of {_the(info.title)} do you mean?"
         return outcome
 
     def _resolve_instrument(
@@ -1447,9 +1469,10 @@ class Router:
         )
         names = ", ".join(c.label for c in candidates[:MAX_CANDIDATES_SHOWN])
         if mention.reason == "title_number_conflict":
+            number = _NUMBER_NAMES.get(mention.instrument_type or "", "chapter number")
             outcome.clarification = (
-                f"No instrument is titled “{mention.title_as_cited}”, but its chapter number "
-                f"is that of the {names}. Did you mean that?"
+                f"No instrument is titled “{mention.title_as_cited}”, but its {number} "
+                f"is that of {_the(names)}. Did you mean that?"
             )
         elif mention.reason == "chapter_mismatch":
             outcome.clarification = (
@@ -1458,7 +1481,7 @@ class Router:
             )
         elif mention.reason in ("typo", "embedded_title", "reordered", "no_such_title"):
             outcome.clarification = (
-                f"Did you mean the {names}?"
+                f"Did you mean {_the(names)}?"
                 if len(candidates) == 1
                 else f"Did you mean one of: {names}?"
             )
@@ -1586,7 +1609,11 @@ class Router:
             RouteStatus.AMBIGUOUS,
             candidates=candidates,
             reason="provision_without_instrument",
-            clarification=f"{label} appears in more than one instrument: {names}. Which one?",
+            clarification=(
+                f"{label} appears in more than one instrument: {names}. Which one?"
+                if len(candidates) > 1
+                else f"{label} is not linked to an instrument. Did you mean {names}?"
+            ),
             citation=citation,
         )
 

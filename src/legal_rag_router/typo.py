@@ -160,15 +160,49 @@ def suggestions(
             continue
         for iid in raw.split(","):
             shared[iid] = shared.get(iid, 0) + 1
-    cited = " ".join(content)
-    scored = []
+    by_count: dict[int, list[str]] = {}
     for iid, count in shared.items():
-        if count / len(content) < policy.suggestion_min_shared:
-            continue
-        info = index.info(iid)
-        year_gap = abs(info.year - year) if year is not None else 0
-        scored.append((-count, year_gap, damerau(cited, info.title.casefold(), 30), iid))
-    return tuple(iid for *_, iid in sorted(scored)[: policy.max_suggestions])
+        if count / len(content) >= policy.suggestion_min_shared:
+            by_count.setdefault(count, []).append(iid)
+    return _ranked(index, " ".join(content), by_count, year, policy.max_suggestions)
+
+
+_MAX_TITLE_EDITS: Final = 30
+
+
+def _ranked(
+    index: RouterIndex, cited: str, by_count: dict[int, list[str]], year: int | None, wanted: int
+) -> tuple[str, ...]:
+    """The ``wanted`` best by (shared words desc, year gap, title edits, id).
+
+    Each key is computed only for the candidates it can still decide: instruments are read
+    only for the shared-word groups that reach the result, edit distance only for the year
+    groups that do, capped in the last, partly taken group at the worst distance kept.
+    """
+    chosen: list[str] = []
+    for count in sorted(by_count, reverse=True):
+        if len(chosen) >= wanted:
+            break
+        by_gap: dict[int, list[tuple[str, str]]] = {}
+        for iid in by_count[count]:
+            info = index.info(iid)
+            gap = abs(info.year - year) if year is not None else 0
+            by_gap.setdefault(gap, []).append((iid, info.title))
+        for gap in sorted(by_gap):
+            slots = wanted - len(chosen)
+            if slots <= 0:
+                break
+            best: list[tuple[int, str]] = []
+            limit = _MAX_TITLE_EDITS
+            for iid, title in sorted(by_gap[gap]):
+                best.append((damerau(cited, title.casefold(), limit), iid))
+                best.sort()
+                if len(best) > slots:
+                    best.pop()
+                if len(best) == slots:
+                    limit = min(limit, best[-1][0])
+            chosen += [iid for _, iid in best]
+    return tuple(chosen)
 
 
 def analyse_title(

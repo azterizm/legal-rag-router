@@ -10,8 +10,8 @@ Usage::
 The build fails (exit 1, nothing written) on any integrity problem:
 
 * a record fails its checksum or schema;
-* two coordinates collide after casefolding, unless they are case variants under the same
-  parent (roadmap decision 7), which are recorded in ``case_variants.json``;
+* two coordinates collide after casefolding, unless they are case variants inside the same
+  instrument (roadmap decision 7), which are recorded in ``case_variants.json``;
 * an alias names a missing instrument (unless ``--allow-missing-alias-targets``, which
   marks the index ``partial`` and lists the dropped aliases in the manifest), maps one form
   to two targets, or shadows another instrument's title.
@@ -194,17 +194,18 @@ class IndexBuild:
     dropped_aliases: list[str] = field(default_factory=list)
 
 
+def _instrument_part(coordinate: str) -> str:
+    parsed = Coordinate.try_parse(coordinate)
+    return str(parsed.instrument_coordinate) if parsed else coordinate
+
+
 def _case_variants(coordinates: Iterable[str]) -> dict[str, list[str]]:
     by_key: dict[str, list[str]] = defaultdict(list)
     for coordinate in coordinates:
         by_key[coordinate.casefold()].append(coordinate)
     variants = {k: sorted(set(v)) for k, v in by_key.items() if len(set(v)) > 1}
     for key, spellings in sorted(variants.items()):
-        parents = {s.rsplit("/", 1)[0] for s in spellings}
-        parent_keys = {p.casefold() for p in parents}
-        same_parent = len(parents) == 1
-        parent_is_variant = len(parent_keys) == 1 and next(iter(parent_keys)) in variants
-        if not (same_parent or parent_is_variant):
+        if len({_instrument_part(s) for s in spellings}) > 1:
             raise BuildError(f"casefold collision between unrelated coordinates: {spellings}")
         log.info("case variants recorded for %s: %s", key, spellings)
     return variants

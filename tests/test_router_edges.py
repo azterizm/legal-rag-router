@@ -15,6 +15,8 @@ from tests.conftest import FIXTURE_INDEX
 from tests.test_build_index import write_aliases, write_records
 
 BOUND, AMBIGUOUS, OOC = RouteStatus.BOUNDED, RouteStatus.AMBIGUOUS, RouteStatus.OUT_OF_COVERAGE
+ERA, S124 = "uk/ukpga/1996/18", "uk/ukpga/1996/18/s124"
+SI_2011, SI_2026 = "uk/uksi/2011/3006", "uk/uksi/2026/310"
 
 
 @pytest.fixture(scope="module")
@@ -210,6 +212,24 @@ def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.Monkey
         ("Employment Rights Act 1996 except s. 999", BOUND, None, ["uk/ukpga/1996/18"]),
         ("IA 1986 Sch. B1 para. 15(3)", AMBIGUOUS, "duplicated_in_source", []),  # decision 13
         ("TULRCA 1992 Sch. A1 para. 1", BOUND, None, ["uk/ukpga/1992/52/schA1/para1"]),
+        # a negation cue too far from the citation excludes nothing
+        ("not relevant here: section 124 of the Employment Rights Act 1996", BOUND, None, [S124]),
+        # SI lists (UK-I-22), series notes (UK-I-29), years ending a provision list (UK-P-06)
+        ("S.I. 2011/3006 (C. 5) and 2026/310", BOUND, None, [SI_2011, SI_2026]),
+        ("S.I. 2011 No. 3006 and 2026 No. 310", BOUND, None, [SI_2011, SI_2026]),
+        ("S.I. 2011/3006, and 2026/310", BOUND, None, [SI_2011, SI_2026]),
+        ("S.I. 2011/3006 (S. 1)", BOUND, None, [SI_2011]),
+        ("S.I.s 2011/3006 and 2026/310", BOUND, None, [SI_2011, SI_2026]),
+        ("S.I. 2011/ 3006", BOUND, None, [SI_2011]),
+        (
+            "S.I. 2011/3006 (article 3), 2026/310 (article 2)",
+            BOUND,
+            None,
+            [f"{SI_2011}/art3", f"{SI_2026}/art2"],
+        ),
+        ("S.I. 2011/3006, art. 3 and 1996 c. 18", BOUND, None, [f"{SI_2011}/art3", ERA]),
+        # an unknown title with a real SI number is asked, never refused (UK-I-30)
+        ("Marchwood Order 2011 (S.I. 2011/3006)", AMBIGUOUS, "title_number_conflict", []),
     ],
 )
 def test_pinned_outcomes(
@@ -283,3 +303,14 @@ def test_provision_matching_neither_case_variant_asks(tmp_path: Path) -> None:
     result = Router.from_path(tmp_path / "index").route("Test Act 2000 s. 1(AA)")
     assert (result.status, result.reason) == (AMBIGUOUS, "case_variants")
     assert result.clarification == "The Test Act 2000 has both s1/Aa and s1/aA. Which do you mean?"
+
+
+def test_an_unknown_title_with_a_real_si_number_names_the_si(router: Router) -> None:
+    result = router.route("Marchwood Order 2011 (S.I. 2011/3006)")
+    assert [c.label for c in result.candidates] == [
+        "The Employment Rights (Increase of Limits) Order 2011"
+    ]
+    assert result.clarification == (
+        "No instrument is titled “Marchwood Order 2011”, but its SI number is that of "
+        "The Employment Rights (Increase of Limits) Order 2011. Did you mean that?"
+    )

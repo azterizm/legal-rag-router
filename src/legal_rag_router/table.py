@@ -3,12 +3,15 @@
 A table is two files:
 
 ``{name}.tbl``  UTF-8 lines ``key\\tvalue\\n`` (or ``key\\n`` when there is no value),
-                sorted by the UTF-8 bytes of ``key``, keys unique
+                sorted by the UTF-8 bytes of ``key``, keys unique and free of control
+                characters
 ``{name}.off``  the byte offset of each line start, little-endian uint32
 
 Opening a table maps both files; nothing is parsed up front, so load time does not grow
 with the index, and memory is only the pages actually touched. A lookup is a binary search
-over the offsets (about 21 comparisons for 2M keys, a few microseconds). Values are opaque
+over the offsets (about 23 comparisons for 6M keys, a few microseconds). Because tab and
+newline sort below every byte a key may hold, a probe compares the key with the line's
+first ``len(key) + 1`` bytes and never looks for the tab. Values are opaque
 strings; callers store JSON where they need structure.
 
 Tables are immutable once opened and safe to read from several threads.
@@ -33,12 +36,12 @@ def encode_table(items: Iterable[tuple[str, str]]) -> tuple[bytes, bytes]:
     """Serialise ``(key, value)`` pairs into ``(.tbl bytes, .off bytes)``.
 
     Raises:
-        ValueError: on a duplicate key, a key or value containing a tab or newline, an
-            empty key, or a table too large for 32-bit offsets.
+        ValueError: on a duplicate key, a key holding a control character, a value
+            holding a newline, an empty key, or a table too large for 32-bit offsets.
     """
     encoded: list[tuple[bytes, bytes]] = []
     for key, value in items:
-        if not key or any(ch in key for ch in "\t\n") or "\n" in value:
+        if not key or any(ch < " " for ch in key) or "\n" in value:
             raise ValueError(f"invalid table key or value: {key!r}")
         encoded.append((key.encode("utf-8"), value.encode("utf-8")))
     encoded.sort(key=lambda kv: kv[0])
@@ -126,10 +129,17 @@ class SortedTable:
         return self._data[start:key_end]
 
     def _lower_bound(self, key: bytes) -> int:
-        lo, hi = 0, len(self._offsets)
+        """First line whose key is >= ``key``.
+
+        ``line[:len(key) + 1] < key`` exactly when the line's key is: the byte after a
+        line's key is a tab or newline, which sorts below every byte a key may hold.
+        """
+        data, offsets, width = self._data, self._offsets, len(key) + 1
+        lo, hi = 0, len(offsets)
         while lo < hi:
             mid = (lo + hi) // 2
-            if self._key_at(mid) < key:
+            start = offsets[mid]
+            if data[start : start + width] < key:
                 lo = mid + 1
             else:
                 hi = mid
@@ -147,9 +157,12 @@ class SortedTable:
         """The value stored for ``key`` (``""`` if the key has none), or ``None``."""
         raw = key.encode("utf-8")
         index = self._lower_bound(raw)
-        if index < len(self._offsets) and self._key_at(index) == raw:
-            return self._entry(index)[1]
-        return None
+        if index == len(self._offsets):
+            return None
+        start = self._offsets[index]
+        if self._data[start : start + len(raw) + 1] not in (raw + b"\t", raw + b"\n"):
+            return None
+        return self._entry(index)[1]
 
     def __contains__(self, key: object) -> bool:
         return isinstance(key, str) and self.get(key) is not None

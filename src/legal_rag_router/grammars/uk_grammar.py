@@ -142,15 +142,29 @@ _PLURAL_TYPE_YEAR_RE: Final = re.compile(rf"(?:regulations|rules|orders)\s+{_YEA
 # Official numbers (UK-I-08, UK-I-09, UK-I-10).
 _Y: Final = rf"(?P<y>{_YEAR_RX})"
 _SI_RE: Final = re.compile(
-    rf"(?<![a-z0-9])(?:s\s?\.?\s?i\s?\.?|statutory\s+instruments?)\s*(?:no\.?\s*)?{_Y}"
-    rf"\s*(?:/|\s+no\.?\s*|\s+number\s+)(?P<n>\d{{1,5}})(?!\d)"
+    rf"(?<![a-z0-9])(?:s\s?\.?\s?i\s?\.?s?|statutory\s+instruments?)\s*(?:no\.?\s*)?{_Y}"
+    rf"\s*(?:/\s*|\s+no\.?\s*|\s+number\s+)(?P<n>\d{{1,5}})(?!\d)"
 )
-# List continuation after an SI number: "S.I. 2008/2767, 2010/641 and 2011/2425" or
-# "S.I. 1988/663 and 1445" (same year). A bare continuation needs 3+ digits, so
-# "S.I. 2011/3006, 2 employees" is not read as SI 2011/2.
+# List continuation after an SI number: "S.I. 2008/2767, 2010/641 and 2011/2425",
+# "S.I. 1988/663 and 1445" (same year), "S.I. 1980 No. 765 and 1988 No. 1640". Each item
+# may carry a series note: "(C. 41)", "(W. 107)", "(Cy. 3)", "(N.I. 24)", "(L. 5)", "(S. 2)".
+# A pinpoint in brackets may follow an item: "S.I. 1969/1369 (article 3), 1969/1371".
+# A bare continuation needs 3+ digits, so "S.I. 2011/3006, 2 employees" is not SI 2011/2.
+_SI_NOTE: Final = r"(?:\s*\(\s*(?:c|w|cy|l|s|n\s?\.?\s?i)\s?\.?\s*\d{1,4}\s*\))"
+_SI_PINPOINT: Final = rf"(?:\s*\(\s*(?:{_ANY_UNIT})(?![a-z])[^()]{{0,24}}\))"
 _SI_CONTINUATION_RE: Final = re.compile(
-    r"\s*(?:,|;|&|\band\b|\bor\b)\s*(?:s\s?\.?\s?i\s?\.?\s*)?"
-    r"(?:(?P<y>(?:19|20)\d\d)\s*/\s*(?P<n>\d{1,5})|(?P<bare>\d{3,5}))(?![\d/])"
+    rf"{_SI_NOTE}{{0,2}}{_SI_PINPOINT}?\s*(?:,\s*(?:and\b|or\b)?|;|&|\band\b|\bor\b)\s*"
+    r"(?:s\s?\.?\s?i\s?\.?\s*)?"
+    r"(?:(?P<y>(?:19|20)\d\d)\s*(?:/\s*|\s+no\.?\s*)(?P<n>\d{1,5})|(?P<bare>\d{3,5}))"
+    r"(?![\d/])"
+)
+# The series note right after an SI number belongs to it: "S.I. 2009/662(S.1)" has no s. 1.
+_SI_NUMBER_NOTE_RE: Final = re.compile(
+    rf"(?<![0-9])(?:19|20)\d\d\s*(?:/\s*|\s+no\.?\s*)\d{{1,5}}(?P<note>{_SI_NOTE})"
+)
+# A year that starts an official number ends a provision list: "reg. 3 and 2020 c. 26".
+_NUMBER_AFTER_YEAR_RE: Final = re.compile(
+    r"\s*(?:,\s*)?(?:c|ch|chapter)\.?\s*\d|\s*/\s*\d|\s+no\.?\s*\d"
 )
 _BARE_SI_RE: Final = re.compile(rf"(?<![a-z0-9/.]){_Y}\s+no\.?\s*(?P<n>\d{{1,5}})(?!\d)")
 _SSI_RE: Final = re.compile(
@@ -492,6 +506,9 @@ class UKGrammar:
             claims.take(m.start(), m.end())
             found.append(self._mention(folded, m.start(), m.end(), (ref,)))
 
+        for m in _SI_NUMBER_NOTE_RE.finditer(text):
+            claims.take(m.start("note"), m.end("note"))
+
         for m in _SOLE_SCHEDULE_RE.finditer(text):
             ref = ProvisionRef(
                 (("schedule", ""), ("paragraph", reader.group(m, "para"))), reader.subs(m, "psubs")
@@ -575,6 +592,10 @@ class UKGrammar:
                 break
             designator = reader.group(item, "d", offset)
             if _is_roman(item.group("d")) and not designator.isupper():
+                break
+            if re.fullmatch(_YEAR_RX, item.group("d")) and _NUMBER_AFTER_YEAR_RE.match(
+                reader.folded.text, offset + item.end()
+            ):
                 break
             refs.append(ProvisionRef(((unit, designator),), reader.subs(item, "subs", offset)))
             is_range = is_range or item.group("sep").strip() in ("-", "to")

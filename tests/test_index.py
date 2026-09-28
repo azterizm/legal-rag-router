@@ -33,7 +33,7 @@ def index_copy(tmp_path: Path) -> Path:
 def test_fixture_loads_and_is_labelled(fixture_index: RouterIndex) -> None:
     manifest = fixture_index.manifest
     assert manifest["format_version"] == FORMAT_VERSION
-    assert fixture_index.snapshot == "2026-09-27"
+    assert fixture_index.snapshot == "2026-09-28"
     assert manifest["sources"] == ["legislation.gov.uk"]
     assert set(manifest["files"]) == set(INDEX_FILES)
 
@@ -159,9 +159,9 @@ def test_numbers_aliases_wordsets(fixture_index: RouterIndex) -> None:
     assert ids("numbers", "rc/geo5/15-16/20") == ("uk_ukpga_Geo5_15-16_20",)
     assert fixture_index.aliases["era 96"]["id"] == "uk_ukpga_1996_18"
     assert fixture_index.aliases["era 1988"]["id"] == "uk_ukpga_1988_40"
-    assert "ca 2006" not in fixture_index.aliases  # target not downloaded yet: dropped, recorded
-    assert fixture_index.manifest["partial"] is True
-    assert "uk/ukpga/2006/46" in fixture_index.manifest["dropped_alias_targets"]
+    assert fixture_index.aliases["ca 2006"]["id"] == "uk_ukpga_2006_46"
+    assert fixture_index.manifest["partial"] is False  # every alias target is present
+    assert fixture_index.manifest["dropped_alias_targets"] == []
     assert fixture_index.tables["wordsets"].get("act data protection|2018") == "uk_ukpga_2018_12"
 
 

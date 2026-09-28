@@ -10,6 +10,7 @@ import pytest
 
 from ingest.build_index import (
     BuildError,
+    _case_variants,
     acronym_keys,
     build_index,
     deletes,
@@ -181,19 +182,19 @@ def test_same_parent_case_variants_are_recorded(tmp_path: Path) -> None:
     }
 
 
-def test_unrelated_case_collision_fails(tmp_path: Path) -> None:
+def test_case_variants_without_variant_parents_are_recorded(tmp_path: Path) -> None:
+    # SI 1994/1433 and SI 2015/596 have ids such as paragraph-5-A-i and paragraph-5-a-i
+    # whose parents are never coordinates themselves: still one instrument (decision 7).
     root = tmp_path / "data"
-    write_records(
-        root,
-        {
-            "uk/uksi/1990/2145": (
-                "X Order 1990",
-                ["uk/uksi/1990/2145/art1/a/i", "uk/uksi/1990/2145/art1/A/I"],
-            )
-        },
-    )
+    spellings = ["uk/uksi/1990/2145/art1/A/I", "uk/uksi/1990/2145/art1/a/i"]
+    write_records(root, {"uk/uksi/1990/2145": ("X Order 1990", spellings)})
+    built = build_index(root, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", ""))
+    assert built.case_variants == {"uk/uksi/1990/2145/art1/a/i": spellings}
+
+
+def test_case_collision_across_instruments_fails() -> None:
     with pytest.raises(BuildError, match="unrelated"):
-        build_index(root, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", ""))
+        _case_variants(["uk/ukpga/Geo3/1/1/s1", "uk/ukpga/GEO3/1/1/s1"])
 
 
 @pytest.mark.parametrize(

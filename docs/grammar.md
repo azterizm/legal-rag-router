@@ -114,13 +114,18 @@ On the corpus as scraped on 27 Sept 2026, 2,005,209 ids map. The 32,133 that don
 
 ### Case collisions (decided: roadmap decision 7)
 
-In 5 of 33,788 instruments, siblings differ only by case. Examples:
+In the full UK data (133,798 instruments, 28 Sept) 163 coordinates have a sibling that differs
+only by case. Examples:
 - paragraphs `(a)` and `(A)` under one parent (`uk/uksi/1990/2145/sch1/para34/a` and `…/A`);
-- `schSECOND` / `schSecond` in `ukpga/1950/39`.
+- `schSECOND` / `schSecond` in `ukpga/1950/39`;
+- four whose parents are never coordinates themselves, in SI 1994/1433 and SI 2015/596:
+  the source has ids such as `paragraph-5-A-i` and `paragraph-5-a-i` under different
+  appendix parts (`uk/uksi/1994/1433/sch/app2/para5/A/i` and `…/a/i`).
 
-The build records these in a case-variant table. Any other casefold collision still fails the
-build. A lookup that hits a variant key binds only on an exact-case match
-(`…/sch1/para34/A`). Otherwise it is **A**, reason `case_variants`, listing both.
+The build records these in a case-variant table when the spellings lie inside one instrument.
+A casefold collision between two instruments still fails the build. A lookup that hits a
+variant key binds only on an exact-case match (`…/sch1/para34/A`). Otherwise it is **A**,
+reason `case_variants`, listing both.
 
 ## 3. Spain (`es`) — Stage C
 
@@ -149,7 +154,7 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-P-03 | `s.124(1ZA)(a)`, `section 124(1ZA)(a)`, `s124(1ZA)(a)(ii)` | `s124/1ZA/a[/ii]` | |
 | UK-P-04 | `subsection (2) of section 124`, `s.124 subsection (2)` | `s124/2` | |
 | UK-P-05 | `ss.124–126`, `ss 124-126`, `sections 124 to 126` | `s124`, `s125`, `s126` | **B** only if every endpoint exists and the range spans ≤ 20; otherwise **A** |
-| UK-P-06 | `sections 94, 95 and 98`, `ss. 94 & 98` | one coordinate per item | |
+| UK-P-06 | `sections 94, 95 and 98`, `ss. 94 & 98` | one coordinate per item | A year that starts an official number ends the list: `reg. 3 and 2020 c. 26` is reg. 3 plus the Act `2020 c. 26`, never reg. 2020 |
 | UK-P-07 | `s.98 et seq.`, `section 98 onwards` | — | **A**: an open range |
 | UK-P-08 | `Sch. 2 para 4`, `Schedule 2, paragraph 4`, `para 4 of Schedule 2`, `Sch 2 para 4(1)(b)`, `Schedule 2, Part 1` | `sch2/para4[/1/b]`, `sch2/pt1` | Every unit word ends at a word boundary: `Part 1` is never read as `par` + `t` |
 | UK-P-08a | Letter-first designators: `Sch. A1 para. 1`, `Schedule B1 paragraph 14`, `s. ZA1` | `schA1/para1`, `schB1/para14` | TULRCA Sch. A1, IA 1986 Sch. B1 |
@@ -177,7 +182,7 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-06 | `employment rights 1996` | the Act | No type word: **B** if the key fits one instrument, else **A**. Never **I** |
 | UK-I-07 | `Employment Rights Act` | the Act if unique, else **A** | No year. `Finance Act` → **A** |
 | UK-I-08 | `1996 c. 18`, `1996 c 18`, `c. 18 of 1996` | `uk/ukpga/1996/18` | Chapter citation. A bare `c.18` → **A** |
-| UK-I-09 | `SI 2011/3006`, `S.I. 2011/3006`, `S.I. 2011 No. 3006`, `SI 2011 No 3006`, `2011 No. 3006` | `uk/uksi/2011/3006` (or `wsi`/`nisi` if that is canonical) | Official number |
+| UK-I-09 | `SI 2011/3006`, `S.I. 2011/3006`, `S.I. 2011 No. 3006`, `SI 2011 No 3006`, `2011 No. 3006`, `S.I. 2011/ 3006`, `S.I.s 2011/3006 and …` | `uk/uksi/2011/3006` (or `wsi`/`nisi` if that is canonical) | Official number |
 | UK-I-10 | `8 & 9 Eliz. 2 c. 69`, `47 Geo. 3 Sess. 2 c. 78`, `10 Edw. 7 & 1 Geo. 5 c. 15` | the regnal coordinate | Regnal citation |
 | UK-I-11 | `the 1996 Act`, `(“the 1996 Act”)`, `section 124 of the 1996 Act` | the Act of 1996 named earlier in the query, else — | Refers back to the nearest earlier Act of that year in the query. Otherwise **A** (`year_only`) across the indexed Acts of 1996, narrowed to those holding the cited provision. **B** only when neither the index nor the catalogue knows another Act of that year |
 | UK-I-12 | `the Act`, `that Act`, `the said Act`, `the Regulations`, `the amending Act` | the instrument named just before, or the context instrument | Refers back to the nearest earlier instrument of the same kind (Act or SI). Else with `context`: bound, `source="context"`. Else **A** (`context_needed`) |
@@ -190,7 +195,9 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-19 | Capitalised invented words in front of a real title: `Marchwood Commercial Arbitration Act 1996` | — | **I**, suggesting "Arbitration Act 1996" |
 | UK-I-20 | The same in lower case: `marchwood commercial arbitration act 1996` | — | **A**: "Did you mean the Arbitration Act 1996?" |
 | UK-I-21 | A chapter note after a title: `Employment Rights Act 1996 (c. 18)`, `(c.18, SIF 43:5)`, `Theft Act 1968 c. 60` | the Act | The note is part of the citation. A chapter that names a different Act → **A** (`chapter_mismatch`, both offered). An unknown title with a real chapter → **A** (`title_number_conflict`), never **I** |
-| UK-I-22 | SI number lists: `S.I. 2008/2767, 2010/641 and 2011/2425`, `S.I. 1988/663 and 1445` | one SI per item | A bare number continues the list only if it can be an SI number (`S.I. 2011/3006, 2 employees` is one SI) |
+| UK-I-22 | SI number lists: `S.I. 2008/2767, 2010/641 and 2011/2425`, `S.I. 1988/663 and 1445`, `S.I. 2016/596 (C. 41) and 963`, `S.I. 1994/2166, 2004/3376, and 2008/2858`, `S.I. 1980 No. 765 and 1988 No. 1640` | one SI per item | A bare number continues the list only if it can be an SI number (`S.I. 2011/3006, 2 employees` is one SI). Items may carry a series note (`(C. 41)`, `(W. 107)`, `(Cy. 3)`, `(N.I. 24)`, `(L. 5)`, `(S. 2)`) or a pinpoint in brackets (`S.I. 1969/1369 (article 3), 1969/1371 (article 2)`, each linked to its own item), join with `, and`, and be written `1988 No. 1640` |
+| UK-I-29 | A series note after an SI number: `S.I. 2009/662 (S. 1)`, `SI1986/1915 (S 139)` | the SI | The note belongs to the number. `(S. 1)` is never read as section 1 |
+| UK-I-30 | A title followed by its SI number: `The Transparency Regulations 2015 (S.I. 2015/1755)`, `…Order 2017, S.I. 2017/612` | the SI | One citation when both name the same SI. An unknown title with a real SI number → **A** (`title_number_conflict`: "its SI number is that of …"), never **I**, as for a chapter number (UK-I-21) |
 | UK-I-23 | A regnal Act cited by calendar year and chapter: `1925 c. 20` | `uk/ukpga/Geo5/15-16/20` | The build also keys every regnal Act by its calendar year |
 | UK-I-24 | Commas inside a title: `Local Democracy, Economic Development and Construction Act 2009` | the Act | Titles are matched right to left from the type word. A comma stops the span only when no longer title fits |
 | UK-I-25 | Particles inside titles: `Offences against the Person Act 1861`, `Health and Safety at Work etc. Act 1974` | the Act | Extending a title left crosses `of`, `and`, `the`, `for`, `from`, `against`, `to`, `on`, `with`, `at`, `&` only when a content word lies beyond them |
@@ -259,6 +266,7 @@ These limits keep routing linear in the query length. Past a limit the router ne
 | UK-U-02 | Relative references: "subsection (2) above" | **U** |
 | UK-U-03 | Pinpoints to recitals, preambles, explanatory notes | **U** |
 | UK-U-04 | Popular names not in the alias table: "the Bribery law" | **U** |
+| UK-U-05 | A bare `yyyy/n` with no `S.I.` or other cue: `2005/275` (commencement tables cite SIs this way in a column headed "S.I. No.") | **U**: a bare slash number could be anything |
 
 ## 6. Case catalogue
 

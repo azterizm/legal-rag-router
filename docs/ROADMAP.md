@@ -19,14 +19,46 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-28 |
-| Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A), **M7-UK ✅ (Stage A)**. The full-index sweep and p99 run in Stage B |
-| Next step | M8-UK batteries. Stage B starts when the background fetch finishes (you said it is almost complete) |
-| Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
-| Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
+| Current stage | **Stage B (all of UK `ukpga` + `uksi`)**: full ingest, index, sweep and latency done. The catalogue harvest (U4) waits for your go |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M5-UK ✅ (except the U4 feed harvest), M6 ✅ (UK, full data), **M7-UK ✅ (full index: sweep committed, p99 1.89 ms)** |
+| Next step | Your answers to Q-B-1 to Q-B-4 (stop log, 28 Sept (3)), then M8-UK batteries |
+| Waiting on you | Q-B-1 to Q-B-4. U2: the 421 pre-1963 Acts lost to calendar keys in your scraper are still missing |
+| Blocked | Nothing. The fixture is complete (CA 2006, SI 2011/3006, SI 2026/310, FSMA 2000) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28 (3): **Stage B: the full UK run. Committed locally.**
+  - **Data:** your download is complete: 17,139 Acts and 116,659 SIs, 133,798 files, all `done`. The U2 gap remains: 421 pre-1963 Acts share a calendar key with another Act and were never fetched (U2).
+  - **Ingest:** every file read, 0 failures, 124 s. 69,902 instruments with structure, 63,896 PDF-only; 5.56M provisions; 4.51M harvested citations. `data/MANIFEST.json` records 133,798 documents; the licence check passes on the full `data/`.
+  - **Index:** 5.70M coordinates, 420,776 title keys, 320 MB. Every curated alias target is present, so the index is no longer `partial`. **Load 120–134 ms (< 450 ms ✓), 35 MB resident.**
+  - **Decision 7, refined:** the full build stopped on 4 case collisions in SI 1994/1433 and SI 2015/596. The source has genuinely distinct ids (`paragraph-5-A-i` and `paragraph-5-a-i` under different appendix parts), and their parents are never coordinates themselves. The build now records case variants anywhere inside one instrument. A collision across instruments still fails. Lookups are unchanged: exact case binds, otherwise **A**.
+  - **Latency on the full index:** first measured at p99 3.83 ms, max 366 ms. Two changes that don't alter any result brought it to **p99 1.89 ms ✓, max 11 ms**: staged refusal-suggestion ranking (checked identical on 2,963 titles) and cheaper table probes. The margin is thin (`docs/measurements.md`).
+  - **Sweep (100,000 real citations, `reports/coverage-sweep-uk.md`):**
+    - correct 80,015 (80.0 %);
+    - miss 8,553, of which 7,459 are bare `2005/275` table cells (UK-U-05);
+    - false abstention 6,470, mostly provisions the current text no longer has (decision 19);
+    - ambiguous 4,281;
+    - out of coverage 566;
+    - dropped 99;
+    - wrong provision 9;
+    - **misroute 7: 6 are wrong link targets in the source itself; 1 is Q-B-1.**
+  - **Fixed from the sweep:**
+    - SI lists: notes such as "(C. 41)", ", and", "1988 No. 1640" items, "(article 3)" pinpoints, "S.I.s", "2005/ 224". One real misroute went: "S.I. 1980 No. 765 and 1988 No. 1640" had bound SI 1980/1988;
+    - "(S. 1)" after an SI number was read as section 1;
+    - "reg. 3 and 2020 c. 26" was read as reg. 2020;
+    - an unknown title followed by a real SI number is now asked (`title_number_conflict`), as it already was for "(c. N)";
+    - "the The …" in clarifications.
+  - **Sweep method:** a bound result missing the target is now split into `misroute` (the router read that citation and bound something else) and `dropped` (it never recognised it). On the first full run, most of the 48 rows counted as misroutes were list items the router never recognised. Two were real misroutes, and both are fixed or open above.
+  - **Fixture:** complete, `partial` false, snapshot 28 Sept. The CA 2006 collision test runs.
+  - **4 KB noise:** fixture 9.17 ms (the test guard); full index **17.47 ms** (`title_vocabulary`).
+  - Grammar rows UK-P-06, UK-I-09, UK-I-22, UK-I-29, UK-I-30 and UK-U-05 are added or updated. Tests: 652 pass, 1 skip (Spanish data). Coverage 100 %.
+  - **Questions for you:**
+    1. **Q-B-1** A title and its SI number name different SIs: "…Regulations 2017 (S.I. 2018/1232)". Today both are bound; this is the one real misroute left. I propose to ask, as "(c. N)" does, listing both. Reuse the reason `chapter_mismatch`, or add `number_mismatch` (a new public reason value)?
+    2. **Q-B-2** The U4 catalogue harvest from the Atom feeds needs a contact for the User-Agent (the fair-use policy requires one). Your fetch is finished, so the two can't overlap. At 1 request per 5 s, the whole site is about 9,000–10,000 pages (13–14 h). A targeted run is 2–3 h: only the series missing from your listing, plus `ukpga`, which measures the U2 gap. Which run, and which contact?
+    3. **Q-B-3** 4 KB noise on the full index is 17.5 ms. Publish it as measured (decision 16), or count unknown-title analyses against the UK-W-03 work budget, so title-word soup stops earlier as `too_complex`?
+    4. **Q-B-4** U2: can your scraper re-fetch the 421 regnal Acts keyed on their `IdURI`? Until then they are catalogued but not indexed.
+  - **Resume:** answers to Q-B-1 to Q-B-4, then M8-UK batteries.
 
 - 2026-09-28 (2): **Your answers applied (decisions 5, 17, 18, 19). Committed locally.**
   - **Coverage is 100 % line and branch on `src/`, enforced in CI** (decision 5 corrected to vault 06 §5).
@@ -207,6 +239,7 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - The current listing starts at 1970. It misses `apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`, `uksro`, `nisro`, `ukdsi`, `sdsi`, `wdsi`, `nidsr`, `ukmo`, `ukmd`, … and pre-1970 years.
   - Without the fix, citations to these would be *refused* when they should be marked out of coverage.
   - The same harvest also writes a regnal-correct catalogue of `ukpga`/`uksi`, which measures the U2 gap.
+- **U5 — resolved 28 Sept:** the download is complete, including every large Act and both cap Orders. The original note follows.
 - **U5 — 24 large Acts are still pending** (as of 27 Sept), probably failing on size.
   - The Acts are: Companies Act 2006, ITA 2007, CTA 2009/2010, FSMA 2000, TCGA 1992, Communications Act 2003, Criminal Procedure (Scotland) Act 1995, and 16 smaller pre-1970 Acts.
   - Also pending: SI 2011/3006 and SI 2026/310 (the s.124 cap Orders).
@@ -361,7 +394,9 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M5 — Full ingest in the background (plan steps 4–5) · starts day 3, ≈ 33 h UK + ES in parallel
 
-- [ ] UK, `ukpga` + `uksi`:
+> **Status (28 Sept):** UK done from your download (§U): 133,798 files, 0 failures, the licence check passes on the full `data/`. Still open for UK: the feed harvest of the other series (U4, Q-B-2) and the 421 regnal Acts (U2, Q-B-4). ES waits for Stage C.
+
+- [x] UK, `ukpga` + `uksi` (from your download; the Atom-feed titles of the other series are U4):
   - Instrument lists from the Atom feeds.
   - `data.xml` per instrument: element ids down to subsection/paragraph depth, text, repealed status, part → sections map, chapter number.
   - `<Citation>` harvest → `data/harvest/uk_citations.jsonl`.
@@ -371,11 +406,13 @@ Each of these changes order or method but not what gets delivered. See §4.
   - `/texto` XML per norm. Apartado/letra split from the text: a leading `N.` for apartados and `x)` for letras, not the CSS class. Article number normalised from the heading (`art42` vs `a642`).
   - The current `<version>` is indexed and the older ones are kept for Phase 2.
   - `referencias` harvest → `data/harvest/es_citations.jsonl`.
-- [ ] Records → `data/{uk,es}/…/{instrument_id}.jsonl`, validated, checksummed. `MANIFEST.json` counts are filled in.
+- [x] Records → `data/{uk,es}/…/{instrument_id}.jsonl`, validated, checksummed. `MANIFEST.json` counts are filled in. (UK)
 - [ ] Runs on the Mac in the background with a progress log I monitor. On failure it resumes from the cache.
 - **Done when:** both runs finish with zero unvalidated records, the licence check passes on the full `data/`, and the ES golden test passes on full data.
 
 ### M6 — Index, title tables, aliases (plan step 6) · days 4–5 (fixture first, full data once M5 lands)
+
+> **Status (28 Sept):** done for the UK on full data. Built as memory-mapped sorted tables (decision 12), not the JSON files listed below. Full index: 5.70M coordinates, 320 MB, load 120–134 ms, 35 MB resident (`docs/measurements.md`).
 
 - [ ] `ingest/build_index.py` → `data/index/`:
   - `coordinates.txt.gz` (sorted).
@@ -411,7 +448,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 > **Status (28 Sept):**
 > - 7a–7j are done for the UK.
 > - The Spanish parts (`es.py`, BOE identifiers, `artículo único`, `RDL`, state vs regional, Spanish negation words) wait for Stage C.
-> - 7k: the split manifest and the Stage A sweep are committed. The full-index sweep and p99 run in Stage B.
+> - 7k: done on the full index. `reports/coverage-sweep-uk.md` holds 100,000 citations, and the misses are grammar rows or documented unsupported forms. p99 is 1.89 ms on real queries (Stage B, 28 Sept).
 
 - [x] **7a Normalise** (`normalise.py`):
   - NFKC and casefold; accent fold; look-alike skeleton map.
@@ -482,7 +519,7 @@ Each of these changes order or method but not what gets delivered. See §4.
   - Hypothesis: `route()` never raises, and 4 KB random input finishes in < 2 ms (ReDoS guard).
   - A thread-safety smoke test.
   - Injection-shaped identifiers never reach the filter.
-- [ ] **7k Harvest split, then coverage sweep (D3):**
+- [x] **7k Harvest split, then coverage sweep (D3):**
   1. Split the pairs into `sweep` / `heldout` with a fixed seed, and commit a hashed split manifest.
   2. Run the router over `sweep` only.
   3. Each miss becomes either a grammar row or a documented unsupported form.
@@ -632,6 +669,7 @@ M9 docs are written alongside and finished before M10.
 
 7. **Q-M1-1 (case collisions), decided 27 Sept:** use a case-variant table.
    - The build allows a collision only between coordinates that differ solely by case under the same parent, and records them in a `case_variants` index table.
+   - **Refined 28 Sept (Stage B):** a case variant is any such collision inside one instrument. SI 1994/1433 and SI 2015/596 have distinct source ids (`paragraph-5-A-i` and `paragraph-5-a-i`) whose parents are never coordinates themselves. A collision across instruments still fails.
    - A lookup that hits such a key binds only on an exact-case match; otherwise it returns `ROUTE_AMBIGUOUS` listing both.
    - Every other collision still fails the build.
 8. **Fixture data (27 Sept):** you move CA 2006, SI 2011/3006 and SI 2026/310 to the front of your fetch queue. Meanwhile I build the fixture from what's on disk and add these when they land.
@@ -641,7 +679,11 @@ M9 docs are written alongside and finished before M10.
     - The index records `structure: full | metadata_only` per instrument.
 16. **Q-M7-2 latency on 4 KB noise (27 Sept):** split budget.
     - **Real queries:** < 2 ms p99, published by `bench/latency.py`.
-    - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`): 9.49 ms on the Mac (re-measured 28 Sept; 7.22 ms on 27 Sept, before the sweep fixes), from title-vocabulary soup. The tests guard 2× that floor plus linear doubling (≤ 2.5×) per class.
+    - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`). On the Mac:
+      - fixture index: 9.17 ms (28 Sept, Stage B; 9.49 ms earlier that day, 7.22 ms on 27 Sept);
+      - **full UK index: 17.47 ms**, from title-vocabulary soup (Q-B-3).
+
+      The tests guard 2× the fixture floor, plus linear doubling (≤ 2.5×) per class.
     - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.

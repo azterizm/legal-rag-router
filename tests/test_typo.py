@@ -111,3 +111,37 @@ def test_a_typo_that_fixes_to_no_title_gives_no_correction(fixture_index: Router
         fixture_index, ("arbitraton", "act"), 1925, type_words=INSTRUMENT_TYPE_WORDS
     )
     assert verdict.verdict != "bound"
+
+
+def _ranked_by_full_sort(index: RouterIndex, words: list[str], year: int | None) -> tuple[str, ...]:
+    """Plan departure 7's ranking, computed for every candidate (the reference)."""
+    content = [w for w in dict.fromkeys(words) if w not in INSTRUMENT_TYPE_WORDS]
+    shared: dict[str, int] = {}
+    for word in content:
+        for iid in index.ids("words", word):
+            shared[iid] = shared.get(iid, 0) + 1
+    scored = []
+    for iid, count in shared.items():
+        if count / len(content) >= 0.5:
+            info = index.info(iid)
+            gap = abs(info.year - year) if year is not None else 0
+            scored.append((-count, gap, damerau(" ".join(content), info.title.casefold(), 30), iid))
+    return tuple(iid for *_, iid in sorted(scored)[:3])
+
+
+@pytest.mark.parametrize(
+    ("words", "year"),
+    [
+        (["employment"], None),  # one large tied group: edit distance decides the cut
+        (["employment"], 1996),
+        (["employment", "rights", "zebra"], 2001),
+        (["theft", "employment"], None),
+        (["finance", "act"], 2020),
+    ],
+)
+def test_suggestions_rank_as_a_full_sort_would(
+    fixture_index: RouterIndex, words: list[str], year: int | None
+) -> None:
+    expected = _ranked_by_full_sort(fixture_index, words, year)
+    assert expected
+    assert suggestions(fixture_index, words, year, type_words=INSTRUMENT_TYPE_WORDS) == expected

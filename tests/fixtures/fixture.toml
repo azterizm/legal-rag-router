@@ -7,12 +7,13 @@
 #
 # Each entry says why it is in the fixture. The build is deterministic.
 
-snapshot = "2026-09-27"
+snapshot = "2026-09-28"
 
 instruments = [
-  # s.124 collision set (ERA vs EqA; CA 2006 once downloaded)
+  # s.124 collision set (ERA vs EqA vs CA 2006)
   "uk_ukpga_1996_18",             # Employment Rights Act 1996: Part X, s.124(1ZA)(a)
   "uk_ukpga_2010_15",             # Equality Act 2010: also has s.124
+  "uk_ukpga_2006_46",             # Companies Act 2006: also has s.124
   # typo / invented-law probes
   "uk_ukpga_1996_23",             # Arbitration Act 1996: "Marchwood Commercial Arbitration Act 1996"
   "uk_ukpga_1990_38",             # Employment Act 1990: suggestion for "Employment Rights Act 1990"
@@ -49,16 +50,14 @@ instruments = [
   "uk_uksi_1981_292",             # PDF-only (metadata_only)
   "uk_uksi_2013_76",              # PDF-only
   "uk_wsi_2013_2729",             # Welsh SI found under uksi/
-  # not downloaded yet (roadmap U5, decision 8): added automatically once on disk
-  "uk_ukpga_2006_46",             # Companies Act 2006
-  "uk_uksi_2011_3006",            # Employment Rights (Increase of Limits) Order 2011
-  "uk_uksi_2026_310",             # Employment Rights (Increase of Limits) Order 2026
-  "uk_ukpga_2000_8",              # FSMA 2000
+  "uk_uksi_2011_3006",            # Employment Rights (Increase of Limits) Order 2011: the s.124 cap
+  "uk_uksi_2026_310",             # Employment Rights (Increase of Limits) Order 2026: same title, other year
+  "uk_ukpga_2000_8",              # FSMA 2000: alias target
 ]
 
-# Instruments above that may be absent from the raw cache for now. Any other missing
-# instrument fails the build.
-pending = ["uk_ukpga_2006_46", "uk_uksi_2011_3006", "uk_uksi_2026_310", "uk_ukpga_2000_8"]
+# Instruments above that may be absent from the raw cache. Any other missing instrument
+# fails the build. Empty since the Stage B download (28 Sept 2026).
+pending = []
 
 # Out-of-coverage sample: the first N catalogue entries of each series, plus these.
 coverage_per_series = 3

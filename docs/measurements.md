@@ -118,3 +118,46 @@ The rise came from the sweep fixes (more title work per anchor: chapter notes, c
 | no_spaces | 0.06 | 0.06 | 0.06 | 1.91 |
 
 **4 KB noise floor: 9.49 ms** (worst class, worst sample). Doubling stays linear (every ratio ≤ 2.5).
+
+
+## 2026-09-28: full UK index (Stage B)
+
+All of legislation.gov.uk's `ukpga` and `uksi` as downloaded on 28 Sept: 133,798 files, all read with 0 failures. Mac (Apple silicon), macOS 26.6.2, Python 3.11.15.
+
+| Measure | Stage A (partial) | **Full UK** | Target |
+|---|---|---|---|
+| Ingest (`ingest.uk`, 9 workers) | 35 s | **124 s**, peak RSS 0.44 GB | |
+| Instruments / with structure / PDF-only | 33,788 / 10,720 / 23,068 | **133,798 / 69,902 / 63,896** | |
+| Provisions / harvested citations | 2.0M / 2.4M | **5.56M / 4.51M** | |
+| Index build (`ingest.build_index`) | 17.8 s | **132 s**, peak RSS 4.2 GB | |
+| Coordinates / title keys / catalogue (out of coverage) | 2.0M / — / — | **5.70M / 420,776 / 34,912** | |
+| Index size on disk | 121 MB | **320 MB** | |
+| **Load time** (incl. SHA-256 of every file) | 132 ms | **120–134 ms** | < 450 ms ✓ |
+| **Resident memory after load + lookups** | 29 MB | **35 MB** | |
+
+Load time did not grow with the index: hashing is fast and nothing is parsed up front.
+
+### Real-query latency (plan step 7: p99 < 2 ms)
+
+Measured over the 20,000 replayed source citations of the sweep sample (real drafting, mean 70 characters, up to about 300). Each query is timed as its fastest of 3 warm runs.
+
+| p50 | p90 | **p99** | p99.9 | max |
+|---|---|---|---|---|
+| 0.13 ms | 0.29 ms | **1.89 ms** ✓ | 7.1 ms | 11.4 ms |
+
+On the full index the first measurement was **p99 3.83 ms, max 366 ms**. Three changes brought it under 2 ms, and none changes a result:
+
+- **Refusal suggestions** (`typo.suggestions`) measured title edit distance against every candidate sharing a word: 1,400 long titles for "Offshore Installations (Safety Zones) Regulations". It now ranks in stages (shared words, then year gap, then edit distance) and reads an instrument only for the groups that can reach the top 3. Edit distance is capped at the worst one still kept. Checked against the old ranking on 2,963 titles: identical results, 5–6× faster.
+- **Table lookups** (`table.SortedTable`): a probe compares the key with the line's first `len(key) + 1` bytes instead of finding the tab and building a tuple. This is exact because tab and newline sort below every byte a key may hold. The encoder now rejects control characters in keys, so that holds by construction; no key in either index had one.
+- Together: max 366 → 11 ms, p99 3.83 → 1.89 ms.
+
+The margin under 2 ms is thin. The remaining tail is still suggestions for refused titles whose words are common (thousands of candidates share "regulations", "amendment"…). M10's `bench/latency.py` publishes the sealed figure.
+
+### 4 KB noise (decision 16)
+
+| Index | Floor (worst class, worst sample) | Worst class |
+|---|---|---|
+| Fixture (the test guard: 2× this) | **9.17 ms** (was 9.49) | `unicode_expanding` |
+| **Full UK** | **17.47 ms** | `title_vocabulary`: soup of title words makes up to 16 unknown-title analyses, each with suggestions over a much larger vocabulary |
+
+`letters_digits` shows a 2.7× doubling ratio on both indexes. That is not superlinear cost: the bench's fixed 4 KB sample contains a bare provision that its 2 KB prefix doesn't, and resolving it over the salient instruments adds about 0.6 ms. Timed on other seeds, the class scales 1.6–1.7× per doubling. Results: `bench/results/stress-darwin-arm64.json` (fixture) and `stress-darwin-arm64-full-index.json`.

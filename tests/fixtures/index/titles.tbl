@@ -18,6 +18,10 @@ colonial stock	uk_ukpga_Geo6_12-13-14_1
 colonial stock act	uk_ukpga_Geo6_12-13-14_1
 colonial stock act|1948	uk_ukpga_Geo6_12-13-14_1
 colonial stock|1948	uk_ukpga_Geo6_12-13-14_1
+companies	uk_ukpga_2006_46
+companies act	uk_ukpga_2006_46
+companies act|2006	uk_ukpga_2006_46
+companies|2006	uk_ukpga_2006_46
 consolidated fund	uk_ukpga_1996_4
 consolidated fund act	uk_ukpga_1996_4
 consolidated fund act|1996	uk_ukpga_1996_4
@@ -45,10 +49,14 @@ employment rights	uk_ukpga_1996_18,uk_ukpga_2025_36
 employment rights act	uk_ukpga_1996_18,uk_ukpga_2025_36
 employment rights act|1996	uk_ukpga_1996_18
 employment rights act|2025	uk_ukpga_2025_36
-employment rights increase limits	uk_uksi_2010_2926
-employment rights increase limits order	uk_uksi_2010_2926
+employment rights increase limits	uk_uksi_2010_2926,uk_uksi_2011_3006,uk_uksi_2026_310
+employment rights increase limits order	uk_uksi_2010_2926,uk_uksi_2011_3006,uk_uksi_2026_310
 employment rights increase limits order|2010	uk_uksi_2010_2926
+employment rights increase limits order|2011	uk_uksi_2011_3006
+employment rights increase limits order|2026	uk_uksi_2026_310
 employment rights increase limits|2010	uk_uksi_2010_2926
+employment rights increase limits|2011	uk_uksi_2011_3006
+employment rights increase limits|2026	uk_uksi_2026_310
 employment rights|1996	uk_ukpga_1996_18
 employment rights|2025	uk_ukpga_2025_36
 employment tribunals	uk_ukpga_1996_17
@@ -66,6 +74,10 @@ finance act|2024	uk_ukpga_2024_3
 finance act|2025	uk_ukpga_2025_8
 finance|2024	uk_ukpga_2024_3
 finance|2025	uk_ukpga_2025_8
+financial services markets	uk_ukpga_2000_8
+financial services markets act	uk_ukpga_2000_8
+financial services markets act|2000	uk_ukpga_2000_8
+financial services markets|2000	uk_ukpga_2000_8
 health safety at work etc	uk_ukpga_1974_37
 health safety at work etc act	uk_ukpga_1974_37
 health safety at work etc act|1974	uk_ukpga_1974_37

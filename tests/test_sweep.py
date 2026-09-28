@@ -67,6 +67,7 @@ CLASSIFY_CASES = [
     ("Theft Act 1968", "by Theft Act 1968 (c. 60), s. 1", "uk/ukpga/1968/60", "correct"),
     ("section 124", f"section 124 of the {ERA}", S124, "correct"),
     ("section 124", "section 124 of the Equality Act 2010", S124, "misroute"),
+    ("the other statute", "Theft Act 1968 and the other statute", S124, "dropped"),
     ("section 125", f"section 125 of the {ERA}", S124, "wrong_provision"),
     ("s. 999", f"{ERA}, s. 999", "uk/ukpga/1996/18", "false_abstention"),
     ("this", "in subsection (4), omit this", "uk/ukpga/1996/18", "miss"),
