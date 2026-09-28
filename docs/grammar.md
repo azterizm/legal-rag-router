@@ -219,7 +219,7 @@ Outcomes:
 - The identifier exists → **B**.
 - The instrument is missing → **I**.
 - The provision is missing → **P**.
-- An injection-shaped identifier (`uk/ukpga/1996/18' or '1'=='1`) fails the grammar and never reaches the filter.
+- An injection-shaped identifier (`uk/ukpga/1996/18' or '1'=='1`) yields only the safe key `uk/ukpga/1996/18` (lower-case letters, digits, `.`, `/`, `-`), which binds as usual. The quoted tail never reaches the filter: a filter holds only canonical coordinates from the index.
 
 ### 4.4 Out of coverage
 

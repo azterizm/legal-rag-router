@@ -159,10 +159,15 @@ class SweepReport:
     skipped: Counter[str]
 
 
-def eligible(router: Router, rows: Iterable[dict[str, object]]) -> Iterator[dict[str, object]]:
+def eligible(
+    router: Router,
+    rows: Iterable[dict[str, object]],
+    split: Literal["sweep", "heldout"] = "sweep",
+) -> Iterator[dict[str, object]]:
+    """Harvested citations of ``split`` whose target coordinate the index holds."""
     for row in rows:
         target = row.get("target_coordinate")
-        if row.get("kind") != "citation" or not target or bucket(row) != "sweep":
+        if row.get("kind") != "citation" or not target or bucket(row) != split:
             continue
         try:
             coordinate = Coordinate.parse(str(target))

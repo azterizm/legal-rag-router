@@ -19,14 +19,30 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-28 |
-| Current stage | **Stage B (all of UK)**: data complete (U2 and U4 closed), ingest, index, sweep and latency done |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)** |
-| Next step | M8-UK batteries (halts for your review before they are sealed) |
-| Waiting on you | Nothing |
+| Current stage | **Stage B (all of UK)**: data complete, ingest, index, sweep and latency done; **UK batteries built, awaiting your review** |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK built ⛔ (your review)** |
+| Next step | After your review: seal and run (M10-UK) |
+| Waiting on you | ⛔ **Review the UK batteries** (`docs/batteries.md`, review points 1–6), and run `batteries.verify_absence` with your contact (about 5 minutes) |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28 (6): **M8-UK batteries built; halted for your review (⛔). Committed locally.**
+  - **2,112 rows in nine files** (`batteries/uk/`), schema in `batteries/schema.py`, validated in CI:
+    - `misroute` 1,030: 1,000 **held-out** real citations (D3), seed 20260928, plus 30 hand rows;
+    - `false_abstention` 773: 700 sampled from the index (350 Acts, 350 SIs), plus 73 hand rows;
+    - `invented` 68: Marchwood, 50 other invented instruments, 16 invented provisions;
+    - `typo` 75: 50 real misspellings, 25 adversarial near-misses; split dev 22 / test 53 (D2);
+    - `collision` 40, `catalogue` 45, `identifier` 29, `informal` 27, `ambiguous` 25.
+  - **Labels come from grammar.md, never from a router run.** `batteries/build_uk.py` checks each hand label's facts against the full index before writing: coordinates exist, `absent:` ones don't, and invented titles are in neither the index nor the catalogue. It caught one wrong label (Bribery Act 2010 s. 20 exists).
+  - Every supported grammar.md row is exercised by a battery row (CI test). The one exception is UK-C-17 (an API argument).
+  - **Typo dev slice (D2):** the router matches all 22 dev rows, so the thresholds are unchanged and freeze with the seal. The test slice has not been run.
+  - **Absence of invented instruments:** checked offline against the index and your 244,564-entry catalogue. `batteries/verify_absence.py` confirms them with the source's own search. It is yours to run (a fetch).
+  - grammar.md's injection wording is corrected: such input yields only the safe key, and nothing else reaches the filter.
+  - Tests: 709 pass, 1 skip. Coverage 100 %.
+  - **Questions for you (⛔ halt):** the six review points in `docs/batteries.md`. The main one: "Employment Rights Act" without a year now also names the Employment Rights Act 2025, so the plan's informal example is labelled ambiguous.
+  - **Resume:** after your review, seal and run (M10-UK).
 
 - 2026-09-28 (5): **Your U2 re-fetch and U4 catalogue landed; checked, three fixes, re-swept. Committed locally.**
   - **Your data, checked:**
@@ -567,13 +583,15 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M8 — Batteries (plan step 8) · written during M4–M7, frozen at the end of M8
 
-- [ ] `batteries/schema.py` (pydantic). Row fields:
+> **Status (28 Sept):** UK built (2,112 rows, `docs/batteries.md`); ⛔ waiting for your review. ES follows in Stage C.
+
+- [x] `batteries/schema.py` (pydantic). Row fields:
   - `id, query, context?, lang, domain, expected_status, expected_coordinates, source (hand|real_document|sampled), notes`;
   - `surface_form_ids`;
   - `absence_verified_via` on invented rows;
   - `split` on typo rows (D2).
-- [ ] Validated in CI.
-- [ ] Files, per domain where one applies:
+- [x] Validated in CI (`tests/test_batteries.py`).
+- [x] Files, per domain where one applies (UK; ES in Stage C):
 
   | Battery | Contents | Size |
   |---|---|---|
@@ -587,9 +605,9 @@ Each of these changes order or method but not what gets delivered. See §4.
   | `informal` | | |
   | `catalogue` | ≥ 1 row per catalogue entry | |
 
-- [ ] Coverage check: every supported surface-form row in grammar.md is exercised by at least one battery row (CI test).
-- [ ] 🧑 Invented rows need the absence confirmed with the source's own search. I record the search URL and date for each; you may want to spot-check a sample.
-- [ ] Typo thresholds are tuned on the `dev` slice only (D2), then frozen in the constants block.
+- [x] Coverage check: every supported surface-form row in grammar.md is exercised by at least one battery row (CI test).
+- [ ] 🧑 (offline check done; `batteries.verify_absence` is yours to run) Invented rows need the absence confirmed with the source's own search. I record the search URL and date for each; you may want to spot-check a sample.
+- [x] Typo thresholds are tuned on the `dev` slice only (D2), then frozen in the constants block. (22/22 dev rows met: no change.)
 - ⛔ **Halt: you review the batteries before they are sealed.**
 
 ### M9 — Documentation (production-readiness; spread across M1–M8, finished here)
