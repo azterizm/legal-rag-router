@@ -39,7 +39,7 @@ __all__ = ["HELDOUT_PERCENT", "SPLIT_SALT", "Outcome", "bucket", "classify", "ma
 SPLIT_SALT: Final = "lrr-harvest-split-v1"
 HELDOUT_PERCENT: Final = 20
 WINDOW_BEFORE: Final = 160
-WINDOW_AFTER: Final = 60
+WINDOW_AFTER: Final = 120
 
 Outcome = Literal[
     "correct", "misroute", "wrong_provision", "miss", "ambiguous", "false_abstention",
@@ -68,17 +68,33 @@ def split_manifest() -> dict[str, object]:
     }
 
 
+_CLAUSE_START_RE: Final = re.compile(r"(?:;\s+|\.\s+(?=[A-Z(])|\bby(?: virtue of)?\s+)")
+_CLAUSE_END_RE: Final = re.compile(r";|\.\s+(?=[A-Z])")
+
+
 def replay_query(citation: dict[str, object]) -> str:
-    """The citation in its own words: a window of the source text around it."""
+    """The citation as its author wrote it: the clause of the source text that holds it.
+
+    Starts after the last clause break before the citation (``;``, a sentence end, or the
+    agentive "by" of an amendment note, "Words in s. 109(1) inserted by <citation>", whose
+    leading provision belongs to the host instrument, not to the citation), and ends at
+    the next clause break after it. Both ends are bounded by fixed windows.
+    """
     context = str(citation.get("context") or citation.get("text") or "")
     span = citation.get("span") or (0, len(context))
     start, end = int(span[0]), int(span[1])  # type: ignore[index]
     lo = max(0, start - WINDOW_BEFORE)
-    hi = min(len(context), end + WINDOW_AFTER)
-    if lo > 0:
+    breaks = [m.end() for m in _CLAUSE_START_RE.finditer(context, lo, start)]
+    if breaks:
+        lo = breaks[-1]
+    elif lo > 0:
         cut = context.find(" ", lo)
         lo = cut + 1 if 0 <= cut < start else lo
-    if hi < len(context):
+    hi = min(len(context), end + WINDOW_AFTER)
+    closing = _CLAUSE_END_RE.search(context, end, hi)
+    if closing is not None:
+        hi = closing.start()
+    elif hi < len(context):
         cut = context.rfind(" ", end, hi)
         hi = cut if cut > end else hi
     return context[lo:hi].strip()
@@ -166,7 +182,8 @@ def render(report: SweepReport, *, index_label: str) -> str:
     intro = (
         f"Index: `{index_label}`. Citations swept: {report.considered} (the `sweep` side of "
         f"the harvest split; {HELDOUT_PERCENT} % is held out for the misroute battery and "
-        "never swept)."
+        "never swept). Quoted source text: legislation.gov.uk, Crown copyright, Open "
+        "Government Licence v3.0."
     )
     lines = [
         "# Coverage sweep (UK)",
@@ -207,6 +224,7 @@ def main(argv: list[str] | None = None) -> int:
     runner.add_argument("--index", type=Path, required=True)
     runner.add_argument("--sample", type=int, default=None)
     runner.add_argument("--out", type=Path, required=True)
+    runner.add_argument("--index-label", help="how the report names the index (default: its path)")
     args = parser.parse_args(argv)
 
     if args.command == "split-manifest":
@@ -217,7 +235,9 @@ def main(argv: list[str] | None = None) -> int:
     router = Router.from_path(args.index)
     report = run(router, args.harvest, sample=args.sample)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(render(report, index_label=str(args.index)), encoding="utf-8")
+    args.out.write_text(
+        render(report, index_label=args.index_label or str(args.index)), encoding="utf-8"
+    )
     print(json.dumps(dict(report.counts)), f"-> {args.out}")
     return 0
 

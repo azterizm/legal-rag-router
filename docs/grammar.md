@@ -112,13 +112,15 @@ Element ids and URL paths use the same token sequence, with `-` and `/` as the s
 
 On the corpus as scraped on 27 Sept 2026, 2,005,209 ids map. The 32,133 that don't all fall into the excluded kinds above.
 
-### Case collisions (open: roadmap Q-M1-1)
+### Case collisions (decided: roadmap decision 7)
 
 In 5 of 33,788 instruments, siblings differ only by case. Examples:
 - paragraphs `(a)` and `(A)` under one parent (`uk/uksi/1990/2145/sch1/para34/a` and `…/A`);
 - `schSECOND` / `schSecond` in `ukpga/1950/39`.
 
-The plan says the index build fails on any casefold collision, so a decision is needed before M6.
+The build records these in a case-variant table. Any other casefold collision still fails the
+build. A lookup that hits a variant key binds only on an exact-case match
+(`…/sch1/para34/A`). Otherwise it is **A**, reason `case_variants`, listing both.
 
 ## 3. Spain (`es`) — Stage C
 
@@ -159,6 +161,8 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-P-15 | Mixed-up provision words: `article 124` of an Act; `section 2` of an SI | Act: `art`→`s`. SI: `s`→`art`/`reg`/`rule` (whichever exists) | The number is never changed |
 | UK-P-16 | Provision-word typos: `secton 124`, `sectoin`, `artcle`, `regualtion` | as UK-P-02 / 10 / 11 | Fixed variant list, not the fuzzy tier |
 | UK-P-17 | A four-digit number after a provision word: `section 1996` | `s1996` | Always a provision number, never a year |
+| UK-P-18 | Editorial sibling lists: `s. 124(3)(4)`, `s. 124(1ZA)(a)(b)`, `s. 124(1)(a)(5)` | `s124/3`, `s124/4` … | The nested reading wins when it exists (`s124(1ZA)(a)` → `s124/1ZA/a`). Otherwise the brackets are read as siblings wherever the numbering restarts or a letter run continues |
+| UK-P-19 | A provision list after an instrument: `Act 1996 (c. 18), ss. 94, 95, Sch. 1 para. 2` | one coordinate per item, all in that Act | Each item joined by a comma or `and` chains to the instrument of the item before it |
 
 ### 4.2 Instrument forms
 
@@ -174,8 +178,8 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-08 | `1996 c. 18`, `1996 c 18`, `c. 18 of 1996` | `uk/ukpga/1996/18` | Chapter citation. A bare `c.18` → **A** |
 | UK-I-09 | `SI 2011/3006`, `S.I. 2011/3006`, `S.I. 2011 No. 3006`, `SI 2011 No 3006`, `2011 No. 3006` | `uk/uksi/2011/3006` (or `wsi`/`nisi` if that is canonical) | Official number |
 | UK-I-10 | `8 & 9 Eliz. 2 c. 69`, `47 Geo. 3 Sess. 2 c. 78`, `10 Edw. 7 & 1 Geo. 5 c. 15` | the regnal coordinate | Regnal citation |
-| UK-I-11 | `the 1996 Act` | — | **A** across every indexed Act of 1996 |
-| UK-I-12 | `the Act`, `that Act`, `the Regulations` | context instrument | With `context`: bound, `source="context"`. Without it: **A** |
+| UK-I-11 | `the 1996 Act`, `(“the 1996 Act”)`, `section 124 of the 1996 Act` | the Act of 1996 named earlier in the query, else — | Refers back to the nearest earlier Act of that year in the query. Otherwise **A** (`year_only`) across the indexed Acts of 1996, narrowed to those holding the cited provision. **B** only when neither the index nor the catalogue knows another Act of that year |
+| UK-I-12 | `the Act`, `that Act`, `the said Act`, `the Regulations`, `the amending Act` | the instrument named just before, or the context instrument | Refers back to the nearest earlier instrument of the same kind (Act or SI). Else with `context`: bound, `source="context"`. Else **A** (`context_needed`) |
 | UK-I-13 | `The Employment Rights (Increase of Limits) Order 2011` | the SI | A leading `The` is optional. `(Amendment)`, `(No. 2)`, `(Commencement No. 3)` are distinguishing words and are never dropped |
 | UK-I-14 | Several SIs sharing a title and year | — | **A**, asking for the SI number |
 | UK-I-15 | Title + year where no such instrument exists: `Marchwood Commercial Arbitration Order 2022`, `Employment Rights Act 1995` | — | **I**, with suggestions (typo tiers, plan departure 7) |
@@ -184,6 +188,12 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-18 | Reordered title: `Rights of Employment Act 1996` | the Act | **B** with the reordering recorded, if exactly one real title has that word set |
 | UK-I-19 | Capitalised invented words in front of a real title: `Marchwood Commercial Arbitration Act 1996` | — | **I**, suggesting "Arbitration Act 1996" |
 | UK-I-20 | The same in lower case: `marchwood commercial arbitration act 1996` | — | **A**: "Did you mean the Arbitration Act 1996?" |
+| UK-I-21 | A chapter note after a title: `Employment Rights Act 1996 (c. 18)`, `(c.18, SIF 43:5)`, `Theft Act 1968 c. 60` | the Act | The note is part of the citation. A chapter that names a different Act → **A** (`chapter_mismatch`, both offered). An unknown title with a real chapter → **A** (`title_number_conflict`), never **I** |
+| UK-I-22 | SI number lists: `S.I. 2008/2767, 2010/641 and 2011/2425`, `S.I. 1988/663 and 1445` | one SI per item | A bare number continues the list only if it can be an SI number (`S.I. 2011/3006, 2 employees` is one SI) |
+| UK-I-23 | A regnal Act cited by calendar year and chapter: `1925 c. 20` | `uk/ukpga/Geo5/15-16/20` | The build also keys every regnal Act by its calendar year |
+| UK-I-24 | Commas inside a title: `Local Democracy, Economic Development and Construction Act 2009` | the Act | Titles are matched right to left from the type word. A comma stops the span only when no longer title fits |
+| UK-I-25 | Particles inside titles: `Offences against the Person Act 1861`, `Health and Safety at Work etc. Act 1974` | the Act | Extending a title left crosses `of`, `and`, `the`, `for`, `from`, `against`, `to`, `on`, `with`, `at`, `&` only when a content word lies beyond them |
+| UK-I-26 | A capitalised title after lower-case prose: `words omitted by virtue of Theft Act 1968 (c. 60)` | the Act | The capitals mark where the title starts. All-lower-case queries keep the lower-case rules (UK-I-20) |
 
 ### 4.3 Structured identifiers (read first, never typo-corrected)
 
@@ -212,7 +222,31 @@ Outcomes:
 | UK-O-05 | Foreign-law cues: `Code civil`, `BGB §`, `U.S.C.`, `C.F.R.` | **O** |
 | UK-O-06 | Spanish citations before Stage C: `art. 42 CdC`, `Ley 58/2003` | **O** (jurisdiction not loaded) |
 
-`live_checkable` and `next_action` for these follow the contract (`docs/contract.md`, M9).
+`live_checkable` and `next_action` for these follow the contract (`docs/contract.md`).
+
+### 4.5 Linking, cues and scope
+
+| ID | Form | Result |
+|---|---|---|
+| UK-L-01 | A provision with a connector: `section 124 of the ERA 1996`, `ERA 1996, s. 124`, `s. 124 ERA 1996` | Linked to that instrument |
+| UK-L-02 | A provision with no connector when the query names exactly one non-negated instrument (decision 15) | Linked, but only within the same clause (`;`, `?`, `!` or a sentence end breaks it) |
+| UK-L-03 | An agentive `by`: `S. 999 inserted by Employment Rights Act 1996` | Never linked by default. The provision belongs to the amended Act, not the amending one |
+| UK-L-04 | Exclusion cues: `except`, `other than`, `apart from`, `excluding`, `save for`, `with the exception of`, `not`, `but not`, `rather than`, `instead of` | The mention straight after (and any list joined to it) goes to `excluded`, and the filter removes it (decision 15). An unclear scope → **A** |
+| UK-L-05 | Dates: `1.3.2007`, `(20.7.1998)`, `1 April 1996`, `6th April 2020` | A date cue. Its year is never an instrument year |
+| UK-L-06 | Extent notes: `(E.W.)`, `(S.)`, `(N.I.)` | Ignored, never a citation |
+| UK-L-07 | Time qualifiers: `as it stood on 1 April 2012`, `as enacted`, `original version` | `temporal_hint`, never a year (UK-C-08) |
+
+### 4.6 Work limits (fail-safe)
+
+These limits keep routing linear in the query length. Past a limit the router never binds on a partial reading.
+
+| ID | Rule | Result |
+|---|---|---|
+| UK-W-01 | Queries longer than 4,096 characters | **U**, `query_too_long` |
+| UK-W-02 | Prefilter: text with no digit, `/`, `_`, `§`, instrument-type word, alias word or trigger word (`Part`, `Schedule`, `Bill`, `GDPR` …) cannot hold a citation | **U** without scanning |
+| UK-W-03 | More than 24 instrument mentions, 64 cues or 320 title lookups | **U**, `too_complex` |
+| UK-W-04 | A cited title is read at most 20 words to the left of its type word (28 for a known title) | A longer unknown title is left unread, never refused (**I**) |
+| UK-W-05 | Ranges wider than 20 provisions | **A**, `range` |
 
 ## 5. Unsupported forms (documented; never bound)
 

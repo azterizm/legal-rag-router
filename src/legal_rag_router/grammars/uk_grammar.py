@@ -182,7 +182,9 @@ _NEGATION_RE: Final = re.compile(
     r"instead\s+of|not)(?![a-z])"
 )
 _CONTEXT_REF_RE: Final = re.compile(
-    rf"(?<![a-z])(?:the|that|this|said|same|such)\s+(?:(?P<y>{_YEAR_RX})\s+)?"
+    rf"(?<![a-z])(?:the|that|this|said|same|such)\s+"
+    rf"(?:(?:amending|principal|parent|enabling|relevant|former|latter|above(?:-mentioned)?|"
+    rf"repealed|said|same)\s+)?(?:(?P<y>{_YEAR_RX})\s+)?"
     rf"(?P<t>act|order|regulations|rules|instrument|statute|measure)(?![a-z])"
     rf"(?!\s*,?\s*(?:of\s+)?\(?{_YEAR_RX})"
 )

@@ -61,12 +61,12 @@ miss_log = logging.getLogger("legal_rag_router.misses")
 
 MAX_ANCHORS: Final = 16
 MAX_MENTIONS: Final = 24
-MAX_TITLE_WORDS: Final = 16
+MAX_TITLE_WORDS: Final = 28
 MAX_CUES: Final = 64
 MAX_TITLE_LOOKUPS: Final = 320
 """Work cap per query. Past it the query is too complex to route safely: it fails safe to
 ``ROUTE_UNRESOLVED`` rather than binding on a partial reading (DoS and misroute guard)."""
-MAX_CITED_WORDS: Final = 12
+MAX_CITED_WORDS: Final = 20
 MAX_RANGE: Final = 20
 MAX_CANDIDATES_SHOWN: Final = 8
 MAX_BEFORE_GAP: Final = 2
@@ -94,6 +94,7 @@ _AFTER_CONNECTORS: Final = frozenset(
 )
 _BEFORE_CONNECTORS: Final = frozenset({"s", "at", "in", "under"})
 _LIST_JOINERS: Final = frozenset({"and", "or", "nor", "&"})
+_CLAUSE_BREAK_RE: Final = re.compile(r"[;?!]|\.\s+(?=[A-Z(\u201c\"])")
 _NEGATION_FILLERS: Final = frozenset({"the", "a", "an", "in", "under", "any", "of", "for", "to"})
 _YEAR_RE: Final = re.compile(r"1[2-9]\d\d|20\d\d")
 # "Housing and Planning Act 2016 (c. 22)", "(c.42, SIF 81:1, 2)": a chapter number in brackets
@@ -443,7 +444,48 @@ class Router:
         for mention in found:
             if not any(_overlaps((mention.start, mention.end), (k.start, k.end)) for k in kept):
                 kept.append(mention)
-        return kept
+        return self._refer_back(scan, self._merge_title_numbers(scan, kept))
+
+    def _merge_title_numbers(self, scan: _Scan, mentions: list[_Instrument]) -> list[_Instrument]:
+        """ "Health Act 2009 c. 21": a title followed by its own official number is one citation."""
+        merged: list[_Instrument] = []
+        for mention in mentions:
+            last = merged[-1] if merged else None
+            if (
+                last is not None
+                and last.kind in ("title", "alias", "anchor")
+                and mention.kind == "number"
+                and mention.verdict == "resolved"
+                and mention.ids[0] in last.ids
+                and not scan.query[last.end : mention.start].strip(" ,(")
+            ):
+                merged[-1] = replace(
+                    mention, start=last.start, title_as_cited=last.title_as_cited, kind="number"
+                )
+                continue
+            merged.append(mention)
+        return merged
+
+    def _antecedent(self, mention: _Instrument, earlier_mentions: list[_Instrument]) -> _Instrument:
+        """Resolve "that Act" to the nearest earlier resolved instrument of the same kind."""
+        wants_act = (mention.title_as_cited or "").casefold().rstrip().endswith(("act", "statute"))
+        for earlier in reversed(earlier_mentions):
+            if earlier.kind in ("context_ref", "out_of_coverage") or earlier.verdict != "resolved":
+                continue
+            info = self._index.instrument(earlier.ids[0])
+            if info is None or info.primary != wants_act:
+                continue
+            if mention.year is not None and info.year != mention.year:
+                continue
+            return replace(mention, kind="anaphora", verdict="resolved", ids=earlier.ids)
+        return mention
+
+    def _refer_back(self, scan: _Scan, mentions: list[_Instrument]) -> list[_Instrument]:
+        """ "that Act", "the said Act", "(the 1990 Act)" name the Act cited just before them."""
+        out: list[_Instrument] = []
+        for mention in mentions:
+            out.append(self._antecedent(mention, out) if mention.kind == "context_ref" else mention)
+        return out
 
     # --- identifiers and numbers
 
@@ -558,7 +600,7 @@ class Router:
             if pos in claimed or scan.is_blocked(token.start):
                 break
             if token.kind == "punct":
-                if token.text in _STOP_PUNCT and token.text != ",":  # commas occur in titles
+                if token.text in _STOP_PUNCT and token.text not in ",:":  # both occur in titles
                     break
             else:
                 starts.append(pos)
@@ -626,10 +668,24 @@ class Router:
         if note is None:
             return mention
         mention = replace(mention, end=note.end(), number=note.group("n"))
+        if mention.verdict == "not_found" and mention.year is not None:
+            # "Water Act 1980 (c. 45)": the official number names a real Act, the title does
+            # not. The number is the stronger identity: ask, never refuse.
+            numbered = self._index.ids("numbers", f"c/{mention.year}/{note.group('n')}")
+            if numbered:
+                return replace(
+                    mention, verdict="ambiguous", ids=numbered, reason="title_number_conflict"
+                )
         if mention.verdict == "resolved" and mention.ids:
             info = self._index.instrument(mention.ids[0])
             if info is not None and info.series == "ukpga" and str(info.number) != note.group("n"):
-                return replace(mention, verdict="ambiguous", reason="chapter_mismatch")
+                other = self._index.ids("numbers", f"c/{info.year}/{note.group('n')}")
+                return replace(
+                    mention,
+                    verdict="ambiguous",
+                    reason="chapter_mismatch",
+                    ids=tuple(dict.fromkeys([*mention.ids, *other])),
+                )
         return mention
 
     def _type_word(self, content: Sequence[str]) -> str | None:
@@ -686,8 +742,14 @@ class Router:
         extras = [t for t in scan.tokens[cited:start] if t.kind == "word"]
         if not extras:
             return mention
-        claimed.update(range(cited, start))
         query = scan.query
+        if (
+            not _mostly_capitals(query)
+            and query[scan.tokens[start].start].isupper()
+            and not query[extras[-1].start].isupper()
+        ):
+            return mention  # "by virtue of Northern Ireland ... Act": the capitals start the title
+        claimed.update(range(cited, start))
         whole = self._reordered(scan, cited, mention)
         if whole is not None:
             return whole
@@ -774,7 +836,9 @@ class Router:
         if not core:
             return None
         has_type = any(w in type_words for w in content)
-        clear = has_type and year is not None
+        words_cited = sum(1 for t in tokens[start : anchor + 1] if t.kind == "word")
+        truncated = words_cited >= MAX_CITED_WORDS  # the real title may start further left
+        clear = has_type and year is not None and not truncated
         known_core = sum(self._index.tables["words"].get(w) is not None for w in core)
         if not clear and (known_core == 0 or (not has_type and known_core < 2)):  # noqa: PLR2004
             return None  # a year after one ordinary word ("substituted 2007") is no claim
@@ -785,12 +849,12 @@ class Router:
             state, ids = ("resolved" if verdict.verdict == "bound" else "ambiguous"), verdict.ids
         elif clear:
             state, ids = "not_found", ()
-        elif verdict.suggestions:
-            state, ids = "ambiguous", verdict.suggestions
+        elif verdict.suggestions and year is not None:
+            state, ids = "ambiguous", verdict.suggestions  # "employment rights 1990"
         else:
-            return None
+            return None  # "of the amending Act": a type word alone claims nothing
         claimed.update(range(start, anchor + 1))
-        return _Instrument(
+        mention = _Instrument(
             tokens[start].start,
             tokens[anchor].end,
             "anchor",
@@ -804,6 +868,7 @@ class Router:
             reason=verdict.reason,
             instrument_type=self._type_word(content),
         )
+        return self._absorb_chapter(scan, mention)
 
     # --- cue mentions (out of coverage, context references)
 
@@ -896,23 +961,52 @@ class Router:
 
     def _link(self, scan: _Scan, instruments: list[_Instrument]) -> list[ProvisionMention]:
         """Attach provisions to instruments; return the provisions left unlinked."""
-        targets = [m for m in instruments if m.kind != "context_ref" or m.verdict != "context"]
+        # An unresolved "the 1996 Act" still takes its provisions: its year narrows the question.
+        targets = [
+            m
+            for m in instruments
+            if m.kind != "context_ref" or m.verdict != "context" or m.year is not None
+        ]
         named = [m for m in targets if m.kind != "context_ref"]
         unlinked: list[ProvisionMention] = []
+        previous: tuple[ProvisionMention, _Instrument] | None = None
         for provision in scan.provisions:
-            target = self._linked_after(scan, provision, targets) or self._linked_before(
-                scan, provision, targets
-            )
+            target = self._nearest_link(scan, provision, targets)
+            if target is None and previous is not None:
+                target = self._chained(scan, previous, provision)
             if target is None:
                 live = [m for m in named if not m.excluded]
-                lone = live[0] if len(live) == 1 else None  # decision 15
-                if lone is not None and not self._agentive(scan, provision, lone):
+                distinct = {m.ids[0] if m.ids else id(m) for m in live}
+                lone = live[0] if len(distinct) == 1 else None  # decision 15
+                if lone is not None and self._same_clause(scan, provision, lone):
                     target = lone
             if target is None:
                 unlinked.append(provision)
+                previous = None
             else:
                 target.provisions.append(provision)
+                previous = (provision, target)
         return unlinked
+
+    @staticmethod
+    def _chained(
+        scan: _Scan, previous: tuple[ProvisionMention, _Instrument], provision: ProvisionMention
+    ) -> _Instrument | None:
+        """A provision listed straight after one already linked belongs to the same
+        instrument: "Act 2003 (c. 32), ss. 91(1), 94, Sch. 5 para. 26(a)"."""
+        before, instrument = previous
+        if before.end > provision.start:
+            return None
+        gap = scan.gap_words(before.end, provision.start)
+        return instrument if all(w in _LIST_JOINERS or w == "," for w in gap) else None
+
+    def _same_clause(self, scan: _Scan, provision: ProvisionMention, lone: _Instrument) -> bool:
+        """Decision 15 applies within one clause, and not across an agentive "by"."""
+        start, end = sorted(((provision.start, provision.end), (lone.start, lone.end)))
+        between = scan.query[start[1] : end[0]]
+        if _CLAUSE_BREAK_RE.search(between):
+            return False
+        return not self._agentive(scan, provision, lone)
 
     def _agentive(self, scan: _Scan, p: ProvisionMention, instrument: _Instrument) -> bool:
         """True for "s. 79 amended by <Act>": the instrument is the agent acting on the
@@ -920,6 +1014,21 @@ class Router:
         if p.end > instrument.start:
             return False
         return "by" in self._gap_words(scan, p.end, instrument.start)
+
+    def _nearest_link(
+        self, scan: _Scan, p: ProvisionMention, targets: list[_Instrument]
+    ) -> _Instrument | None:
+        """Link to the instrument after ("s. 124 of <Act>") or before ("<SI>, reg. 5").
+
+        When both are possible the one joined by a connector word wins; with no word on
+        either side ("SI 2019/627, reg. 5(2) 2020 c. 1"), the instrument before does.
+        """
+        after = self._linked_after(scan, p, targets)
+        before = self._linked_before(scan, p, targets)
+        if after is None or before is None:
+            return after or before
+        after_gap = self._gap_words(scan, p.end, after.start)
+        return after if any(w in _AFTER_CONNECTORS for w in after_gap) else before
 
     def _linked_after(
         self, scan: _Scan, p: ProvisionMention, targets: list[_Instrument]
@@ -1002,27 +1111,42 @@ class Router:
             return (typed,)
         return spellings
 
-    def _sibling_paths(self, path: tuple[str, ...]) -> list[tuple[str, ...]]:
-        """Editorial lists: "s. 6(1)(2)" means s.6(1) and s.6(2), not s.6(1)(2).
+    @staticmethod
+    def _sub_kind(segment: str) -> str:
+        if segment[:1].isdigit():
+            return "n"
+        return "r" if re.fullmatch(r"[ivxl]+", segment) else "a"
 
-        The trailing run of same-kind sub-divisions (all numbers, all letters, all roman) is
-        read as siblings under the rest. Used only when the nested reading does not exist.
+    def _sibling_paths(self, path: tuple[str, ...], n_subs: int) -> list[tuple[str, ...]]:
+        """Editorial lists read as siblings when the nested path does not exist.
+
+        legislation.gov.uk notes write "s. 108(4)(6)(7)" for subsections (4), (6) and (7),
+        and "s. 10(2)(a)(ii)(7)" for (2)(a)(ii) and (7). UK drafting never nests a number
+        below a letter or another number, so each later number restarts at the first
+        level; a trailing run of letters ("(2)(a)(b)") lists siblings at its own level.
         """
-
-        def kind(segment: str) -> str:
-            return (
-                "n" if segment[:1].isdigit() else "r" if re.fullmatch(r"[ivxl]+", segment) else "a"
-            )
-
-        if len(path) < 3:  # noqa: PLR2004 - a unit and at least two sub-divisions
+        if n_subs < 2 or n_subs >= len(path):  # noqa: PLR2004
             return []
-        tail_kind = kind(path[-1])
-        cut = len(path) - 1
-        while cut > 1 and kind(path[cut - 1]) == tail_kind:
-            cut -= 1
-        if len(path) - cut < 2:  # noqa: PLR2004
-            return []
-        return [(*path[:cut], item) for item in path[cut:]]
+        unit, subs = path[: len(path) - n_subs], path[len(path) - n_subs :]
+        groups: list[list[str]] = [[subs[0]]]
+        for segment in subs[1:]:
+            if self._sub_kind(segment) == "n":
+                groups.append([segment])
+            else:
+                groups[-1].append(segment)
+        out: list[tuple[str, ...]] = []
+        for group in groups:
+            tail = group[-1]
+            run = 1
+            while (
+                run < len(group) and self._sub_kind(group[-run - 1]) == self._sub_kind(tail) != "n"
+            ):
+                run += 1
+            if run > 1:  # "(2)(a)(b)": (2)(a) and (2)(b)
+                out.extend((*unit, *group[:-run], item) for item in group[-run:])
+            else:
+                out.append((*unit, *group))
+        return out if len(out) > 1 else []
 
     def _resolve_ref(
         self, info: InstrumentInfo, ref: ProvisionRef
@@ -1048,7 +1172,7 @@ class Router:
                 )
             return "bound", coordinates, None
         for path in paths:  # nested reading absent: try "(1)(2)" as siblings (1) and (2)
-            siblings = self._sibling_paths(path)
+            siblings = self._sibling_paths(path, len(ref.subs))
             found = [self._lookup(info, sibling) for sibling in siblings]
             if siblings and all(len(f) == 1 for f in found):
                 return "bound", [Coordinate.parse(f[0]) for f in found], None
@@ -1275,7 +1399,17 @@ class Router:
             corrections=mention.corrections,
         )
         names = ", ".join(c.label for c in candidates[:MAX_CANDIDATES_SHOWN])
-        if mention.reason in ("typo", "embedded_title", "reordered", "no_such_title"):
+        if mention.reason == "title_number_conflict":
+            outcome.clarification = (
+                f"No instrument is titled “{mention.title_as_cited}”, but its chapter number "
+                f"is that of the {names}. Did you mean that?"
+            )
+        elif mention.reason == "chapter_mismatch":
+            outcome.clarification = (
+                f"“{mention.title_as_cited}”: the chapter number does not match that title. "
+                f"Which do you mean: {names}?"
+            )
+        elif mention.reason in ("typo", "embedded_title", "reordered", "no_such_title"):
             outcome.clarification = (
                 f"Did you mean the {names}?"
                 if len(candidates) == 1
@@ -1340,7 +1474,9 @@ class Router:
                 for _, i in self._index.tables["numbers"].prefix(f"c/{year}/")
                 for i in i.split(",")
             ]
-            if len(ids) == 1:
+            # The only Act of that year binds only if the catalogue knows no other one either.
+            others = next(self._index.tables["coverage_numbers"].prefix(f"c/{year}/"), None)
+            if len(ids) == 1 and others is None:
                 info = self._index.instrument(ids[0])
                 if info is not None:
                     return self._resolve_provisions(info, mention.provisions, excluded_ids)

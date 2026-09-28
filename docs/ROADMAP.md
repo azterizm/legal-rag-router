@@ -18,21 +18,44 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-09-27 |
+| Last updated | 2026-09-28 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A). **M7-UK in progress: coverage sweep (see stop log)** |
-| Next step | M7-UK remaining:
-- `eval/sweep.py`: harvest split rule (D3) plus coverage-sweep tooling. The sweep itself runs in Stage B on the full harvest.
-- Raise coverage to 95 % (router.py is at 89 %).
-- `docs/grammar.md`: rows for the new behaviours (soft particles, prefilter, work caps).
-- `docs/contract.md`.
-
-Done: router pipeline, identifiers, typo tiers, filters, and the M7 test suite (480 tests, 93 % coverage). |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A), **M7-UK ✅ (Stage A)**. The full-index sweep and p99 run in Stage B |
+| Next step | Three product questions for you (stop log, 2026-09-28), then M8-UK batteries. Stage B starts when the background fetch finishes |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28: **M7-UK done for Stage A. Committed locally.**
+  - Stage A sweep (20,000 citations, `reports/coverage-sweep-uk-stageA.md`):
+    - correct 17,145 (85.7 %);
+    - false abstention 1,551;
+    - ambiguous 644;
+    - out of coverage 431;
+    - miss 225;
+    - wrong provision 3;
+    - misroute 1.
+  - More fixes since the last stop:
+    - "(the 1996 Act)" definitions and "that Act" refer back to the Act just named;
+    - "section 1 of the 1996 Act" with no earlier Act is asked (`year_only`), narrowed to the Acts of that year holding the provision. It binds only if neither the index nor the catalogue knows another Act of that year;
+    - regnal Acts are also keyed by calendar year and chapter (`1925 c. 20`);
+    - title + wrong chapter → `chapter_mismatch`, and unknown title + real chapter → `title_number_conflict`. Both are asked, never refused;
+    - capitals mark where a title starts after lower-case prose.
+  - Tests: 554 pass, 2 skip (they wait for CA 2006 and Spanish data). Coverage is 95.8 %, and the floor is raised to 95 % (decision 5).
+  - Docs:
+    - `docs/contract.md` is written;
+    - `docs/grammar.md` gains UK-P-18/19, UK-I-21–26, §4.5 linking and cues (UK-L-01–07) and §4.6 work limits (UK-W-01–05), and the case collision decision is recorded.
+  - What the remaining false abstentions are:
+    - provisions that no longer exist in the current text (historical, Phase 2);
+    - renamed Acts cited by a former title ("Supreme Court Act 1981" = Senior Courts Act 1981);
+    - catalogue gaps (other series before 1970).
+  - **Questions for you (⛔ before M8 freezes battery expectations):**
+    1. Former titles: should the build index an Act's former titles (from the CLML metadata) as aliases that bind to the current Act?
+    2. Acronyms ("FA 2022", "TCGA 1992"): keep them to the curated alias table, or generate them from the titles?
+    3. A historical provision that the current text lacks: keep `PROVISION_NOT_FOUND`, or add a wording note ("the current text has no s. X; it may have been repealed")?
+  - **Resume:** answers to the three questions, then M8-UK (batteries).
 
 - 2026-09-27: **STOPPED HERE (usage limit). M7-UK coverage sweep in progress.**
   - Added:
@@ -361,22 +384,27 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M7 — Parser and router (plan step 7) · days 5–7 (against the fixture index from M4; the sweep uses the full index)
 
-- [ ] **7a Normalise** (`normalise.py`):
+> **Status (28 Sept):**
+> - 7a–7j are done for the UK.
+> - The Spanish parts (`es.py`, BOE identifiers, `artículo único`, `RDL`, state vs regional, Spanish negation words) wait for Stage C.
+> - 7k: the split manifest and the Stage A sweep are committed. The full-index sweep and p99 run in Stage B.
+
+- [x] **7a Normalise** (`normalise.py`):
   - NFKC and casefold; accent fold; look-alike skeleton map.
   - `§/s./sec./art./artículo/reg./apdo.` canonicalisation; provision-word variant list (`secton`, `artcle`).
   - A 4 KB cap: over the cap → `UNRESOLVED` with the query flagged.
   - A tokeniser that keeps **character offsets** back to the original query.
-- [ ] **7b Public types:**
+- [x] **7b Public types:**
   - `RouteStatus` (StrEnum, using the spec's values).
   - `NextAction` (`RETRIEVE_BOUNDED | ASK_USER | REFUSE | VERIFY_LIVE | DECLARE_OUT_OF_COVERAGE | DISCOVER_THEN_BIND`).
   - `RouteResult` and `ParsedCitation`, with every field from plan departure 2 and 02 §3.
   - `Candidate` and `RouteContext`.
   - All frozen and slotted.
-- [ ] **7c Identifier scanner:**
+- [x] **7c Identifier scanner:**
   - Accepts coordinates, `instrument_id`s, legislation.gov.uk URLs (`/id/`, `/contents`, `/enacted`, date suffixes), `BOE-A-…` ids and `boe.es …?id=` URLs.
   - Case-insensitive, checked against the grammar, never typo-corrected.
   - A provision word after an identifier extends it; a partial path falls through to the grammars.
-- [ ] **7d `grammars/base.py`, the `Grammar` protocol (frozen here).** Each grammar supplies:
+- [x] **7d `grammars/base.py`, the `Grammar` protocol (frozen here).** Each grammar supplies:
   - a normalisation hook;
   - stopwords and boundaries;
   - anchor and provision patterns;
@@ -385,14 +413,14 @@ Each of these changes order or method but not what gets delivered. See §4.
   - a clarification template.
 
   `grammars/uk.py` and `grammars/es.py` implement it. Every regex is linear-time (no nested quantifiers) and each pattern is tied to a grammar.md row ID.
-- [ ] **7e `titles.py`:** token-trie gazetteer (longest match), a prefilter on trigger words, and the number-citation table.
-- [ ] **7f Link and spans:**
+- [x] **7e `titles.py`:** token-trie gazetteer (longest match), a prefilter on trigger words, and the number-citation table. Built as sorted memory-mapped tables (decision 12) with right-to-left n-gram lookups in `router.py`, not as a separate `titles.py` trie.
+- [x] **7f Link and spans:**
   - Connector rules: `<prov> of/del <inst>`, `<inst>, <prov>`, `<inst> <prov>`.
   - The span is extended left to a boundary, and the whole title has to cover it.
   - Negation scope (`not`, `rather than`, `no`, `salvo`, `excepto` …).
   - Temporal-hint extraction.
   - Context resolution: context coordinates are re-validated against the index, and the query beats context; results resolved this way get `source="context"`.
-- [ ] **7g Resolution:**
+- [x] **7g Resolution:**
   - **Instrument:** exact / alias / number, then the typo tiers from departure 7 (Damerau, one word of ≥ 5 letters, uniqueness margin, no correction of aliases under 5 letters, corrections only inside the span), with suggestions ranked by the fixed rules, at most 3.
   - **Where the router refuses and where it asks:**
     - Refusal needs a clear claim.
@@ -416,13 +444,13 @@ Each of these changes order or method but not what gets delivered. See §4.
   - `index_snapshot` is always set.
   - `jurisdictions=` scoping.
   - Clarification text in the query's language.
-- [ ] **7h `filters.py`:** `partition_filter()` as in 02 §4. Every value is re-checked against the grammar and the index before it is interpolated.
-- [ ] **7i Observability:**
+- [x] **7h `filters.py`:** `partition_filter()` as in 02 §4. Every value is re-checked against the grammar and the index before it is interpolated.
+- [x] **7i Observability:**
   - The `citation_signal` rules.
   - An opt-in structured event on signal-but-`UNRESOLVED`, through a `logging` logger that is silent by default.
   - **Query text is never logged** unless the caller supplies a redactor.
   - `latency_ns` taken with `perf_counter_ns`.
-- [ ] **7j Tests:**
+- [x] **7j Tests:**
   - Unit tests per grammar and per scanner.
   - The **span-accounting invariant**.
   - `tests/test_collision_rate.py` (02 §8, ported to the new shape).

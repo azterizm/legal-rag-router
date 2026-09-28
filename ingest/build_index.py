@@ -201,6 +201,8 @@ def _add_instrument(
         out.titles[key].append(iid)
     for key in number_keys(coordinate.instrument):
         out.numbers[key].append(iid)
+    if len(coordinate.instrument) == 4:  # noqa: PLR2004 - regnal: also "1925 c. 20" by calendar year
+        out.numbers[f"c/{record.year}/{record.number}"].append(iid)
     ws = wordset_key(record.title)
     if ws:
         wordset_ids[ws].add(iid)

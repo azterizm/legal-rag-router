@@ -259,3 +259,26 @@ def test_cli(tmp_path: Path, data: Path) -> None:
         tmp_path / "bad", '[[alias]]\ntarget = "uk/ukpga/2006/46"\nforms = ["CA 2006"]\n'
     )
     assert main([*args[:-1], str(bad)]) == 1
+
+
+def test_regnal_act_is_also_keyed_by_calendar_chapter(tmp_path: Path) -> None:
+    root = tmp_path / "data"
+    write_records(
+        root,
+        {"uk/ukpga/Geo5/15-16/20": ("Law of Property Act 1925", ["uk/ukpga/Geo5/15-16/20/s1"])},
+    )
+    built = build_index(root, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", ""))
+    assert built.numbers["rc/geo5/15-16/20"] == ["uk_ukpga_Geo5_15-16_20"]
+    assert built.numbers["c/1925/20"] == ["uk_ukpga_Geo5_15-16_20"]
+
+
+def test_catalogue_entry_already_indexed_by_number_is_not_coverage(
+    tmp_path: Path, data: Path
+) -> None:
+    catalogue = tmp_path / "cat.jsonl"
+    alias = CatalogueEntry(
+        coordinate="uk/uksi/1996/18", series="uksi", year=1996, number=18, title="x", source="t"
+    )
+    catalogue.write_text(alias.model_dump_json() + "\n")
+    built = build_index(data, catalogue=catalogue, aliases_dir=write_aliases(tmp_path / "a", ""))
+    assert "uk/uksi/1996/18" in built.coverage["instruments"]  # different number space: kept
