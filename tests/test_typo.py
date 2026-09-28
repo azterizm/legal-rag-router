@@ -84,3 +84,30 @@ def test_suggestions_need_half_the_words(fixture_index: RouterIndex) -> None:
         fixture_index, ["arbitration", "zebra", "act"], 1996, type_words=INSTRUMENT_TYPE_WORDS
     )
     assert found[0] == "uk_ukpga_1996_23"
+
+
+def test_damerau_stops_early_past_the_limit() -> None:
+    assert damerau("abcd", "wxyz", 1) == 2  # capped at limit + 1
+
+
+def test_vocabulary_lookups_are_cached(fixture_index: RouterIndex) -> None:
+    from legal_rag_router.typo import _Vocabulary  # noqa: PLC0415
+
+    vocabulary = _Vocabulary(fixture_index)
+    assert vocabulary.known("rights")
+    assert vocabulary.known("rights")  # the second answer comes from the cache
+    assert not vocabulary.known("rihgts")
+
+
+def test_suggestions_without_content_words_keep_the_extra_ids(fixture_index: RouterIndex) -> None:
+    ids = suggestions(
+        fixture_index, ["act", "1996"], 1996, type_words=INSTRUMENT_TYPE_WORDS, extra=["x"]
+    )
+    assert ids == ("x",)
+
+
+def test_a_typo_that_fixes_to_no_title_gives_no_correction(fixture_index: RouterIndex) -> None:
+    verdict = analyse_title(
+        fixture_index, ("arbitraton", "act"), 1925, type_words=INSTRUMENT_TYPE_WORDS
+    )
+    assert verdict.verdict != "bound"

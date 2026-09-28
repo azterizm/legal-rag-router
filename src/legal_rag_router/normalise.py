@@ -78,15 +78,13 @@ class Folded:
         """Map a ``[start, end)`` span of folded text back to the original string."""
         if self.origin is None:
             return start, end
-        if start >= end:
-            anchor = self.origin[start] if start < len(self.origin) else self._end()
+        if start >= end:  # an empty span: anchor it where it starts
+            if start < len(self.origin):
+                anchor = self.origin[start]
+            else:
+                anchor = self.origin[-1] + 1 if self.origin else 0
             return anchor, anchor
         return self.origin[start], self.origin[end - 1] + 1
-
-    def _end(self) -> int:
-        if self.origin is None:
-            return len(self.text)
-        return self.origin[-1] + 1 if self.origin else 0
 
 
 _ASCII_WHITESPACE: Final = str.maketrans("\t\n\r\x0b\x0c", "     ")

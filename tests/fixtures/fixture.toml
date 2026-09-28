@@ -24,6 +24,7 @@ instruments = [
   "uk_ukpga_1996_4",              # Consolidated Fund Act 1996
   "uk_ukpga_1996_60",             # Consolidated Fund (No. 2) Act 1996
   "uk_ukpga_1996_59",             # Public Order (Amendment) Act 1996
+  "uk_ukpga_1996_17",             # Employment Tribunals Act 1996: former title "Industrial Tribunals Act 1996" (decision 17)
   # regnal (pre-1963) Acts with structure
   "uk_ukpga_Geo5_15-16_20",       # Law of Property Act 1925
   "uk_ukpga_Vict_24-25_100",      # Offences against the Person Act 1861

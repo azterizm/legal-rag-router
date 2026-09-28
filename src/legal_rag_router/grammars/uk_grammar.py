@@ -92,7 +92,10 @@ _UNIT_WORDS: Final = {
     "paragraph": r"paragraphs|paragraph|paras\.?|para\.?|pars\.?|par\.?",
 }
 _ANY_UNIT: Final = "|".join(_UNIT_WORDS.values())
-_NUM: Final = r"\d{1,4}[a-z]{0,3}(?:\d{1,2}[a-z]{0,2})?(?:\.\d{1,3}[a-z]?)?"
+# "124", "124ZA", "1A2", "3.1" … and letter-first designators: Sch. A1, Sch. B1, s. ZA1.
+_NUM: Final = (
+    r"(?:\d{1,4}[a-z]{0,3}(?:\d{1,2}[a-z]{0,2})?(?:\.\d{1,3}[a-z]?)?|[a-z]{1,2}\d{1,3}[a-z]{0,2})"
+)
 _ROMAN_D: Final = r"[ivxlc]{1,7}[a-z]?"
 _DESIG: Final = rf"(?:{_NUM}|{_ROMAN_D})"
 _SUB: Final = r"\(\s*[0-9a-z]{1,6}\s*\)"
@@ -113,15 +116,17 @@ _MORE_ITEM_RE: Final = re.compile(
 )
 _UNIT_WORD_RES: Final = {u: re.compile(rf"(?:{p})") for u, p in _UNIT_WORDS.items()}
 _SUB_ITEM_RE: Final = re.compile(r"\(\s*([0-9a-z]{1,6})\s*\)")
+# Every unit word ends at a word boundary: "Part 1" is never "par" + "t" (paragraph t).
 _NESTED_RE: Final = re.compile(
-    rf"\s*,?\s*(?:(?:{_UNIT_WORDS['paragraph']})\s*(?P<para>{_NUM}|[a-z]{{1,2}})(?P<psubs>{_SUBS})"
-    rf"|(?:{_UNIT_WORDS['part']})\s+(?P<part>\d{{1,3}}[a-z]?|{_ROMAN_D})"
-    rf"|(?:{_UNIT_WORDS['chapter']})\s*(?P<chap>\d{{1,3}}[a-z]?|{_ROMAN_D})"
-    rf"|(?:sub-?sections?|subs\.?)\s*\(?\s*(?P<subsec>[0-9a-z]{{1,6}})\s*\)?)"
+    rf"\s*,?\s*(?:(?:{_UNIT_WORDS['paragraph']})(?![a-z])\s*(?P<para>{_NUM}|[a-z]{{1,2}})"
+    rf"(?P<psubs>{_SUBS})"
+    rf"|(?:{_UNIT_WORDS['part']})(?![a-z])\s+(?P<part>\d{{1,3}}[a-z]?|{_ROMAN_D})"
+    rf"|(?:{_UNIT_WORDS['chapter']})(?![a-z])\s*(?P<chap>\d{{1,3}}[a-z]?|{_ROMAN_D})"
+    rf"|(?:sub-?sections?|subs\.?)(?![a-z])\s*\(?\s*(?P<subsec>[0-9a-z]{{1,6}})\s*\)?)"
 )
 _OF_OUTER_RE: Final = re.compile(
-    rf"\s+of\s+(?:the\s+)?(?:(?P<sch>{_UNIT_WORDS['schedule']})\s*(?P<schd>{_DESIG})?"
-    rf"|(?P<pt>{_UNIT_WORDS['part']})\s+(?P<ptd>\d{{1,3}}[a-z]?|{_ROMAN_D}))"
+    rf"\s+of\s+(?:the\s+)?(?:(?P<sch>{_UNIT_WORDS['schedule']})(?![a-z])\s*(?P<schd>{_DESIG})?"
+    rf"|(?P<pt>{_UNIT_WORDS['part']})(?![a-z])\s+(?P<ptd>\d{{1,3}}[a-z]?|{_ROMAN_D}))"
 )
 _SUBSECTION_RE: Final = re.compile(  # UK-P-04: "subsection (2) of section 124"
     rf"(?<![a-z0-9])(?:sub-?sections?|subs\.?)\s*\(?\s*(?P<sub>[0-9a-z]{{1,6}})\s*\)?"
@@ -447,10 +452,8 @@ def _ordinal(token: str | None) -> str:
     return token if token.isdigit() else str(roman_to_int(token) or "")
 
 
-def _regnal_key(match: re.Match[str]) -> str | None:
-    years = re.findall(r"\d{1,2}", match.group("years"))
-    if not years:
-        return None
+def _regnal_key(match: re.Match[str]) -> str:
+    years = re.findall(r"\d{1,2}", match.group("years"))  # the pattern starts with a year
     reign = _REIGNS[match.group("r1")] + _ordinal(match.group("o1"))
     if match.group("r2"):
         reign += f"and{match.group('y2')}{_REIGNS[match.group('r2')]}{_ordinal(match.group('o2'))}"
@@ -480,20 +483,21 @@ class UKGrammar:
         claims = _Claims()
         found: list[ProvisionMention] = []
 
+        # The two fixed phrasings are read first; they cannot overlap each other.
         for m in _SUBSECTION_RE.finditer(text):
             ref = ProvisionRef(
                 (("section", reader.group(m, "d")),),
                 (*reader.subs(m, "subs"), reader.group(m, "sub")),
             )
-            if claims.take(m.start(), m.end()):
-                found.append(self._mention(folded, m.start(), m.end(), (ref,)))
+            claims.take(m.start(), m.end())
+            found.append(self._mention(folded, m.start(), m.end(), (ref,)))
 
         for m in _SOLE_SCHEDULE_RE.finditer(text):
             ref = ProvisionRef(
                 (("schedule", ""), ("paragraph", reader.group(m, "para"))), reader.subs(m, "psubs")
             )
-            if claims.take(m.start(), m.end()):
-                found.append(self._mention(folded, m.start(), m.end(), (ref,)))
+            claims.take(m.start(), m.end())
+            found.append(self._mention(folded, m.start(), m.end(), (ref,)))
         position = 0
         while (hit := _PROVISION_RE.search(text, position)) is not None:
             # Resume where the mention really ended: a list that stops at a different unit
@@ -673,9 +677,7 @@ class UKGrammar:
                 )
 
         for m in _REGNAL_RE.finditer(text):
-            key = _regnal_key(m)
-            if key is not None:
-                add(m, key, "act", None, m.group("n"))
+            add(m, _regnal_key(m), "act", None, m.group("n"))
         numbered: tuple[tuple[re.Pattern[str], str, str], ...] = (
             (_SSI_RE, "ssi", "ssi"),
             (_SR_RE, "sr", "sr"),

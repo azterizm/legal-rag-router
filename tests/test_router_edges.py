@@ -9,7 +9,7 @@ import pytest
 
 from ingest.build_index import build_index, write_index
 from ingest.records import CatalogueEntry
-from legal_rag_router import Coordinate, Router, RouteStatus
+from legal_rag_router import Coordinate, NextAction, Router, RouteStatus
 from legal_rag_router.router import _official_number, _order_key
 from tests.conftest import FIXTURE_INDEX
 from tests.test_build_index import write_aliases, write_records
@@ -132,3 +132,154 @@ def test_helpers() -> None:
     assert _official_number(Coordinate.parse("uk/ukpga/1996/18")) == "c. 18"
     assert _order_key("A") == (0, 0, "A")
     assert _order_key("98") < _order_key("98ZA") < _order_key("98A") < _order_key("99")
+
+
+# ---------------------------------------------------------------- former titles and acronyms
+
+
+def test_former_title_binds_with_a_note(router: Router) -> None:
+    result = router.route("Industrial Tribunals Act 1996, s. 4")
+    assert [str(c) for c in result.coordinates] == ["uk/ukpga/1996/17/s4"]
+    assert result.messages == (
+        "“Industrial Tribunals Act 1996” is a former title of the Employment Tribunals Act 1996.",
+    )
+    assert router.route("Employment Tribunals Act 1996, s. 4").messages == ()
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("TA 1968 s. 1", ["uk/ukpga/1968/60/s1"]),  # generated, typed in capitals
+        ("cfa 1996", ["uk/ukpga/1996/4"]),  # lower case: not a title word, three letters
+    ],
+)
+def test_generated_acronym_with_a_year_binds(
+    router: Router, query: str, expected: list[str]
+) -> None:
+    result = router.route(query)
+    assert [str(c) for c in result.coordinates] == expected
+    assert result.messages[0].startswith(f"“{query.split(' s.', maxsplit=1)[0]}” read as the ")
+
+
+def test_generated_acronym_that_fits_two_acts_asks(router: Router) -> None:
+    result = router.route("MLA 1897")
+    assert (result.status, result.reason) == (AMBIGUOUS, "acronym")
+    assert len(result.candidates) == 2
+
+
+@pytest.mark.parametrize("query", ["in 1996 the tribunal sat", "ta 1968", "TA 1999"])
+def test_words_and_unknown_acronyms_are_not_citations(router: Router, query: str) -> None:
+    assert router.route(query).status is RouteStatus.UNRESOLVED
+
+
+def test_curated_alias_wins_over_the_generated_acronym(router: Router) -> None:
+    result = router.route("EA 2010 s. 13")  # curated → Equality Act 2010, no "read as" note
+    assert [str(c) for c in result.coordinates] == ["uk/ukpga/2010/15/s13"]
+    assert result.messages == ()
+
+
+# ---------------------------------------------------------------- rare paths, pinned
+
+
+def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.MonkeyPatch) -> None:
+    def broken(*_: object) -> None:
+        raise RuntimeError("bug")
+
+    monkeypatch.setattr(router, "_route", broken)
+    result = router.route("Employment Rights Act 1996 s. 124")
+    assert result.status is RouteStatus.UNRESOLVED
+    assert result.next_action is NextAction.DISCOVER_THEN_BIND
+
+
+@pytest.mark.parametrize(
+    ("query", "status", "reason", "coordinates"),
+    [
+        ("ERA 1996 Bill", BOUND, None, ["uk/ukpga/1996/18"]),  # an overlapping cue is dropped
+        ("Code civil the Act", AMBIGUOUS, "context_needed", []),  # "the Act" skips foreign law
+        ("SI 1948/1000", OOC, "series", []),  # catalogued, not downloaded
+        ("1963 c. 10", OOC, "series", []),
+        ("; 2024", RouteStatus.UNRESOLVED, None, []),
+        ("Act Arbitration 1996", BOUND, None, ["uk/ukpga/1996/23"]),  # reordered title
+        ("[2020] UKSC", OOC, "case", []),
+        ("not [2020] UKSC", RouteStatus.UNRESOLVED, "excluded", []),
+        ("Marchwood Act 1996 (c. 99)", RouteStatus.INSTRUMENT_NOT_FOUND, "no_such_title", []),
+        ("section 124 except section 125", AMBIGUOUS, "provision_without_instrument", []),
+        ("Parts II to IV of the Employment Rights Act 1996", AMBIGUOUS, "range", []),
+        ("s. 1(1) to s. 3 of the Employment Rights Act 1996", AMBIGUOUS, "range", []),
+        ("ss. 98-1 of the Employment Rights Act 1996", AMBIGUOUS, "range", []),
+        ("Employment Rights Act 1996 except s. 999", BOUND, None, ["uk/ukpga/1996/18"]),
+        ("IA 1986 Sch. B1 para. 15(3)", AMBIGUOUS, "duplicated_in_source", []),  # decision 13
+        ("TULRCA 1992 Sch. A1 para. 1", BOUND, None, ["uk/ukpga/1992/52/schA1/para1"]),
+    ],
+)
+def test_pinned_outcomes(
+    router: Router,
+    query: str,
+    status: RouteStatus,
+    reason: str | None,
+    coordinates: list[str],
+) -> None:
+    result = router.route(query)
+    assert (result.status, result.reason) == (status, reason)
+    assert [str(c) for c in result.coordinates] == coordinates
+
+
+def test_a_url_ending_in_a_word_is_not_an_acronym(router: Router) -> None:
+    result = router.route("https://www.legislation.gov.uk/ukpga/1996/18/contents 2010")
+    assert [str(c) for c in result.coordinates] == ["uk/ukpga/1996/18"]
+
+
+def test_abbreviation_full_stops_do_not_end_the_clause(router: Router) -> None:
+    # "Sch. B1" is not a sentence end: the paragraph links to the one Act named (decision 15).
+    result = router.route("In the Insolvency Act 1986, what does Sch. B1 para. 14 say?")
+    assert [str(c) for c in result.coordinates] == ["uk/ukpga/1986/45/schB1/para14"]
+
+
+@pytest.mark.parametrize(
+    ("query", "status", "reason", "coordinates"),
+    [
+        ("Employment Rights Act 1996, Sch. 1", BOUND, None, ["uk/ukpga/1996/18/sch1"]),
+        ("ERA ! 96", RouteStatus.UNRESOLVED, None, []),  # an alias split by a full stop
+        ("the Act Lands 1897", RouteStatus.INSTRUMENT_NOT_FOUND, "no_such_title", []),
+        ("other than art. 3 and Finance 2024", RouteStatus.UNRESOLVED, "excluded", []),
+        ("ss. 100-119 of the Employment Rights Act 1996", AMBIGUOUS, "range", []),  # > 20
+        (
+            "Rights Employment Act 1996 ss. 1-3",
+            BOUND,
+            None,
+            [f"uk/ukpga/1996/18/s{n}" for n in (1, 2, 3)],
+        ),
+        ("Military Lands 1897 regulation 2", BOUND, None, ["uk/ukpga/Vict/60-61/6/s2"]),
+    ],
+)
+def test_more_pinned_outcomes(
+    router: Router,
+    query: str,
+    status: RouteStatus,
+    reason: str | None,
+    coordinates: list[str],
+) -> None:
+    result = router.route(query)
+    assert (result.status, result.reason) == (status, reason)
+    assert [str(c) for c in result.coordinates] == coordinates
+
+
+def test_provision_matching_neither_case_variant_asks(tmp_path: Path) -> None:
+    write_records(
+        tmp_path / "data",
+        {
+            "uk/ukpga/2000/1": (
+                "Test Act 2000",
+                ["uk/ukpga/2000/1/s1", "uk/ukpga/2000/1/s1/Aa", "uk/ukpga/2000/1/s1/aA"],
+            )
+        },
+    )
+    built = build_index(
+        tmp_path / "data", catalogue=None, aliases_dir=write_aliases(tmp_path / "a", "")
+    )
+    write_index(
+        built, tmp_path / "index", snapshot=date(2026, 9, 27), sources=["legislation.gov.uk"]
+    )
+    result = Router.from_path(tmp_path / "index").route("Test Act 2000 s. 1(AA)")
+    assert (result.status, result.reason) == (AMBIGUOUS, "case_variants")
+    assert result.clarification == "The Test Act 2000 has both s1/Aa and s1/aA. Which do you mean?"

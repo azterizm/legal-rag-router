@@ -21,12 +21,36 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-09-28 |
 | Current stage | **Stage A (UK, partial data)**: M0 → M1 → M2 → M3-UK → M4-UK → M6-UK → M7-UK |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M6 ✅ (UK, Stage A), **M7-UK ✅ (Stage A)**. The full-index sweep and p99 run in Stage B |
-| Next step | Three product questions for you (stop log, 2026-09-28), then M8-UK batteries. Stage B starts when the background fetch finishes |
+| Next step | M8-UK batteries. Stage B starts when the background fetch finishes (you said it is almost complete) |
 | Waiting on you | (1) The background fetch of the remaining UK XML (≈ 100k SIs, 24 Acts; U5), or a faster rate from TNA (U7). (2) The regnal-key fix in your fetch (U2). (3) CA 2006, SI 2011/3006 and SI 2026/310 moved to the front of your queue (decision 8) |
 | Blocked | M4-UK fixture: Companies Act 2006, SI 2011/3006 and SI 2026/310 have not been downloaded yet (U5) |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28 (2): **Your answers applied (decisions 5, 17, 18, 19). Committed locally.**
+  - **Coverage is 100 % line and branch on `src/`, enforced in CI** (decision 5 corrected to vault 06 §5).
+    - Unreachable defensive branches were removed, not excluded.
+    - Index-internal lookups go through `RouterIndex.info()`.
+    - The fail-safe `except` in `route()` is now tested.
+  - **Former titles (decision 17):**
+    - Ingest records `other_titles` from the effects.
+    - The build keeps 11 Acts after the guards (Senior Courts ← Supreme Court 1981, Employment Tribunals ← Industrial Tribunals 1996 …) and rejects 6 source errors.
+    - The router adds a note to `messages`.
+    - The fixture gains the Employment Tribunals Act 1996.
+  - **Acronyms (decision 18):**
+    - A new `acronyms` table holds generated forms with their year only; curated aliases win.
+    - You chose curated-only bare forms after measurement: FCA, CMA and similar collide with 7–45 Acts.
+    - `EA 2010` was added to the Equality Act alias.
+  - **Historical provisions (decision 19):** the plain refusal is kept.
+  - **Parser bugs found while covering branches, all fixed and tested:**
+    - letter-first designators (`Sch. A1`, `Sch. B1`) were not parsed;
+    - "Schedule 2, Part 1" was read as paragraph "t";
+    - abbreviation full stops ("Sch. B1") ended the clause for decision 15.
+  - **Stage A sweep:** correct 17,220 of 20,000 (was 17,145); false abstention 1,508 (was 1,551); misroute still 1.
+  - **4 KB noise floor re-measured: 9.49 ms** (was 7.22). Measured side by side, the rise came from the 27 Sept sweep fixes, not today's work (`docs/measurements.md`).
+  - Tests: 631 pass, 2 skip.
+  - **Resume:** M8-UK batteries. When the fetch completes, run Stage B: full ingest, catalogue harvest (U4), full sweep, p99 on the full index.
 
 - 2026-09-28: **M7-UK done for Stage A. Committed locally.**
   - Stage A sweep (20,000 citations, `reports/coverage-sweep-uk-stageA.md`):
@@ -603,7 +627,7 @@ M9 docs are written alongside and finished before M10.
 2. **Git and GitHub:** local commits only, one at the end of each milestone. You create the remote and push yourself. `gh` is not installed by me. The M0 GitHub/PyPI items and the M12 `gh attestation verify` step are yours.
 3. **Laya:** deferred. The Phase 1 comparison (M11) covers Gemini and Jev only.
 4. **Normalised-record shards:** Phase 1 releases **the index only**. Record shards go out with `legal-rag-retriever` in Phase 4 (01 §5).
-5. **Coverage floor:** 90 % on `src/` to start, raised to 95 % after M7 (the default; tell me if you want it different).
+5. **Coverage:** **100 % line and branch coverage on `src/`** (vault 06 §5: "100% unit test coverage" for the router tier; corrected 28 Sept). The first version of this roadmap said 90 % → 95 %, taken from the plan's step 0 without checking it against 06. That was wrong. Reached 28 Sept and enforced in CI (`fail_under = 100`, branch coverage on). Four lines are excluded, each for a host we don't run on: the big-endian table paths (3) and the bare-source-tree version fallback (1). Unreachable defensive branches were removed rather than excluded. Index lookups by an id taken from the index's own tables now go through `RouterIndex.info()`, which raises on an inconsistent index, and `route()` fails safe to `ROUTE_UNRESOLVED`.
 6. **UK first, Spain after UK is complete** (§U). Pre-1963 Acts use regnal coordinates (U1). The other-series listing harvest is written in the repo (U4). Porting the fetch code waits until the data is downloaded (U3).
 
 7. **Q-M1-1 (case collisions), decided 27 Sept:** use a case-variant table.
@@ -617,10 +641,32 @@ M9 docs are written alongside and finished before M10.
     - The index records `structure: full | metadata_only` per instrument.
 16. **Q-M7-2 latency on 4 KB noise (27 Sept):** split budget.
     - **Real queries:** < 2 ms p99, published by `bench/latency.py`.
-    - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`): 7.22 ms on the Mac, from title-vocabulary soup. The tests guard 2× that floor plus linear doubling (≤ 2.5×) per class.
+    - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`): 9.49 ms on the Mac (re-measured 28 Sept; 7.22 ms on 27 Sept, before the sweep fixes), from title-vocabulary soup. The tests guard 2× that floor plus linear doubling (≤ 2.5×) per class.
     - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
+17. **Former titles (28 Sept):** a renamed Act cited by its former title binds to the current Act ("Supreme Court Act 1981" → Senior Courts Act 1981). The router adds a note saying the title is a former one.
+    - **Source:** the `ukm:AffectedTitle` values in each Act's own effects list. It is the only place the CLML records old titles. The short-title section shows only the new words.
+    - **Acts only.** SI effect titles are mostly abbreviations ("Regs", "O") and typos.
+    - **Guards against source errors.** The data maps some effects to the wrong Act, e.g. Homelessness Act 2002 listed as "Budget (No. 2) Act (Northern Ireland) 2002", and Army Act 1955 as "Aliens' Employment Act 1955". Support counts don't separate these from real renames. So a former title is used only if:
+      - it names the same year;
+      - it ends in "Act";
+      - it isn't the current title of any other instrument in the index or the catalogue.
+    - **Coverage limit:** current files list only *unapplied* effects, so Stage A finds only the renames with pending effects. A fuller source (the legislation.gov.uk changes feed) is a Stage B fetch and needs your go. Well-known renames can also go in `aliases/uk.toml`.
+18. **Acronyms (28 Sept):** a hybrid, with curated entries taking precedence.
+    - **Generated from indexed Act titles:**
+      - initials with particles skipped (TCGA, ITEPA, SOCPA) and with them kept (POCA, PACE);
+      - each with and without the "Act" initial (LASPO, PACE).
+    - **Stored in their own index table** (`acronyms`), with every target.
+    - **With a year:** unique for that year → `ROUTE_BOUNDED`. A clash → `ROUTE_AMBIGUOUS` ("Did you mean X or Y?").
+    - **Curated aliases (`aliases/uk.toml`) always win,** and bind directly (CA 2006 → Companies Act 2006, EA 2010 → Equality Act 2010).
+    - **Guardrails:**
+      - every generated form needs its year, and at least 2 letters;
+      - no plain form for numbered titles ("Finance (No. 2) Act"), so "FA 2023" means the Finance Act 2023;
+      - an acronym written in lower case counts only with a year, at least 3 letters, and when it isn't a word in any indexed title ("in 2006" is never an acronym).
+    - **Bare acronyms (no year) come only from the curated aliases** (HRA, TULRCA, EqA …). You chose this on 28 Sept after measurement: on the Stage A index, generated bare forms collide with regulator names (FCA 7 Acts, PRA 30, CMA 16, CAA 45, FSA 35, SIA 21), so "What does the FCA require?" would have asked about the Foreign Compensation Act 1969.
+    - **Index format v1 gains an `acronyms` table** (pre-release; no version bump).
+19. **Historical provisions (28 Sept):** a provision missing from the current text keeps the plain `EPISTEMIC_ABSTENTION_PROVISION_NOT_FOUND` refusal. No extra wording. Historical versions are Phase 2.
 15. **Linking and exclusion (27 Sept):** an unlinked provision attaches to the one instrument the query names, if there is exactly one that is not negated.
     - **Exclusion is handled at both levels, provision and instrument.** A cue ("except", "other than", "apart from", "excluding", "save for", "with the exception of", "not", "but not", "rather than", "instead of") marks the mention straight after it (and any list joined to it) as excluded.
     - An excluded mention is never a bound target. It appears in `citations` with `resolution="excluded"` and in the new `RouteResult.excluded`, and `partition_filter` removes it (`and not (coordinate == … or coordinate like …/%)`).

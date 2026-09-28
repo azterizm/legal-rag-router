@@ -64,3 +64,23 @@ def test_injection_shaped_input_yields_only_a_safe_key() -> None:
 def test_keys_use_the_safe_alphabet(text: str) -> None:
     for mention in scan_identifiers(text):
         assert set(mention.key) <= set("abcdefghijklmnopqrstuvwxyz0123456789./-")
+
+
+@pytest.mark.parametrize(
+    ("query", "keys"),
+    [
+        (
+            "https://www.legislation.gov.uk/ukpga/1996/18/schedule/paragraph/2",
+            ["uk/ukpga/1996/18/sch/para2"],
+        ),
+        ("https://www.legislation.gov.uk/ukpga/1996/18/section/schedule", []),  # unit, then unit
+        ("https://www.legislation.gov.uk/ukpga/1996/18/foo/1", []),  # not a provision path
+        # A coordinate inside a URL already read is not read again.
+        (
+            "legislation.gov.uk/ukpga/1996/18/section/1-uk/ukpga/1996/18",
+            ["uk/ukpga/1996/18/s1-uk/ukpga/1996/18"],
+        ),
+    ],
+)
+def test_url_provision_paths(query: str, keys: list[str]) -> None:
+    assert [m.key for m in scan_identifiers(query)] == keys

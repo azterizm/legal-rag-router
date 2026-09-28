@@ -127,6 +127,10 @@ class InstrumentRecord(_Record):
     """Coordinates the source publishes more than once (e.g. schedule parts that restart
     paragraph numbering under one id). Only the first occurrence has a record."""
     groups: dict[str, tuple[str, ...]] = Field(default_factory=dict)
+    other_titles: tuple[str, ...] = ()
+    """Other titles the source's effects list for this instrument (former titles, and
+    source variants or errors). Raw evidence: the index build decides what to trust
+    (roadmap decision 17)."""
     text_version: TextVersion
     version_date: date | None = None
     normative_tier: int = Field(ge=1, le=4)

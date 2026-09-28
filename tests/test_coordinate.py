@@ -242,3 +242,14 @@ def test_legislation_path_round_trip(provision: tuple[str, ...]) -> None:
 def test_parse_never_raises_anything_but_coordinate_error(text: str) -> None:
     with contextlib.suppress(CoordinateError):
         Coordinate.parse(text)
+
+
+def test_a_coordinate_longer_than_the_cap_is_rejected() -> None:
+    segments = ("s1", *("a" * 24 for _ in range(11)))
+    with pytest.raises(CoordinateError, match="too long"):
+        Coordinate("uk", ("ukpga", "1996", "18"), segments)
+    assert len("/".join(("uk/ukpga/1996/18", *segments))) > MAX_COORDINATE_LENGTH
+
+
+def test_legislation_path_keeps_segments_it_cannot_split() -> None:
+    assert legislation_path(("sfoo", "a")) == "sfoo/a"  # "s" + "foo" is not a section number

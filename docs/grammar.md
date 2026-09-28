@@ -151,7 +151,8 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-P-05 | `ss.124–126`, `ss 124-126`, `sections 124 to 126` | `s124`, `s125`, `s126` | **B** only if every endpoint exists and the range spans ≤ 20; otherwise **A** |
 | UK-P-06 | `sections 94, 95 and 98`, `ss. 94 & 98` | one coordinate per item | |
 | UK-P-07 | `s.98 et seq.`, `section 98 onwards` | — | **A**: an open range |
-| UK-P-08 | `Sch. 2 para 4`, `Schedule 2, paragraph 4`, `para 4 of Schedule 2`, `Sch 2 para 4(1)(b)` | `sch2/para4[/1/b]` | |
+| UK-P-08 | `Sch. 2 para 4`, `Schedule 2, paragraph 4`, `para 4 of Schedule 2`, `Sch 2 para 4(1)(b)`, `Schedule 2, Part 1` | `sch2/para4[/1/b]`, `sch2/pt1` | Every unit word ends at a word boundary: `Part 1` is never read as `par` + `t` |
+| UK-P-08a | Letter-first designators: `Sch. A1 para. 1`, `Schedule B1 paragraph 14`, `s. ZA1` | `schA1/para1`, `schB1/para14` | TULRCA Sch. A1, IA 1986 Sch. B1 |
 | UK-P-09 | `the Schedule, para 3`, `Sch. para 3` | `sch/para3` | Sole unnumbered schedule |
 | UK-P-10 | `reg. 3`, `regulation 3(1)`, `reg 3(1)(a)` | `reg3[/1/a]` | |
 | UK-P-11 | `art. 2`, `article 2(1)` | `art2[/1]` | |
@@ -193,6 +194,8 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-23 | A regnal Act cited by calendar year and chapter: `1925 c. 20` | `uk/ukpga/Geo5/15-16/20` | The build also keys every regnal Act by its calendar year |
 | UK-I-24 | Commas inside a title: `Local Democracy, Economic Development and Construction Act 2009` | the Act | Titles are matched right to left from the type word. A comma stops the span only when no longer title fits |
 | UK-I-25 | Particles inside titles: `Offences against the Person Act 1861`, `Health and Safety at Work etc. Act 1974` | the Act | Extending a title left crosses `of`, `and`, `the`, `for`, `from`, `against`, `to`, `on`, `with`, `at`, `&` only when a content word lies beyond them |
+| UK-I-27 | A renamed Act cited by its former title: `Supreme Court Act 1981`, `Industrial Tribunals Act 1996` | the Act (`Senior Courts Act 1981`, `Employment Tribunals Act 1996`) | **B**, with a note in `messages`. Former titles come from the source's effect records and are checked before indexing (decision 17) |
+| UK-I-28 | A generated Act acronym with its year: `PACE 1984`, `POCA 2002`, `OAPA 1861`, `FA 2022`, `tcga 1992` | the Act | **B** with a "read as" note if one Act fits; **A** if several do (`FA 2023`: Finance Act or Firearms Act). Curated aliases win (`EA 2010` = Equality Act 2010). No generated acronym without a year; none of 1 letter; lower case only for 3+ letters that are not title words (`in 2006` is never one) (decision 18) |
 | UK-I-26 | A capitalised title after lower-case prose: `words omitted by virtue of Theft Act 1968 (c. 60)` | the Act | The capitals mark where the title starts. All-lower-case queries keep the lower-case rules (UK-I-20) |
 
 ### 4.3 Structured identifiers (read first, never typo-corrected)
@@ -229,7 +232,7 @@ Outcomes:
 | ID | Form | Result |
 |---|---|---|
 | UK-L-01 | A provision with a connector: `section 124 of the ERA 1996`, `ERA 1996, s. 124`, `s. 124 ERA 1996` | Linked to that instrument |
-| UK-L-02 | A provision with no connector when the query names exactly one non-negated instrument (decision 15) | Linked, but only within the same clause (`;`, `?`, `!` or a sentence end breaks it) |
+| UK-L-02 | A provision with no connector when the query names exactly one non-negated instrument (decision 15) | Linked, but only within the same clause (`;`, `?`, `!` or a sentence end breaks it). The full stop of an abbreviation (`Sch. B1`, `Pt. II`, `art. A1`) is not a sentence end |
 | UK-L-03 | An agentive `by`: `S. 999 inserted by Employment Rights Act 1996` | Never linked by default. The provision belongs to the amended Act, not the amending one |
 | UK-L-04 | Exclusion cues: `except`, `other than`, `apart from`, `excluding`, `save for`, `with the exception of`, `not`, `but not`, `rather than`, `instead of` | The mention straight after (and any list joined to it) goes to `excluded`, and the filter removes it (decision 15). An unclear scope → **A** |
 | UK-L-05 | Dates: `1.3.2007`, `(20.7.1998)`, `1 April 1996`, `6th April 2020` | A date cue. Its year is never an instrument year |

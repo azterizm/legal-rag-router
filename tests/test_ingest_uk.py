@@ -355,3 +355,21 @@ def test_golden_era_1996_s124() -> None:
 def test_golden_regnal_session_with_three_years() -> None:
     parsed = parse_clml(gzip.decompress((RAW / "ukpga" / "1948" / "1.xml.gz").read_bytes()))
     assert parsed.instrument.coordinate.startswith("uk/ukpga/Geo6/12-13-14/")
+
+
+# ---------------------------------------------------------------- other titles (decision 17)
+
+
+def effect(affected: str, *titles: str) -> str:
+    names = "".join(f"<ukm:AffectedTitle>{t}</ukm:AffectedTitle>" for t in titles)
+    return f'<ukm:UnappliedEffect AffectedURI="{ID}{affected}">{names}</ukm:UnappliedEffect>'
+
+
+def test_other_titles_come_from_effects_on_this_instrument() -> None:
+    meta = (
+        effect("ukpga/2020/5", "Test Act 2020", "Former Test Act 2020 (repealed)")
+        + effect("ukpga/2020/5", "Test  Act 2020")  # the same title, spaced differently
+        + effect("ukpga/1999/1", "Some Other Act 1999")  # an effect on another instrument
+    )
+    record = parse_clml(clml("ukpga/2020/5", "", extra_meta=meta)).instrument
+    assert record.other_titles == ("Former Test Act 2020",)

@@ -11,7 +11,8 @@ touched. Format version 1:
 =========================  ================================================================
 ``coordinates``            casefolded coordinate → canonical spelling(s) (``|``-joined when
                            siblings differ only by case, roadmap decision 7)
-``instruments``            instrument_id → JSON metadata (title, year, series, structure …)
+``instruments``            instrument_id → JSON metadata (title, year, series, structure,
+                           former titles …)
 ``titles``                 title key → instrument_ids (several key variants per title)
 ``numbers``                official-number key (``si/2011/3006``, ``c/1996/18``) → ids
 ``wordsets``               sorted content words|year → instrument_id (unique sets only)
@@ -20,6 +21,8 @@ touched. Format version 1:
 ``coverage_instruments``   casefolded out-of-coverage coordinate → JSON (canonical, title …)
 ``coverage_titles``        title key → out-of-coverage coordinates
 ``coverage_numbers``       official-number key → out-of-coverage coordinates
+``acronyms``               generated Act acronym + year ``tcga|1992`` → instrument_ids
+                           (roadmap decision 18; curated aliases take precedence)
 ``aliases.json``           alias key → {id, salient, form} (small; plain JSON)
 =========================  ================================================================
 
@@ -64,6 +67,7 @@ TABLES: Final = (
     "coverage_instruments",
     "coverage_titles",
     "coverage_numbers",
+    "acronyms",
 )
 JSON_FILES: Final = ("aliases.json",)
 INDEX_FILES: Final = (*(f"{t}.{ext}" for t in TABLES for ext in ("tbl", "off")), *JSON_FILES)
@@ -145,6 +149,8 @@ class InstrumentInfo:
     primary: bool
     groups: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
     duplicated: frozenset[str] = frozenset()
+    former_titles: tuple[str, ...] = ()
+    """Titles the instrument had before a rename (roadmap decision 17)."""
 
     @classmethod
     def from_json(cls, instrument_id: str, raw: Mapping[str, Any]) -> InstrumentInfo:
@@ -160,6 +166,7 @@ class InstrumentInfo:
             primary=bool(raw.get("p", False)),
             groups={k: tuple(v) for k, v in raw.get("g", {}).items()},
             duplicated=frozenset(raw.get("d", ())),
+            former_titles=tuple(raw.get("f", ())),
         )
 
 
@@ -180,6 +187,17 @@ class RouterIndex:
     def instrument(self, instrument_id: str) -> InstrumentInfo | None:
         raw = self.tables["instruments"].get(instrument_id)
         return None if raw is None else InstrumentInfo.from_json(instrument_id, json.loads(raw))
+
+    def info(self, instrument_id: str) -> InstrumentInfo:
+        """:meth:`instrument` for an id taken from the index's own tables.
+
+        The build keeps every table consistent with ``instruments``, so a miss means the
+        index is corrupt: it raises, and ``Router.route`` fails safe to ``ROUTE_UNRESOLVED``.
+        """
+        found = self.instrument(instrument_id)
+        if found is None:
+            raise IndexLoadError(f"index inconsistent: no instrument {instrument_id!r}")
+        return found
 
     def ids(self, table: str, key: str) -> tuple[str, ...]:
         """Decode a comma-joined list value (titles, numbers, words, typo, coverage …)."""

@@ -89,3 +89,32 @@ What made it linear and bounded:
 - Caps on provision, number, identifier and cue mentions, applied before any pairwise work.
 - Alias anchors only where a whole alias is spelt out.
 - A title-lookup budget that fails safe to `ROUTE_UNRESOLVED`.
+
+
+## 2026-09-28: 4 KB noise floor re-measured
+
+The floor recorded on 27 Sept (7.22 ms) was measured before that day's coverage-sweep fixes. Re-measured on 28 Sept, same machine and method, and it rose. Three trees were measured side by side on 28 Sept:
+
+- `e0d07f7` (where 7.22 ms was recorded): 7.00 ms.
+- `afc49c4` (after the sweep fixes): 9.52 ms.
+- Today's tree: 9.49 ms.
+
+The rise came from the sweep fixes (more title work per anchor: chapter notes, capitals, back-references), not from today's former-title, acronym and grammar changes. Real queries are unaffected at this scale (M10 measures them). The published figure and the test guard follow the new measurement (decision 16).
+
+| Class | p50 ms | p99 ms | max ms | 2× ratio |
+|---|---|---|---|---|
+| title_vocabulary | 8.12 | 9.49 | 9.49 | 1.30 |
+| digits_and_years | 7.03 | 7.29 | 7.29 | 1.46 |
+| unicode_expanding | 5.19 | 6.99 | 6.99 | 2.12 |
+| unicode_mix | 4.57 | 5.33 | 5.33 | 2.19 |
+| printable | 3.43 | 4.70 | 4.70 | 2.01 |
+| type_words_and_years | 4.52 | 4.61 | 4.61 | 1.19 |
+| dense_punctuation | 2.90 | 2.97 | 2.97 | 1.99 |
+| identifier_soup | 2.62 | 2.64 | 2.64 | 2.02 |
+| letters_digits | 1.68 | 2.37 | 2.37 | 2.45 |
+| whitespace_heavy | 2.31 | 2.34 | 2.34 | 2.01 |
+| provision_soup | 2.27 | 2.28 | 2.28 | 1.89 |
+| citation_soup | 2.19 | 2.26 | 2.26 | 1.86 |
+| no_spaces | 0.06 | 0.06 | 0.06 | 1.91 |
+
+**4 KB noise floor: 9.49 ms** (worst class, worst sample). Doubling stays linear (every ratio ≤ 2.5).

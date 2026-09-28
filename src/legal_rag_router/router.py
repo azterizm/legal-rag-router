@@ -25,7 +25,7 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
-from legal_rag_router.coordinate import Coordinate, CoordinateError
+from legal_rag_router.coordinate import Coordinate
 from legal_rag_router.grammars.base import Cue, NumberMention, ProvisionMention, ProvisionRef
 from legal_rag_router.grammars.uk_grammar import GRAMMAR as UK_GRAMMAR
 from legal_rag_router.grammars.uk_grammar import UKGrammar
@@ -94,7 +94,13 @@ _AFTER_CONNECTORS: Final = frozenset(
 )
 _BEFORE_CONNECTORS: Final = frozenset({"s", "at", "in", "under"})
 _LIST_JOINERS: Final = frozenset({"and", "or", "nor", "&"})
-_CLAUSE_BREAK_RE: Final = re.compile(r"[;?!]|\.\s+(?=[A-Z(\u201c\"])")
+_CLAUSE_BREAK_RE: Final = re.compile(r"[;?!]|(?P<word>\w*)\.\s+(?=[A-Z(\u201c\"])")
+# A full stop after these ends an abbreviation, not a sentence: "Sch. B1", "Pt. II", "art. A1".
+_ABBREVIATED: Final = (
+    "s ss sec sect sch schs sched para paras par pars art arts reg regs r pt pts ch chap "
+    "no nos c apdo núm num"
+)
+_ABBREVIATIONS: Final = frozenset(_ABBREVIATED.split())
 _NEGATION_FILLERS: Final = frozenset({"the", "a", "an", "in", "under", "any", "of", "for", "to"})
 _YEAR_RE: Final = re.compile(r"1[2-9]\d\d|20\d\d")
 # "Housing and Planning Act 2016 (c. 22)", "(c.42, SIF 81:1, 2)": a chapter number in brackets
@@ -154,7 +160,7 @@ class _Instrument:
 
     start: int
     end: int
-    kind: str  # identifier | number | title | alias | anchor | context_ref | out_of_coverage
+    kind: str  # identifier number title alias acronym anchor context_ref out_of_coverage
     verdict: str  # resolved | ambiguous | not_found | out_of_coverage | context
     ids: tuple[str, ...] = ()
     coverage: tuple[str, ...] = ()
@@ -170,6 +176,8 @@ class _Instrument:
     jurisdiction: str | None = "uk"
     excluded: bool = False
     narrow_by_provision: bool = False
+    note: str | None = None
+    """A line for ``messages`` when the mention binds (e.g. cited by a former title)."""
     provisions: list[ProvisionMention] = field(default_factory=list)
 
 
@@ -320,7 +328,7 @@ class Router:
         started = time.perf_counter_ns()
         try:
             result = self._route(query, context, jurisdictions)
-        except Exception:  # pragma: no cover - a bug must fail safe, never crash the caller
+        except Exception:  # a bug or a corrupt index must fail safe, never crash the caller
             log.exception("router error; failing safe to ROUTE_UNRESOLVED")
             result = self._result(RouteStatus.UNRESOLVED, reason="internal_error")
         result = replace(result, latency_ns=time.perf_counter_ns() - started)
@@ -453,7 +461,7 @@ class Router:
             last = merged[-1] if merged else None
             if (
                 last is not None
-                and last.kind in ("title", "alias", "anchor")
+                and last.kind in ("title", "alias", "acronym", "anchor")
                 and mention.kind == "number"
                 and mention.verdict == "resolved"
                 and mention.ids[0] in last.ids
@@ -472,8 +480,8 @@ class Router:
         for earlier in reversed(earlier_mentions):
             if earlier.kind in ("context_ref", "out_of_coverage") or earlier.verdict != "resolved":
                 continue
-            info = self._index.instrument(earlier.ids[0])
-            if info is None or info.primary != wants_act:
+            info = self._index.info(earlier.ids[0])
+            if info.primary != wants_act:
                 continue
             if mention.year is not None and info.year != mention.year:
                 continue
@@ -571,12 +579,59 @@ class Router:
         for pos, kind in reversed(anchors[-MAX_ANCHORS:]):  # right to left: longest titles win
             if pos in claimed:
                 continue
-            mention = self._match_title(scan, pos, claimed) or self._unknown_title(
-                scan, pos, kind, claimed
+            mention = (
+                self._match_title(scan, pos, claimed)
+                or self._acronym(scan, pos, kind, claimed)
+                or self._unknown_title(scan, pos, kind, claimed)
             )
             if mention is not None:
                 found.append(mention)
         return found
+
+    def _acronym(self, scan: _Scan, pos: int, kind: str, claimed: set[int]) -> _Instrument | None:
+        """A generated Act acronym with its year: "TCGA 1992", "PACE 1984" (decision 18).
+
+        Curated aliases were tried first (in :meth:`_match_title`) and always win. One Act
+        binds; several ask. Bare acronyms ("FCA") are never generated.
+        """
+        tokens = scan.tokens
+        if kind != "year" or pos == 0 or tokens[pos - 1].kind != "word":
+            return None
+        first = pos - 1
+        token = tokens[first]
+        typed = scan.query[token.start : token.end]
+        if first in claimed or scan.is_blocked(token.start):
+            return None
+        if not (typed.isupper() or self._lower_case_acronym(token.text)):
+            return None
+        ids = self._index.ids("acronyms", f"{token.text}|{tokens[pos].text}")
+        if not ids:
+            return None
+        claimed.update(range(first, pos + 1))
+        text = scan.query[token.start : tokens[pos].end]
+        info = self._index.info(ids[0]) if len(ids) == 1 else None
+        mention = _Instrument(
+            token.start,
+            tokens[pos].end,
+            "acronym",
+            "resolved" if info is not None else "ambiguous",
+            ids=ids,
+            title_as_cited=text,
+            year=int(tokens[pos].text),
+            instrument_type="act",
+            reason=None if info is not None else "acronym",
+            note=f"“{text}” read as the {info.title}." if info is not None else None,
+        )
+        return self._absorb_chapter(scan, mention)
+
+    def _lower_case_acronym(self, word: str) -> bool:
+        """ "tcga 1992" counts; "in 2006" never does: not a title word or a boundary word."""
+        return (
+            len(word) >= 3  # noqa: PLR2004
+            and word.isalpha()
+            and word not in self._grammar.boundary_words
+            and self._index.tables["words"].get(word) is None
+        )
 
     def _completes_alias(self, scan: _Scan, pos: int) -> bool:
         """True when the words ending at token ``pos`` spell a whole alias ("TULR(C)A 1992")."""
@@ -629,9 +684,7 @@ class Router:
                 continue  # "and Equality Act 2010" must not swallow the "and" joining two citations
             text = query[tokens[start].start : tokens[anchor].end]
             content, year, words = self._split_year(scan.words(start, anchor))
-            if not content:
-                continue
-            key = title_key(content, year)
+            key = title_key(content, year)  # never empty: the window starts on a content word
             scan.lookups += 1
             if scan.lookups > MAX_TITLE_LOOKUPS:
                 return None
@@ -645,6 +698,7 @@ class Router:
                 continue
             claimed.update(range(start, anchor + 1))
             verdict = "resolved" if len(ids) == 1 else ("ambiguous" if ids else "out_of_coverage")
+            note = self._former_title_note(text, content, ids) if verdict == "resolved" else None
             mention = _Instrument(
                 tokens[start].start,
                 tokens[anchor].end,
@@ -658,9 +712,22 @@ class Router:
                 clear_claim=self._clear_claim(content, year),
                 reason="series" if coverage else ("title_without_year" if len(ids) > 1 else None),
                 narrow_by_provision=len(ids) > 1,
+                note=note,
             )
             return self._absorb_chapter(scan, self._check_embedded(scan, start, mention, claimed))
         return None
+
+    def _former_title_note(
+        self, cited: str, content: Sequence[str], ids: tuple[str, ...]
+    ) -> str | None:
+        """ "Supreme Court Act 1981" names the Senior Courts Act 1981 (decision 17)."""
+        info = self._index.info(ids[0])
+        if not info.former_titles:
+            return None
+        current = set(title_words(info.title))
+        if all(w in current for w in content):
+            return None
+        return f"“{cited}” is a former title of the {info.title}."
 
     def _absorb_chapter(self, scan: _Scan, mention: _Instrument) -> _Instrument:
         """Extend a title mention over a following "(c. N)" and check N against the Act."""
@@ -677,8 +744,8 @@ class Router:
                     mention, verdict="ambiguous", ids=numbered, reason="title_number_conflict"
                 )
         if mention.verdict == "resolved" and mention.ids:
-            info = self._index.instrument(mention.ids[0])
-            if info is not None and info.series == "ukpga" and str(info.number) != note.group("n"):
+            info = self._index.info(mention.ids[0])
+            if info.series == "ukpga" and str(info.number) != note.group("n"):
                 other = self._index.ids("numbers", f"c/{info.year}/{note.group('n')}")
                 return replace(
                     mention,
@@ -739,9 +806,7 @@ class Router:
         cited = self._cited_start(scan, start, claimed)
         if cited >= start:
             return mention
-        extras = [t for t in scan.tokens[cited:start] if t.kind == "word"]
-        if not extras:
-            return mention
+        extras = [t for t in scan.tokens[cited:start] if t.kind == "word"]  # cited is a word
         query = scan.query
         if (
             not _mostly_capitals(query)
@@ -815,9 +880,7 @@ class Router:
         return None
 
     def _content_words(self, instrument_id: str) -> set[str]:
-        info = self._index.instrument(instrument_id)
-        if info is None:
-            return set()
+        info = self._index.info(instrument_id)
         type_words = self._grammar.type_words
         return {w for w in title_words(info.title) if w not in type_words and not w.isdigit()}
 
@@ -912,9 +975,7 @@ class Router:
         return mentions
 
     def _cue_title_start(self, scan: _Scan, cue: Cue) -> int:
-        anchor = next((i for i, t in enumerate(scan.tokens) if t.start >= cue.start), None)
-        if anchor is None:
-            return cue.start
+        anchor = next(i for i, t in enumerate(scan.tokens) if t.start >= cue.start)  # "bill"
         return scan.tokens[self._cited_start(scan, anchor, set())].start
 
     # ------------------------------------------------------------------ exclusion and linking
@@ -994,9 +1055,7 @@ class Router:
     ) -> _Instrument | None:
         """A provision listed straight after one already linked belongs to the same
         instrument: "Act 2003 (c. 32), ss. 91(1), 94, Sch. 5 para. 26(a)"."""
-        before, instrument = previous
-        if before.end > provision.start:
-            return None
+        before, instrument = previous  # provisions are sorted and never overlap
         gap = scan.gap_words(before.end, provision.start)
         return instrument if all(w in _LIST_JOINERS or w == "," for w in gap) else None
 
@@ -1004,7 +1063,10 @@ class Router:
         """Decision 15 applies within one clause, and not across an agentive "by"."""
         start, end = sorted(((provision.start, provision.end), (lone.start, lone.end)))
         between = scan.query[start[1] : end[0]]
-        if _CLAUSE_BREAK_RE.search(between):
+        if any(
+            m.group("word") is None or m.group("word").casefold() not in _ABBREVIATIONS
+            for m in _CLAUSE_BREAK_RE.finditer(between)
+        ):
             return False
         return not self._agentive(scan, provision, lone)
 
@@ -1068,27 +1130,21 @@ class Router:
             canonical = self._index.coordinates.canonical(str(item))
             if canonical is None:
                 continue  # context cannot smuggle in unverified law
-            try:
-                found.add(Coordinate.parse(canonical).instrument_id)
-            except CoordinateError:
-                continue
+            found.add(Coordinate.parse(canonical).instrument_id)  # the index holds valid ones
         if len(found) != 1:
             return None
-        return self._index.instrument(next(iter(found)))
+        return self._index.info(next(iter(found)))
 
     # ------------------------------------------------------------------ resolution
 
     def _candidate(
         self, coordinate: Coordinate, info: InstrumentInfo | None = None, label: str | None = None
     ) -> Candidate:
-        info = info or self._index.instrument(coordinate.instrument_id)
-        title = info.title if info is not None else coordinate.instrument_id
+        title = (info or self._index.info(coordinate.instrument_id)).title
         return Candidate(coordinate, f"{title} {label}".strip() if label else title)
 
-    def _instrument_candidate(self, instrument_id: str) -> Candidate | None:
-        info = self._index.instrument(instrument_id)
-        if info is None:
-            return None
+    def _instrument_candidate(self, instrument_id: str) -> Candidate:
+        info = self._index.info(instrument_id)
         return Candidate(Coordinate.parse(info.coordinate), info.title)
 
     def _labelled(self, candidates: list[Candidate]) -> list[Candidate]:
@@ -1188,10 +1244,7 @@ class Router:
         a, b = ends[0][1][0], ends[1][1][0]
         if a.provision[:-1] != b.provision[:-1] or len(a.provision) != 1:
             return "ambiguous", []
-        prefix = re.match(r"[a-z]+", a.provision[0])
-        if prefix is None:
-            return "ambiguous", []
-        unit = prefix.group()
+        unit = re.sub(r"[^a-z].*$", "", a.provision[0])  # "s124A" → "s", "schA1" → "sch"
         lo, hi = _order_key(a.provision[0][len(unit) :]), _order_key(b.provision[0][len(unit) :])
         if hi < lo or hi[0] - lo[0] > MAX_RANGE:
             return "ambiguous", []
@@ -1327,13 +1380,12 @@ class Router:
         outcome = self._resolve_provisions(chosen, mention.provisions, excluded_ids)
         if mention.excluded:
             outcome.excluded.append(Coordinate.parse(chosen.coordinate))
-            outcome.coordinates = [
-                c for c in outcome.coordinates if c.instrument_id != chosen.instrument_id
-            ]
-            if not outcome.coordinates:
-                outcome.status, outcome.reason = RouteStatus.UNRESOLVED, "excluded"
+            outcome.coordinates = []  # every coordinate resolved here is inside the excluded Act
+            outcome.status, outcome.reason = RouteStatus.UNRESOLVED, "excluded"
         outcome.corrections = mention.corrections
         outcome.source = "identifier" if mention.kind == "identifier" else "grammar"
+        if mention.note is not None:
+            outcome.message = " ".join(filter(None, (mention.note, outcome.message)))
         return outcome
 
     def _terminal(self, mention: _Instrument) -> _Outcome | None:
@@ -1355,7 +1407,7 @@ class Router:
         return _Outcome(
             RouteStatus.INSTRUMENT_NOT_FOUND,
             reason=mention.reason,
-            suggestions=[c for i in mention.suggestions if (c := self._instrument_candidate(i))],
+            suggestions=[self._instrument_candidate(i) for i in mention.suggestions],
             message=(
                 f"No instrument “{cited}” is in the UK statute book as of the index snapshot "
                 f"{self._index.snapshot}."
@@ -1376,22 +1428,17 @@ class Router:
             if len(fitting) != 1:
                 return self._ambiguous_instruments(mention, fitting or ids)
             ids = fitting
-        info = self._index.instrument(ids[0])
-        if info is None:  # pragma: no cover - index tables are consistent by construction
-            return _Outcome(RouteStatus.UNRESOLVED, reason="index_inconsistent")
-        return info
+        return self._index.info(ids[0])
 
     def _fits(
         self, instrument_id: str, provisions: list[ProvisionMention], excluded_ids: set[int]
     ) -> bool:
-        info = self._index.instrument(instrument_id)
-        if info is None:
-            return False
+        info = self._index.info(instrument_id)
         wanted = [p for p in provisions if id(p) not in excluded_ids] or provisions
         return all(self._resolve_ref(info, ref)[0] == "bound" for p in wanted for ref in p.refs)
 
     def _ambiguous_instruments(self, mention: _Instrument, ids: list[str]) -> _Outcome:
-        candidates = self._labelled([c for i in ids if (c := self._instrument_candidate(i))])
+        candidates = self._labelled([self._instrument_candidate(i) for i in ids])
         outcome = _Outcome(
             RouteStatus.AMBIGUOUS,
             candidates=candidates,
@@ -1477,9 +1524,8 @@ class Router:
             # The only Act of that year binds only if the catalogue knows no other one either.
             others = next(self._index.tables["coverage_numbers"].prefix(f"c/{year}/"), None)
             if len(ids) == 1 and others is None:
-                info = self._index.instrument(ids[0])
-                if info is not None:
-                    return self._resolve_provisions(info, mention.provisions, excluded_ids)
+                info = self._index.info(ids[0])
+                return self._resolve_provisions(info, mention.provisions, excluded_ids)
             if mention.provisions:
                 fitting = [i for i in ids if self._fits(i, mention.provisions, excluded_ids)]
                 ids = fitting or ids
@@ -1526,9 +1572,7 @@ class Router:
         pool = pool or list(self._salient)
         candidates: list[Candidate] = []
         for iid in dict.fromkeys(pool):
-            info = self._index.instrument(iid)
-            if info is None:
-                continue
+            info = self._index.info(iid)
             for ref in provision.refs:
                 state, coords, _ = self._resolve_ref(info, ref)
                 if state == "bound":

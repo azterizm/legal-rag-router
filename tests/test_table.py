@@ -72,3 +72,11 @@ def test_lookup_matches_dict(mapping: dict[str, str], probe: str) -> None:
     assert table.get(probe) == mapping.get(probe)
     expected = sorted((k, v) for k, v in mapping.items() if k.startswith(probe[:1]))
     assert sorted(table.prefix(probe[:1])) == expected
+
+
+def test_tables_over_the_size_cap_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    from legal_rag_router import table  # noqa: PLC0415
+
+    monkeypatch.setattr(table, "_MAX_TABLE_BYTES", 10)
+    with pytest.raises(ValueError, match="exceeds"):
+        encode_table([("key-one", "value"), ("key-two", "value")])

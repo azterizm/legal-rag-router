@@ -200,3 +200,58 @@ def test_numeral_variants() -> None:
     assert numeral_variants("10") == ["10", "X"]
     assert numeral_variants("2A") == ["2A", "IIA"]
     assert numeral_variants("0") == ["0"]
+
+
+# ---------------------------------------------------------------- rarer forms
+
+
+def refs(query: str) -> list[list[tuple[tuple[tuple[str, str], ...], tuple[str, ...]]]]:
+    return [[(r.units, r.subs) for r in m.refs] for m in GRAMMAR.provisions(query, fold(query))]
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        # A unit word ends at a word boundary: "Part 1" is never "par" + "t".
+        ("Schedule 2, Part 1", [[((("schedule", "2"), ("part", "1")), ())]]),
+        ("Chapter 1 of Part 2", [[((("part", "2"), ("chapter", "1")), ())]]),
+        # Letter-first designators.
+        ("Sch. B1 para. 15(3)", [[((("schedule", "B1"), ("paragraph", "15")), ("3",))]]),
+        # A list stops at a lower-case Roman numeral, and a range needs exactly two ends.
+        ("Parts II and iv", [[((("part", "II"),), ())]]),
+        ("ss. 1-3 and 5", [[((("section", n),), ()) for n in ("1", "3", "5")]]),
+        # "of Part 2" belongs to a chapter, not to a section.
+        ("s. 3 of Part 2", [[((("section", "3"),), ())], [((("part", "2"),), ())]]),
+        # A paragraph is nested only under a schedule.
+        ("s. 1, para. 2", [[((("section", "1"),), ())], [((("paragraph", "2"),), ())]]),
+    ],
+)
+def test_rarer_provision_forms(query: str, expected: object) -> None:
+    assert refs(query) == expected
+
+
+def test_ranges_with_three_ends_are_lists() -> None:
+    (mention,) = GRAMMAR.provisions("ss. 1-3 and 5", fold("ss. 1-3 and 5"))
+    assert not mention.is_range
+
+
+@pytest.mark.parametrize(
+    ("ref", "paths"),
+    [
+        (ProvisionRef((("paragraph", "3"),)), [("para3",)]),
+        (ProvisionRef((("chapter", "1"),)), [("ch1",)]),
+        (ProvisionRef((("schedule", "2"),)), [("sch2",)]),
+        (ProvisionRef((("schedule", "2"), ("part", "1"))), [("sch2", "pt1"), ("sch2", "ptI")]),
+    ],
+)
+def test_more_provision_paths(ref: ProvisionRef, paths: list[tuple[str, ...]]) -> None:
+    assert GRAMMAR.provision_paths(ref, primary=True) == paths
+
+
+def test_invalid_roman_numerals_are_kept_as_written() -> None:
+    assert numeral_variants("VV") == ["VV"]
+
+
+def test_si_number_lists_are_bounded() -> None:
+    query = "S.I. 2001/1, " + ", ".join(f"2001/{i}" for i in range(2, 40))
+    assert len(GRAMMAR.numbers(query, fold(query))) == 25  # the first number and 24 more

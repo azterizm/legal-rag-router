@@ -10,6 +10,7 @@ import pytest
 
 from ingest.build_index import (
     BuildError,
+    acronym_keys,
     build_index,
     deletes,
     main,
@@ -24,7 +25,9 @@ from legal_rag_router.index import load_index
 SHA = "0" * 64
 
 
-def _instrument(coordinate: str, title: str, *, count: int) -> InstrumentRecord:
+def _instrument(
+    coordinate: str, title: str, *, count: int, other_titles: tuple[str, ...] = ()
+) -> InstrumentRecord:
     parts = coordinate.split("/")
     return InstrumentRecord(
         coordinate=coordinate,
@@ -40,6 +43,7 @@ def _instrument(coordinate: str, title: str, *, count: int) -> InstrumentRecord:
         repealed=False,
         structure="full" if count else "metadata_only",
         provision_count=count,
+        other_titles=other_titles,
         text_version="current",
         normative_tier=1,
         licence="OGL-3.0",
@@ -48,10 +52,15 @@ def _instrument(coordinate: str, title: str, *, count: int) -> InstrumentRecord:
     )
 
 
-def write_records(data: Path, instruments: dict[str, tuple[str, list[str]]]) -> None:
+def write_records(
+    data: Path,
+    instruments: dict[str, tuple[str, list[str]]],
+    other_titles: dict[str, tuple[str, ...]] | None = None,
+) -> None:
     """instruments: coordinate → (title, provision coordinates)."""
     for coordinate, (title, provisions) in instruments.items():
-        record = _instrument(coordinate, title, count=len(provisions))
+        others = (other_titles or {}).get(coordinate, ())
+        record = _instrument(coordinate, title, count=len(provisions), other_titles=others)
         path = (
             data
             / "uk"
@@ -282,3 +291,88 @@ def test_catalogue_entry_already_indexed_by_number_is_not_coverage(
     catalogue.write_text(alias.model_dump_json() + "\n")
     built = build_index(data, catalogue=catalogue, aliases_dir=write_aliases(tmp_path / "a", ""))
     assert "uk/uksi/1996/18" in built.coverage["instruments"]  # different number space: kept
+
+
+# ---------------------------------------------------------------- acronyms (decision 18)
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("Proceeds of Crime Act 2002", {"poca|2002", "pca|2002", "poc|2002"}),
+        ("Police and Criminal Evidence Act 1984", {"pacea|1984", "pace|1984", "pcea|1984"}),
+        ("Offences against the Person Act 1861", {"oapa|1861", "opa|1861"}),
+        ("Health and Safety at Work etc. Act 1974", {"hswa|1974", "hsw|1974"}),
+        ("Finance Act 2023", {"fa|2023"}),
+    ],
+)
+def test_acronym_keys(title: str, expected: set[str]) -> None:
+    assert expected <= set(acronym_keys(title))
+    assert all(not k.endswith("|") for k in acronym_keys(title))  # never without a year
+
+
+@pytest.mark.parametrize(
+    "title",
+    ["Finance (No. 2) Act 2023", "Entail Amendment Act", "Explosives Act 1875", "The X Order 2011"],
+)
+def test_no_acronym_for_numbered_yearless_single_word_or_non_act_titles(title: str) -> None:
+    keys = acronym_keys(title)
+    assert keys in ((), ("ea|1875",))  # a one-word Act keeps only "EA 1875"
+
+
+def test_acronyms_table_lists_every_act_it_could_mean(tmp_path: Path) -> None:
+    data = tmp_path / "data"
+    write_records(
+        data,
+        {
+            "uk/ukpga/2010/15": ("Equality Act 2010", []),
+            "uk/ukpga/2010/27": ("Energy Act 2010", []),
+            "uk/uksi/2010/1": ("The Energy Allowance Order 2010", []),
+        },
+    )
+    built = build_index(data, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", ""))
+    assert sorted(built.acronyms["ea|2010"]) == ["uk_ukpga_2010_15", "uk_ukpga_2010_27"]
+
+
+# ---------------------------------------------------------------- former titles (decision 17)
+
+
+def test_former_titles_are_checked_before_they_bind(tmp_path: Path) -> None:
+    data = tmp_path / "data"
+    catalogue = tmp_path / "catalogue.jsonl"
+    catalogue.write_text(
+        CatalogueEntry(
+            coordinate="uk/nia/2002/7", series="nia", year=2002, number=7,
+            title="Budget (No. 2) Act (Northern Ireland) 2002", source="t",
+        ).model_dump_json() + "\n"
+    )  # fmt: skip
+    write_records(
+        data,
+        {
+            "uk/ukpga/1981/54": ("Senior Courts Act 1981", []),
+            "uk/ukpga/2002/7": ("Homelessness Act 2002", []),
+            "uk/ukpga/1998/38": ("Government of Wales Act 1998", []),
+            "uk/ukpga/Geo5/15-16/18": ("Army Act 1925", []),
+            "uk/ukpga/2001/1": ("First Act 2001", []),
+            "uk/ukpga/2001/2": ("Second Act 2001", []),
+        },
+        {
+            "uk/ukpga/1981/54": (
+                "Supreme Court Act 1981",
+                "Supreme Court Act 1982",
+                "Senior Order 1981",
+            ),
+            "uk/ukpga/2002/7": ("Budget (No. 2) Act (Northern Ireland) 2002",),  # not "… Act"
+            "uk/ukpga/1998/38": ("Government of Wales Act 1998 (c. 38)",),  # its own title
+            "uk/ukpga/Geo5/15-16/18": ("Aliens' Employment Act 1925",),  # a session mix-up
+            "uk/ukpga/2001/1": ("Shared Act 2001", "Second Act 2001"),  # another Act's title
+            "uk/ukpga/2001/2": ("Shared Act 2001",),  # two Acts claim it: neither binds
+        },
+    )
+    built = build_index(data, catalogue=catalogue, aliases_dir=write_aliases(tmp_path / "a", ""))
+    formers = {k: v["f"] for k, v in built.instruments.items() if "f" in v}
+    assert formers == {"uk_ukpga_1981_54": ["Supreme Court Act 1981"]}
+    assert built.titles["supreme court act|1981"] == ["uk_ukpga_1981_54"]
+    assert "shared act|2001" not in built.titles
+    assert any("names another instrument" in w for w in built.warnings)
+    assert any("shares no words" in w for w in built.warnings)

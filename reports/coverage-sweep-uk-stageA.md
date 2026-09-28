@@ -4,12 +4,12 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 
 | Outcome | Count | Share |
 |---|---|---|
-| correct | 17145 | 85.72 % |
-| false_abstention | 1551 | 7.75 % |
-| ambiguous | 644 | 3.22 % |
-| out_of_coverage | 431 | 2.15 % |
-| miss | 225 | 1.12 % |
-| wrong_provision | 3 | 0.01 % |
+| correct | 17220 | 86.10 % |
+| false_abstention | 1508 | 7.54 % |
+| ambiguous | 614 | 3.07 % |
+| out_of_coverage | 433 | 2.17 % |
+| miss | 220 | 1.10 % |
+| wrong_provision | 4 | 0.02 % |
 | misroute | 1 | 0.01 % |
 
 ## Most frequent missed citation shapes
@@ -30,9 +30,7 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 | `N` | 3 |
 | `(a)` | 3 |
 | `paragraph Na` | 2 |
-| `schedule N` | 2 |
 | `section N` | 2 |
-| `ittoia N` | 2 |
 | `that sub-paragraph` | 2 |
 | `section Nza` | 2 |
 | `subsections (N)` | 2 |
@@ -42,7 +40,6 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 | `(Nb)` | 1 |
 | `sections N` | 1 |
 | `that section` | 1 |
-| `itepa N` | 1 |
 | `(i)` | 1 |
 | `section Nc` | 1 |
 | `subsections (N) to (N)` | 1 |
@@ -56,6 +53,9 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 | `paragraph Nzl` | 1 |
 | `(ba)` | 1 |
 | `subsection (Na)` | 1 |
+| `schedule N` | 1 |
+| `N (s.i. no. N)` | 1 |
+| `(ii)` | 1 |
 
 ## Examples: misroute
 
@@ -67,6 +67,7 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 
 | Citation | Query (source text) | Target |
 |---|---|---|
+| `Part 7` | Part 7 of FA 2004 (disclosure of tax avoidance schemes) | `uk/ukpga/2004/12/pt7` |
 | `Part 4` | Schedule 2 amends Chapter 3 of Part 4 of the Anti-social Behaviour, Crime and Policing Act 2014 so as to enable registered social housing providers to close | `uk/ukpga/2014/12/pt4` |
 | `Part 7` | or under Chapter 6 of Part 7 of the Online Safety Act 2023 in relation to enforceable requirements, including provisions conferring power to impose | `uk/ukpga/2023/50/pt7` |
 | `Part 3` | “street works permit” means a permit granted pursuant to a permit scheme prepared under Part 3 of the Traffic Management Act 2004 | `uk/ukpga/2004/18/pt3` |
@@ -102,7 +103,6 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 | `2004/2523` | 2004/2523 | `uk/uksi/2004/2523` |
 | `subsection (2)` | in subsection (2)(a), omit “, with the consent of the Secretary of State” | `uk/ukpga/2006/40/s7A` |
 | `(2B)` | for subsections (2A) and (2B) substitute— | `uk/ukpga/1983/20/s1` |
-| `Schedule 41` | In paragraph 1 of Schedule 41 to FA 2008 (penalties for failure to notify etc), in the table after the entry for tobacco products duty insert— | `uk/ukpga/2008/9/sch41` |
 | `2005/2896 (C. 122)` | 2005/2896 (C. 122) | `uk/uksi/2005/2896` |
 | `1994 (c. 5)` | 1994 (c. 5) | `uk/ukpga/1994/5` |
 | `2000/2156` | 2000/2156 | `uk/uksi/2000/2156` |
@@ -110,6 +110,7 @@ Index: `Stage A partial UK index (snapshot 2026-09-27, 33,788 scraped files; sam
 | `section 71` | In section 71(2)(a)(i) (duty not to take down content except in accordance with terms of service: exceptions) for “or (3)” | `uk/ukpga/2023/50/s71` |
 | `sections 445` | In sections 445(1), 446 and 447(1) and (2)(a), for “443” substitute “436Q”. | `uk/ukpga/1996/56/s445` |
 | `(b)` | omit paragraphs (a) and (b) | `uk/ukpga/1992/52/s193` |
+| `paragraph (a)` | in the words before paragraph (a), for “relevant probation body” substitute “provider of probation services” | `uk/ukpga/2004/28/s44` |
 
 ## Examples: ambiguous
 

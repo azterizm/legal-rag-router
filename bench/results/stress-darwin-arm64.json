@@ -1,87 +1,87 @@
 {
   "classes": {
     "citation_soup": {
-      "max_ms": 2.0295,
-      "p50_ms": 1.979333,
-      "p99_ms": 2.0295
+      "max_ms": 2.257667,
+      "p50_ms": 2.189583,
+      "p99_ms": 2.257667
     },
     "dense_punctuation": {
-      "max_ms": 2.709084,
-      "p50_ms": 2.669292,
-      "p99_ms": 2.709084
+      "max_ms": 2.974375,
+      "p50_ms": 2.897833,
+      "p99_ms": 2.974375
     },
     "digits_and_years": {
-      "max_ms": 6.228792,
-      "p50_ms": 5.996292,
-      "p99_ms": 6.228792
+      "max_ms": 7.294625,
+      "p50_ms": 7.029375,
+      "p99_ms": 7.294625
     },
     "identifier_soup": {
-      "max_ms": 2.398625,
-      "p50_ms": 2.387875,
-      "p99_ms": 2.398625
+      "max_ms": 2.637292,
+      "p50_ms": 2.618375,
+      "p99_ms": 2.637292
     },
     "letters_digits": {
-      "max_ms": 1.988208,
-      "p50_ms": 1.522625,
-      "p99_ms": 1.988208
+      "max_ms": 2.371291,
+      "p50_ms": 1.6805,
+      "p99_ms": 2.371291
     },
     "no_spaces": {
-      "max_ms": 0.061125,
-      "p50_ms": 0.055417,
-      "p99_ms": 0.061125
+      "max_ms": 0.059,
+      "p50_ms": 0.056583,
+      "p99_ms": 0.059
     },
     "printable": {
-      "max_ms": 4.709375,
-      "p50_ms": 3.255833,
-      "p99_ms": 4.709375
+      "max_ms": 4.698708,
+      "p50_ms": 3.430708,
+      "p99_ms": 4.698708
     },
     "provision_soup": {
-      "max_ms": 2.0265,
-      "p50_ms": 2.007834,
-      "p99_ms": 2.0265
+      "max_ms": 2.28475,
+      "p50_ms": 2.269125,
+      "p99_ms": 2.28475
     },
     "title_vocabulary": {
-      "max_ms": 7.219917,
-      "p50_ms": 4.740333,
-      "p99_ms": 7.219917
+      "max_ms": 9.493583,
+      "p50_ms": 8.122083,
+      "p99_ms": 9.493583
     },
     "type_words_and_years": {
-      "max_ms": 3.682417,
-      "p50_ms": 3.404458,
-      "p99_ms": 3.682417
+      "max_ms": 4.608625,
+      "p50_ms": 4.516,
+      "p99_ms": 4.608625
     },
     "unicode_expanding": {
-      "max_ms": 6.429583,
-      "p50_ms": 4.901916,
-      "p99_ms": 6.429583
+      "max_ms": 6.989041,
+      "p50_ms": 5.185583,
+      "p99_ms": 6.989041
     },
     "unicode_mix": {
-      "max_ms": 4.99375,
-      "p50_ms": 4.28125,
-      "p99_ms": 4.99375
+      "max_ms": 5.328583,
+      "p50_ms": 4.570625,
+      "p99_ms": 5.328583
     },
     "whitespace_heavy": {
-      "max_ms": 2.054,
-      "p50_ms": 2.023959,
-      "p99_ms": 2.054
+      "max_ms": 2.343375,
+      "p50_ms": 2.307042,
+      "p99_ms": 2.343375
     }
   },
   "doubling_ratio": {
-    "citation_soup": 1.8569583088667059,
-    "dense_punctuation": 2.0056059621473725,
-    "digits_and_years": 1.549276723996724,
-    "identifier_soup": 2.0318808899210983,
-    "letters_digits": 2.272755377324098,
-    "no_spaces": 1.9339831790829434,
-    "printable": 2.1479866112181765,
-    "provision_soup": 1.89088072795763,
-    "title_vocabulary": 1.1954472493798336,
-    "type_words_and_years": 1.22766684908031,
-    "unicode_expanding": 2.0648725007407127,
-    "unicode_mix": 2.1855189984625523,
-    "whitespace_heavy": 2.0062380416741106
+    "citation_soup": 1.8567104397430594,
+    "dense_punctuation": 1.9936470387146399,
+    "digits_and_years": 1.4591371582236268,
+    "identifier_soup": 2.016133669997784,
+    "letters_digits": 2.446724675751108,
+    "no_spaces": 1.906318082788671,
+    "printable": 2.0052259855226904,
+    "provision_soup": 1.8880328508366697,
+    "title_vocabulary": 1.296642562635262,
+    "type_words_and_years": 1.1852906553323102,
+    "unicode_expanding": 2.122530074574057,
+    "unicode_mix": 2.1850172857345425,
+    "whitespace_heavy": 2.0146273756139226
   },
-  "floor_ms": 7.219917,
+  "floor_ms": 9.493583,
   "index": "tests/fixtures/index",
   "machine": "arm64",
   "platform": "macOS-26.6.2-arm64-arm-64bit",

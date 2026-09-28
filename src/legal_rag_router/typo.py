@@ -165,9 +165,7 @@ def suggestions(
     for iid, count in shared.items():
         if count / len(content) < policy.suggestion_min_shared:
             continue
-        info = index.instrument(iid)
-        if info is None:
-            continue
+        info = index.info(iid)
         year_gap = abs(info.year - year) if year is not None else 0
         scored.append((-count, year_gap, damerau(cited, info.title.casefold(), 30), iid))
     return tuple(iid for *_, iid in sorted(scored)[: policy.max_suggestions])
@@ -188,8 +186,7 @@ def analyse_title(
 
     reordered = _wordset_id(index, words, year)
     if reordered is not None:
-        info = index.instrument(reordered)
-        title = info.title if info is not None else reordered
+        title = index.info(reordered).title
         return TitleVerdict("bound", (reordered,), (("reordered", title),), reason="reordered")
 
     if year is not None:
@@ -213,8 +210,7 @@ def analyse_title(
 
 
 def _year_of(index: RouterIndex, instrument_id: str) -> int:
-    info = index.instrument(instrument_id)
-    return info.year if info is not None else 0
+    return index.info(instrument_id).year
 
 
 def _typo_verdict(
@@ -243,9 +239,8 @@ def _typo_verdict(
         ids = _title_ids(index, corrected, year) or tuple(
             filter(None, [_wordset_id(index, corrected, year)])
         )
-        for iid in ids:
-            if iid not in hits or distance < hits[iid][0]:
-                hits[iid] = (distance, corrections)
+        for iid in ids:  # keep each instrument's nearest correction
+            hits[iid] = min(hits.get(iid, (distance, corrections)), (distance, corrections))
     if not hits:
         return None
     ranked = sorted(hits, key=lambda i: hits[i][0])

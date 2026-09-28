@@ -1,6 +1,6 @@
 1982	uk_uksi_1990_2145
 2	uk_ukpga_1996_60
-act	uk_ukpga_1968_60,uk_ukpga_1974_37,uk_ukpga_1986_45,uk_ukpga_1988_40,uk_ukpga_1990_38,uk_ukpga_1992_52,uk_ukpga_1996_18,uk_ukpga_1996_23,uk_ukpga_1996_4,uk_ukpga_1996_59,uk_ukpga_1996_60,uk_ukpga_1998_42,uk_ukpga_2010_15,uk_ukpga_2015_15,uk_ukpga_2018_12,uk_ukpga_2024_3,uk_ukpga_2025_36,uk_ukpga_2025_8,uk_ukpga_Geo3_41_63,uk_ukpga_Geo5_15-16_20,uk_ukpga_Geo6_12-13-14_1,uk_ukpga_Vict_24-25_100,uk_ukpga_Vict_53-54_39,uk_ukpga_Vict_60-61_6,uk_ukpga_Vict_60-61_7,uk_uksi_1990_2145
+act	uk_ukpga_1968_60,uk_ukpga_1974_37,uk_ukpga_1986_45,uk_ukpga_1988_40,uk_ukpga_1990_38,uk_ukpga_1992_52,uk_ukpga_1996_17,uk_ukpga_1996_18,uk_ukpga_1996_23,uk_ukpga_1996_4,uk_ukpga_1996_59,uk_ukpga_1996_60,uk_ukpga_1998_42,uk_ukpga_2010_15,uk_ukpga_2015_15,uk_ukpga_2018_12,uk_ukpga_2024_3,uk_ukpga_2025_36,uk_ukpga_2025_8,uk_ukpga_Geo3_41_63,uk_ukpga_Geo5_15-16_20,uk_ukpga_Geo6_12-13-14_1,uk_ukpga_Vict_24-25_100,uk_ukpga_Vict_53-54_39,uk_ukpga_Vict_60-61_6,uk_ukpga_Vict_60-61_7,uk_uksi_1990_2145
 against	uk_ukpga_Vict_24-25_100
 air	uk_uksi_2013_76
 ambulance	uk_wsi_2013_2729
@@ -21,7 +21,7 @@ data	uk_ukpga_2018_12
 deaths	uk_uksi_1987_50
 disqualification	uk_ukpga_Geo3_41_63
 education	uk_ukpga_1988_40,uk_uksi_1981_292
-employment	uk_ukpga_1990_38,uk_ukpga_1996_18,uk_ukpga_2025_36,uk_uksi_2010_2926
+employment	uk_ukpga_1990_38,uk_ukpga_1996_17,uk_ukpga_1996_18,uk_ukpga_2025_36,uk_uksi_2010_2926
 equality	uk_ukpga_2010_15
 establishment	uk_wsi_2013_2729
 etc	uk_ukpga_1974_37
@@ -33,6 +33,7 @@ health	uk_ukpga_1974_37,uk_wsi_2013_2729
 house	uk_ukpga_Geo3_41_63
 human	uk_ukpga_1998_42
 increase	uk_uksi_2010_2926
+industrial	uk_ukpga_1996_17
 insolvency	uk_ukpga_1986_45
 jersey	uk_uksi_1990_2145
 labour	uk_ukpga_1992_52
@@ -69,6 +70,7 @@ sugar	uk_uksi_1981_292
 sywell	uk_uksi_2013_76
 theft	uk_ukpga_1968_60
 trade	uk_ukpga_1992_52
+tribunals	uk_ukpga_1996_17
 trust	uk_wsi_2013_2729
 union	uk_ukpga_1992_52
 welsh	uk_wsi_2013_2729

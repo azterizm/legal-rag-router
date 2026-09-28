@@ -28,7 +28,7 @@ salient = true
 
 [[alias]]
 target = "uk/ukpga/2010/15"
-forms = ["EqA 2010", "EqA"]
+forms = ["EqA 2010", "EqA", "EA 2010"]
 salient = true
 
 [[alias]]

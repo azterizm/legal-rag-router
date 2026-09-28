@@ -23,6 +23,7 @@ import argparse
 import hashlib
 import json
 import logging
+import re
 import sys
 import time
 import tomllib
@@ -38,10 +39,10 @@ from legal_rag_router import __version__
 from legal_rag_router.coordinate import Coordinate
 from legal_rag_router.grammars.uk import INSTRUMENT_TYPE_WORDS, number_keys
 from legal_rag_router.index import FORMAT_VERSION, INDEX_FILES, MANIFEST_NAME
-from legal_rag_router.normalise import split_title_year, title_key, title_words
+from legal_rag_router.normalise import PARTICLES, fold, split_title_year, title_key, title_words
 from legal_rag_router.table import encode_table
 
-__all__ = ["BuildError", "IndexBuild", "build_index", "main", "title_variants"]
+__all__ = ["BuildError", "IndexBuild", "acronym_keys", "build_index", "main", "title_variants"]
 
 log = logging.getLogger("ingest.build_index")
 
@@ -73,6 +74,36 @@ def title_variants(title: str) -> tuple[str, ...]:
     if core != words and core and not all(w.isdigit() for w in core):
         keys += [title_key(core, year), title_key(core)]
     return tuple(dict.fromkeys(k for k in keys if k))
+
+
+_SKIPPED: Final = "the of and a an at for to in on with etc from by against into under upon or"
+ACRONYM_SKIP: Final = frozenset(_SKIPPED.split())
+_ACRONYM_WORD: Final = re.compile(r"[^\W\d_]+|\d+")
+
+
+def acronym_keys(title: str) -> tuple[str, ...]:
+    """Generated acronyms of an Act title (roadmap decision 18).
+
+    Initials with every particle kept (POCA, PACE), with only "the/of/and/a/an" skipped
+    (OAPA, TCGA), and with all particles skipped (HSWA, ITEPA). Keys are
+    ``form|year`` for forms of two letters or more, and the same without the "Act" initial
+    when three letters remain (PACE, LASPO). Every generated form needs its year: bare
+    acronyms collide with regulators (FCA, CMA) and come only from the curated aliases.
+    Numbered titles ("Finance (No. 2) Act") get none, so "FA 2023" means the Finance Act.
+    """
+    text, year = split_title_year(title)
+    words = _ACRONYM_WORD.findall(fold(text).text.replace("&", " and ").replace("'", ""))
+    if year is None or len(words) < 2 or words[-1] != "act" or any(w.isdigit() for w in words):  # noqa: PLR2004
+        return ()
+    keys: set[str] = set()
+    articles = [w for w in words if w not in PARTICLES]  # OAPA: "against" kept, "the" not
+    for chosen in (words, articles, [w for w in words if w not in ACRONYM_SKIP]):
+        full = "".join(w[0] for w in chosen)
+        if len(full) >= 2:  # noqa: PLR2004
+            keys.add(f"{full}|{year}")
+        if len(full) >= 4:  # noqa: PLR2004 - without the Act initial: PACE, LASPO
+            keys.add(f"{full[:-1]}|{year}")
+    return tuple(sorted(keys))
 
 
 def wordset_key(title: str) -> str | None:
@@ -154,8 +185,11 @@ class IndexBuild:
     words: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     typo: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     coverage: dict[str, Any] = field(default_factory=dict)
+    acronyms: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     case_variants: dict[str, list[str]] = field(default_factory=dict)
     freshness: dict[str, dict[str, int]] = field(default_factory=dict)
+    former_titles: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    """Instrument id → other titles from the source, before the decision 17 checks."""
     warnings: list[str] = field(default_factory=list)
     dropped_aliases: list[str] = field(default_factory=list)
 
@@ -210,6 +244,11 @@ def _add_instrument(
     for word in words:
         out.words[word].append(iid)
     vocabulary |= words
+    if record.authority_type == "PRIMARY_ACT":
+        for key in acronym_keys(record.title):
+            out.acronyms[key].append(iid)
+        if record.other_titles:
+            out.former_titles[iid] = record.other_titles
     if coordinate.instrument[1].isdigit():  # calendar-numbered: freshness per year
         series = out.freshness.setdefault(coordinate.series, {})
         year = coordinate.instrument[1]
@@ -249,6 +288,72 @@ def _add_coverage(out: IndexBuild, catalogue: Path | None, vocabulary: set[str])
     }
 
 
+_CHAPTER_SUFFIX: Final = re.compile(r"\s*\(c\.?\s*\d+\)\s*$", re.IGNORECASE)
+
+
+def _former_title_key(out: IndexBuild, iid: str, other: str) -> str | None:
+    """The full title key under which ``other`` may name instrument ``iid``, or ``None``.
+
+    The source's effect titles include mapping errors (another Act's title), so a former
+    title is kept only if it names the Act's own year, ends in "Act", and is not the
+    current title of any other indexed or catalogued instrument. Regnal Acts also need
+    half their content words shared: the source confuses sessions that share a calendar
+    year and chapter (Army Act 1955, 3 & 4 Eliz. 2 c. 18, listed as the Aliens'
+    Employment Act 1955, 4 & 5 Eliz. 2 c. 18).
+    """
+    info = out.instruments[iid]
+    text, year = split_title_year(_CHAPTER_SUFFIX.sub("", other))
+    cited = title_words(text)
+    if year != info["y"] or not cited or cited[-1] != "act":
+        return None
+    regnal = not Coordinate.parse(info["c"]).instrument[1].isdigit()
+    if regnal and not _shares_words(cited, info["t"]):
+        out.warnings.append(f"former title {other!r} of {iid} shares no words with it")
+        return None
+    full = title_key(cited, year)
+    owners = {*out.titles.get(full, ()), *out.coverage.get("titles", {}).get(full, ())}
+    if owners - {iid}:
+        out.warnings.append(f"former title {other!r} of {iid} names another instrument")
+        return None
+    return None if owners else full  # owners == {iid}: its own title written differently
+
+
+def _add_former_titles(out: IndexBuild, vocabulary: set[str]) -> None:
+    """Index an Act's former titles as titles of that Act (roadmap decision 17)."""
+    claims: dict[str, set[str]] = defaultdict(set)
+    accepted: list[tuple[str, str, str]] = []
+    for iid, others in sorted(out.former_titles.items()):
+        for other in others:
+            key = _former_title_key(out, iid, other)
+            if key is not None:
+                claims[key].add(iid)
+                accepted.append((iid, other, key))
+    kept: dict[str, list[str]] = defaultdict(list)
+    for iid, other, key in accepted:
+        if len(claims[key]) > 1:
+            continue  # two Acts claim one former title: neither may bind by it
+        kept[iid].append(other)
+        text, year = split_title_year(_CHAPTER_SUFFIX.sub("", other))
+        for variant in title_variants(f"{text} {year}"):
+            if iid not in out.titles[variant]:
+                out.titles[variant].append(iid)
+        new_words = set(title_words(text))
+        for word in new_words:
+            if iid not in out.words[word]:
+                out.words[word].append(iid)
+        vocabulary |= new_words
+    for iid, titles in kept.items():
+        out.instruments[iid]["f"] = sorted(titles)
+    log.info("former titles: %d Acts", len(kept))
+
+
+def _shares_words(cited: Sequence[str], title: str) -> bool:
+    """At least half the content words of the shorter title appear in the other."""
+    a = {w for w in cited if w not in INSTRUMENT_TYPE_WORDS}
+    b = {w for w in title_words(split_title_year(title)[0]) if w not in INSTRUMENT_TYPE_WORDS}
+    return bool(a and b) and 2 * len(a & b) >= min(len(a), len(b))
+
+
 def build_index(
     data_dir: Path,
     *,
@@ -268,6 +373,7 @@ def build_index(
     out.case_variants = _case_variants(out.coordinates)
     out.wordsets = {k: next(iter(v)) for k, v in wordset_ids.items() if len(v) == 1}
     _add_coverage(out, catalogue, vocabulary)
+    _add_former_titles(out, vocabulary)
     _build_aliases(out, read_aliases(aliases_dir), allow_missing=allow_missing_alias_targets)
     vocabulary |= {w for key in out.aliases for w in key.split()}
     for word in sorted(w for w in vocabulary if len(w) >= TYPO_MIN_WORD and w.isalpha()):
@@ -359,6 +465,7 @@ def serialise(build: IndexBuild) -> dict[str, bytes]:
         ),
         "coverage_titles": ((k, _joined(v)) for k, v in build.coverage.get("titles", {}).items()),
         "coverage_numbers": ((k, _joined(v)) for k, v in build.coverage.get("numbers", {}).items()),
+        "acronyms": ((k, _joined(v)) for k, v in build.acronyms.items()),
     }
     files: dict[str, bytes] = {}
     for name, rows in tables.items():

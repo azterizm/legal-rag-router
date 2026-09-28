@@ -51,6 +51,7 @@ from legal_rag_router.grammars.uk import (
     legislation_path,
     provision_from_legislation_tokens,
 )
+from legal_rag_router.normalise import title_words
 
 __all__ = [
     "IngestError",
@@ -58,6 +59,7 @@ __all__ = [
     "clean_title",
     "coordinate_from_uri",
     "main",
+    "other_titles",
     "parse_clml",
 ]
 
@@ -203,6 +205,26 @@ def clean_title(published: str) -> tuple[str, bool]:
     """
     title = _REPEAL_SUFFIX.sub("", published).strip()
     return (title or published.strip()), _REPEAL_SUFFIX.search(published) is not None
+
+
+def other_titles(metadata: Element, instrument: Coordinate, title: str) -> tuple[str, ...]:
+    """Titles the effects list gives this instrument besides its own (decision 17).
+
+    Each ``ukm:UnappliedEffect`` / ``ukm:Effect`` names the affected instrument by every
+    title it has had ("Senior Courts Act 1981", "Supreme Court Act 1981"). Only effects on
+    this instrument count; the result is sorted and excludes the current title.
+    """
+    own = title_words(title)
+    found: set[str] = set()
+    for tag in ("UnappliedEffect", "Effect"):
+        for effect in metadata.iter(f"{UKM}{tag}"):
+            if coordinate_from_uri(effect.get("AffectedURI")) != instrument:
+                continue
+            for node in effect.findall(f"{UKM}AffectedTitle"):
+                text = _text_of(node)
+                if text and title_words(clean_title(text)[0]) != own:
+                    found.add(clean_title(text)[0])
+    return tuple(sorted(found))
 
 
 def _date(value: str | None) -> date | None:
@@ -586,6 +608,7 @@ def parse_clml(data: bytes, *, source_sha256: str | None = None) -> ParsedInstru
         alternative_versions=parser.alternative_versions,
         duplicated_provisions=tuple(parser.duplicated),
         groups={k: tuple(v) for k, v in sorted(parser.groups.items())},
+        other_titles=other_titles(metadata, instrument, title),
         text_version="current" if cls_value("DocumentStatus") == "revised" else "as_enacted",
         version_date=_date(_text_of(metadata.find(f"{DCT}valid"))),
         normative_tier=1 if primary else 2,

@@ -67,3 +67,14 @@ def test_bound_without_coordinates_is_refused() -> None:
         partition_filter(
             RouteResult(status=RouteStatus.BOUNDED, next_action=NextAction.RETRIEVE_BOUNDED)
         )
+
+
+def test_values_outside_the_safe_alphabet_are_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The coordinate grammar keeps this unreachable today; the check guards future grammars.
+    import re  # noqa: PLC0415
+
+    from legal_rag_router import filters  # noqa: PLC0415
+
+    monkeypatch.setattr(filters, "_SAFE", re.compile(r"[a-z]+"))
+    with pytest.raises(FilterError, match="safe alphabet"):
+        partition_filter(bound("uk/ukpga/1996/18/s124"))

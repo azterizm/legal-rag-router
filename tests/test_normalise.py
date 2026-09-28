@@ -2,6 +2,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from legal_rag_router.normalise import (
+    Folded,
     fold,
     split_title_year,
     title_key,
@@ -91,3 +92,11 @@ def test_router_span_words_match_title_words(text: str) -> None:
     for start in range(len(tokens)):
         span = text[tokens[start].start : tokens[-1].end]
         assert scan.words(start, len(tokens) - 1) == title_words(span), (text, start)
+
+
+def test_empty_spans_map_back_to_the_original() -> None:
+    folded = fold("\ufb01nance 42")  # the "fi" ligature folds to two letters: a map is kept
+    assert folded.origin is not None
+    assert folded.span(3, 3) == (2, 2)
+    assert folded.span(len(folded.text), len(folded.text)) == (9, 9)
+    assert Folded("", ()).span(0, 0) == (0, 0)

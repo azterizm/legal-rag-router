@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -183,3 +184,24 @@ def test_coverage(fixture_index: RouterIndex) -> None:
 def test_typo_table(fixture_index: RouterIndex) -> None:
     # "rihgts" and "rights" share the delete variant "rigts"
     assert "rights" in fixture_index.ids("typo", "rigts")
+
+
+def test_aliases_that_are_not_json_refuse_to_load(index_copy: Path) -> None:
+    path = index_copy / "aliases.json"
+    path.write_text("{not json", encoding="utf-8")
+    manifest_path = index_copy / "index-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["files"]["aliases.json"]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(IndexLoadError, match="not valid JSON"):
+        load_index(index_copy)
+
+
+def test_info_raises_on_an_inconsistent_index(fixture_index: RouterIndex) -> None:
+    assert fixture_index.info("uk_ukpga_1996_18").title == "Employment Rights Act 1996"
+    with pytest.raises(IndexLoadError, match="inconsistent"):
+        fixture_index.info("uk_ukpga_1996_999")
+
+
+def test_coordinate_index_length(fixture_index: RouterIndex) -> None:
+    assert len(fixture_index.coordinates) > 60_000
