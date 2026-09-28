@@ -271,6 +271,15 @@ def test_cli(tmp_path: Path, data: Path) -> None:
     assert main([*args[:-1], str(bad)]) == 1
 
 
+def test_a_uk_calendar_id_must_carry_the_instruments_year(tmp_path: Path) -> None:
+    root = tmp_path / "data"
+    record = _instrument("uk/uksi/2002/253", "The Nursing and Midwifery Order 2001", count=0)
+    path = root / "uk" / "uksi" / "2002" / f"{record.instrument_id}.jsonl"
+    write_instrument_file(path, record.model_copy(update={"year": 2001}), [])
+    with pytest.raises(BuildError, match="year 2001 differs"):
+        build_index(root, catalogue=None, aliases_dir=write_aliases(tmp_path / "a", ""))
+
+
 def test_regnal_act_is_also_keyed_by_calendar_chapter(tmp_path: Path) -> None:
     root = tmp_path / "data"
     write_records(
@@ -292,6 +301,42 @@ def test_catalogue_entry_already_indexed_by_number_is_not_coverage(
     catalogue.write_text(alias.model_dump_json() + "\n")
     built = build_index(data, catalogue=catalogue, aliases_dir=write_aliases(tmp_path / "a", ""))
     assert "uk/uksi/1996/18" in built.coverage["instruments"]  # different number space: kept
+
+
+def test_only_an_si_number_marks_a_catalogue_entry_as_already_indexed(tmp_path: Path) -> None:
+    root = tmp_path / "data"
+    write_records(
+        root,
+        {
+            "uk/ukpga/Edw7/1/1": ("Consolidated Fund (No. 1) Act 1901", []),
+            "uk/ukpga/Geo3/41/1": ("An Act to suspend … Fine Flour", []),
+            "uk/uksi/2026/10": ("The Heat Networks Regulations 2026", []),
+            "uk/wsi/2013/2729": ("The Welsh Regulations 2013", []),
+        },
+    )
+    catalogue = tmp_path / "cat.jsonl"
+    entries = [  # (coordinate, year): each names a different instrument, except the last
+        ("uk/ukla/Edw7/1/1", 1901),  # local Act, 1 Edw. 7 c. i
+        ("uk/apgb/Geo3/41/1", 1800),  # Great Britain Act, 41 Geo. 3 c. 1
+        ("uk/wsi/2026/10", 2026),  # Welsh SI with its own number
+        ("uk/uksi/2013/2729", 2013),  # the same SI as wsi/2013/2729
+    ]
+    catalogue.write_text(
+        "".join(
+            CatalogueEntry(
+                coordinate=c, series=c.split("/")[1], year=y, number=1, title=c, source="t"
+            ).model_dump_json()
+            + "\n"
+            for c, y in entries
+        )
+    )
+    built = build_index(root, catalogue=catalogue, aliases_dir=write_aliases(tmp_path / "a", ""))
+    assert sorted(built.coverage["instruments"]) == [
+        "uk/apgb/Geo3/41/1",
+        "uk/ukla/Edw7/1/1",
+        "uk/wsi/2026/10",
+    ]
+    assert built.coverage["numbers"] == {"rc/geo3/41/1": ["uk/apgb/Geo3/41/1"]}
 
 
 # ---------------------------------------------------------------- acronyms (decision 18)

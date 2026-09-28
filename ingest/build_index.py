@@ -219,6 +219,10 @@ def _add_instrument(
     if iid in out.instruments:
         raise BuildError(f"instrument {iid} appears in two record files")
     coordinate = Coordinate.parse(record.coordinate)
+    year = coordinate.instrument[1]
+    if coordinate.jurisdiction == "uk" and year.isdigit() and int(year) != record.year:
+        # The router reads a UK calendar instrument's year from its id (typo._year_of).
+        raise BuildError(f"instrument {iid}: year {record.year} differs from its coordinate")
     out.coordinates.extend(item.coordinates)
     out.instruments[iid] = {
         "c": record.coordinate,
@@ -266,8 +270,10 @@ def _add_coverage(out: IndexBuild, catalogue: Path | None, vocabulary: set[str])
         if entry.coordinate in indexed or entry.coordinate in instruments:
             continue
         keys = number_keys(Coordinate.parse(entry.coordinate).instrument)
-        if any(k in out.numbers for k in keys):
-            continue  # e.g. uksi/2013/2729 is indexed under its canonical wsi coordinate
+        if any(k.startswith("si/") and k in out.numbers for k in keys):
+            # An SI number names one instrument: uksi/2013/2729 is indexed as wsi/2013/2729.
+            # A chapter does not: 41 Geo. 3 c. 1 is both a Great Britain and a UK Act.
+            continue
         instruments[entry.coordinate] = {
             "c": entry.coordinate,
             "t": entry.title,

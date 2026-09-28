@@ -130,7 +130,7 @@ All of legislation.gov.uk's `ukpga` and `uksi` as downloaded on 28 Sept: 133,798
 | Instruments / with structure / PDF-only | 33,788 / 10,720 / 23,068 | **133,798 / 69,902 / 63,896** | |
 | Provisions / harvested citations | 2.0M / 2.4M | **5.56M / 4.51M** | |
 | Index build (`ingest.build_index`) | 17.8 s | **132 s**, peak RSS 4.2 GB | |
-| Coordinates / title keys / catalogue (out of coverage) | 2.0M / — / — | **5.70M / 420,776 / 34,912** | |
+| Coordinates / title keys / catalogue (out of coverage) | 2.0M / — / — | **5.70M / 420,776 / 34,912**; after the U2 re-fetch and your full catalogue: 134,219 instruments, 421,472 title keys, **103,008** out of coverage | |
 | Index size on disk | 121 MB | **320 MB** | |
 | **Load time** (incl. SHA-256 of every file) | 132 ms | **120–134 ms** | < 450 ms ✓ |
 | **Resident memory after load + lookups** | 29 MB | **35 MB** | |
@@ -139,7 +139,7 @@ Load time did not grow with the index: hashing is fast and nothing is parsed up 
 
 ### Real-query latency (plan step 7: p99 < 2 ms)
 
-Measured over the 20,000 replayed source citations of the sweep sample (real drafting, mean 70 characters, up to about 300). Each query is timed as its fastest of 3 warm runs.
+First measured over 20,000 replayed source citations of the sweep sample (superseded below by the 100,000-query measurement) (real drafting, mean 70 characters, up to about 300). Each query is timed as its fastest of 3 warm runs.
 
 | p50 | p90 | **p99** | p99.9 | max |
 |---|---|---|---|---|
@@ -153,15 +153,26 @@ On the full index the first measurement was **p99 3.83 ms, max 366 ms**. Three c
 
 The margin under 2 ms is thin. The remaining tail is still suggestions for refused titles whose words are common (thousands of candidates share "regulations", "amendment"…). M10's `bench/latency.py` publishes the sealed figure.
 
+**Re-measured on 100,000 queries (28 Sept, after the U2 re-fetch).** The table above came from one 20,000-query draw, and that draw was easier than average. On the refreshed sweep sample (new seeded draw, because the re-fetch added citations to the harvest), five 20,000-query slices gave p99 2.13–2.43 ms, and all 100,000 gave **2.25 ms**. That misses the target. The old draw still gives 1.86 ms on the same index. Neither the 421 re-fetched Acts nor the larger catalogue caused it: indexes built without either give the same 2.17–2.18 ms on the same queries.
+
+The tail was again refusal suggestions. Grouping candidates by year gap read and parsed every candidate instrument (about 520 per refused title) just for its year. A UK calendar id carries its year (`uk_uksi_2011_3006`), and the build now fails if a record's year disagrees with its id, so the ranking reads records only for regnal Acts and for the titles it compares. The ranking is unchanged: it was checked against the old one on all 450 ranking calls in 20,000 queries, with and without a year.
+
+| Sample | p50 | p90 | **p99** | p99.9 | max |
+|---|---|---|---|---|---|
+| 100,000 replays, before | 0.13 ms | 0.29 ms | 2.25 ms ✗ | 7.04 ms | 30.5 ms |
+| **100,000 replays, after** | 0.13 ms | 0.29 ms | **1.88 ms** ✓ | 5.29 ms | 30.6 ms |
+
+After the change the five slices give p99 1.81–1.91 ms. The margin is still thin, and M10's `bench/latency.py` should publish p99 over the full 100,000, not over one slice. The 30.6 ms maximum is a single query: a refused title whose words are shared by 1,289 pension regulations of the same year, each compared by edit distance.
+
 ### 4 KB noise (decision 16)
 
 | Index | Floor (worst class, worst sample) | Worst class |
 |---|---|---|
-| Fixture (the test guard: 2× this) | **9.14 ms** (was 9.49) | `unicode_expanding` |
-| **Full UK** | **9.31 ms** (17.47 ms before Q-B-3) | `unicode_expanding` |
+| Fixture (the test guard: 2× this) | **9.06 ms** (was 9.49) | `unicode_expanding` |
+| **Full UK** | **9.21 ms** (17.47 ms before Q-B-3) | `unicode_expanding` |
 
-Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a soup of title words made up to 16 unknown-title checks, each ranking suggestions over the full vocabulary. Since Q-B-3 (roadmap decision 21) each check costs 32 lookups against the 320-lookup work limit (grammar.md UK-W-03). At most 10 run per query, and that class now takes 8.6 ms at worst.
+Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a soup of title words made up to 16 unknown-title checks, each ranking suggestions over the full vocabulary. Since Q-B-3 (roadmap decision 21) each check costs 32 lookups against the 320-lookup work limit (grammar.md UK-W-03). At most 10 run per query, and that class now takes 8.6 ms at worst. The figures above are from after the U2 re-fetch and the year-from-id change (fixture 9.14 → 9.06 ms, rebuilt from your catalogue; full 9.31 → 9.21 ms).
 
-**Real queries are unaffected.** Across the 100,000-citation sweep sample, no query needs more than 5 checks, and a charge of 32 moves none over the limit. The 154 over it were already over on plain lookups. The sweep's outcome counts are unchanged apart from decision 20, and p99 stays at 1.88 ms.
+**Real queries are unaffected.** Across the 100,000-citation sweep sample, no query needs more than 5 checks, and a charge of 32 moves none over the limit. The 154 over it were already over on plain lookups. The sweep's outcome counts are unchanged apart from decision 20, and p99 on that 20,000-query draw stays at 1.88 ms.
 
 `letters_digits` shows a 2.7× doubling ratio on both indexes. That is not superlinear cost: the bench's fixed 4 KB sample contains a bare provision that its 2 KB prefix doesn't, and resolving it over the salient instruments adds about 0.6 ms. Timed on other seeds, the class scales 1.6–1.7× per doubling. Results: `bench/results/stress-darwin-arm64.json` (fixture) and `stress-darwin-arm64-full-index.json`.

@@ -174,7 +174,7 @@ def test_coverage(fixture_index: RouterIndex) -> None:
         "c": "uk/wsi/2012/1427",
         "r": False,
         "s": "wsi",
-        "t": None,
+        "t": "The Mink Keeping (Prohibition) (Wales) Order 2012",  # untitled until your harvest
         "y": 2012,
     }
     assert fixture_index.ids("coverage_numbers", "asp/2010/13") == ("uk/asp/2010/13",)

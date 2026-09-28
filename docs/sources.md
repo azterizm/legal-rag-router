@@ -67,12 +67,15 @@ Porting the fetch into the repo is deferred until the data has finished download
 ### Known gaps (tracked in the roadmap)
 
 - **Download** (U5): complete since 28 Sept 2026: 17,139 Acts and 116,659 SIs.
-- **Pre-1963 key collisions in the external fetch** (U2): 421 Acts were never fetched, because their calendar `year/number` key clashed with another Act's. The regnal-keyed `ukpga` feed lists exactly which (runbook below).
-- **Other-series listing** (U4):
-  - It starts in 1970 and misses `apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`, `uksro`, `nisro` and the draft series.
-  - 6,656 Welsh rows (`wsi`, `anaw`, `asc`) have **no title**. They are kept as untitled catalogue entries, so they still count as existing by number.
+- **Pre-1963 key collisions in the external fetch** (U2): **closed 28 Sept 2026.** 421 Acts had never been fetched, because their calendar `year/number` key clashed with another Act's. `missing` listed exactly those 421, and you fetched them to their regnal save paths (`ukpga/Geo5Sess2-13/5.xml.gz`), 419 from the source.
+  - **Two files are hand-made, not fetched:** `ukpga/Geo5Sess2-13/3.xml.gz` (Appropriation (Session 2) Act 1922) and `ukpga/Geo5Sess2-13/4.xml.gz` (Trade Facilities and Loans Guarantee Act 1922). The source offers only a PDF for them. Each is a metadata-only CLML record with the real `IdURI` and the catalogue's title and no provisions; its other metadata (publisher, modified date) was copied from a neighbouring Act and is not from the source. Replace them with the source's own `data.xml` if it ever serves one.
+  - Result: 134,219 instruments, and `missing` reports 0.
+- **Other-series listing** (U4): **closed 28 Sept 2026.** You harvested every series with your own harvester and imported the listing (`import --listing`, then `import-queue`): 244,564 catalogue entries in 29 series, including the pre-1970 and older series, with regnal coordinates and every Welsh title. The 6,465 untitled rows left are `uksi` rows from the queue; every one of them is indexed (most under their canonical `wsi` coordinate) and titled from its own XML.
+- **Welsh SIs from 2026** have their own numbers (`wsi/2026/10` is a different instrument from `uksi/2026/10`). That shows in the data: all 118 of 2026 are missing from the UK SI series, while every 2024–2025 one is in it. They are catalogued (out of coverage) and resolve by title only, until the grammar reads their own citation form.
 
 ### Runbook: the catalogue harvest and the U2 re-fetch (you run both)
+
+Both were done on 28 Sept 2026 (Known gaps above). The runbook stays for the next refresh.
 
 Both fetches are yours to run, from your machine, under your contact details. No other client may fetch from the same IP at the same time: together they must stay under the crawl-delay (U7).
 

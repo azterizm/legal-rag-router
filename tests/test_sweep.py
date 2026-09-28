@@ -68,6 +68,12 @@ CLASSIFY_CASES = [
     ("section 124", f"section 124 of the {ERA}", S124, "correct"),
     ("section 124", "section 124 of the Equality Act 2010", S124, "misroute"),
     ("the other statute", "Theft Act 1968 and the other statute", S124, "dropped"),
+    (  # a provision seen but left unlinked is not a misroute
+        "section 124",
+        "In section 124(1) (inserted by section 1 of the Theft Act 1968)",
+        S124,
+        "dropped",
+    ),
     ("section 125", f"section 125 of the {ERA}", S124, "wrong_provision"),
     ("s. 999", f"{ERA}, s. 999", "uk/ukpga/1996/18", "false_abstention"),
     ("this", "in subsection (4), omit this", "uk/ukpga/1996/18", "miss"),

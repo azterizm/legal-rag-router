@@ -230,6 +230,18 @@ def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.Monkey
             [f"{SI_2011}/art3", f"{SI_2026}/art2"],
         ),
         ("S.I. 2011/3006, art. 3 and 1996 c. 18", BOUND, None, [f"{SI_2011}/art3", ERA]),
+        (
+            "S.I. 2011/3006, article 3, 2026/310, article 2",
+            BOUND,
+            None,
+            [f"{SI_2011}/art3", f"{SI_2026}/art2"],
+        ),
+        (  # an unbracketed pinpoint continues the list only before an item with its year
+            "S.I. 2011/3006, article 3, 400 and 2026/310",
+            RouteStatus.PROVISION_NOT_FOUND,
+            "provision_not_in_instrument",
+            [],
+        ),
         # an unknown title with a real SI number is asked, never refused (UK-I-30)
         ("Marchwood Order 2011 (S.I. 2011/3006)", AMBIGUOUS, "title_number_conflict", []),
         # a title and a bracketed SI number that name different SIs are asked (UK-I-30)

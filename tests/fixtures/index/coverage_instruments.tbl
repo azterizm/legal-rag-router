@@ -1,16 +1,45 @@
-uk/anaw/2012/1	{"c":"uk/anaw/2012/1","r":false,"s":"anaw","t":null,"y":2012}
-uk/anaw/2012/2	{"c":"uk/anaw/2012/2","r":false,"s":"anaw","t":null,"y":2012}
-uk/anaw/2013/1	{"c":"uk/anaw/2013/1","r":false,"s":"anaw","t":null,"y":2013}
-uk/asc/2020/1	{"c":"uk/asc/2020/1","r":false,"s":"asc","t":null,"y":2020}
-uk/asc/2020/2	{"c":"uk/asc/2020/2","r":false,"s":"asc","t":null,"y":2020}
-uk/asc/2021/1	{"c":"uk/asc/2021/1","r":false,"s":"asc","t":null,"y":2021}
+uk/aep/ann/1/1	{"c":"uk/aep/Ann/1/1","r":false,"s":"aep","t":"Crown Lands Act 1702","y":1702}
+uk/aep/ann/1/2	{"c":"uk/aep/Ann/1/2","r":false,"s":"aep","t":"Demise of the Crown Act 1702","y":1702}
+uk/aep/ann/4-5/10	{"c":"uk/aep/Ann/4-5/10","r":false,"s":"aep","t":"An Act for raising the Militia for the Year One thousand seven hundred and six, notwithstanding the Month's Pay formerly advanced be not repaid; and for an Account to be made of Trophy Monies.","y":1705}
+uk/aip/ann/2/15	{"c":"uk/aip/Ann/2/15","r":false,"s":"aip","t":"Sale of Cattle Act (Ireland) 1703","y":1703}
+uk/aip/ann/2/5	{"c":"uk/aip/Ann/2/5","r":false,"s":"aip","t":"Treason Act (Ireland) 1703 [I]","y":1703}
+uk/aip/ann/4/12	{"c":"uk/aip/Ann/4/12","r":false,"s":"aip","t":"Royal Mines Act (Ireland) 1705","y":1705}
+uk/anaw/2012/1	{"c":"uk/anaw/2012/1","r":false,"s":"anaw","t":"National Assembly for Wales (Official Languages) Act 2012","y":2012}
+uk/anaw/2012/2	{"c":"uk/anaw/2012/2","r":false,"s":"anaw","t":"Local Government Byelaws (Wales) Act 2012","y":2012}
+uk/anaw/2013/1	{"c":"uk/anaw/2013/1","r":false,"s":"anaw","t":"School Standards and Organisation (Wales) Act 2013","y":2013}
+uk/aosp/1424/13	{"c":"uk/aosp/1424/13","r":false,"s":"aosp","t":"Royal Mines Act 1424","y":1424}
+uk/aosp/1429/20	{"c":"uk/aosp/1429/20","r":false,"s":"aosp","t":"Lawburrows Act 1429","y":1429}
+uk/aosp/1449/6	{"c":"uk/aosp/1449/6","r":false,"s":"aosp","t":"Leases Act 1449","y":1449}
+uk/apgb/ann/10/10	{"c":"uk/apgb/Ann/10/10","r":false,"s":"apgb","t":"Scottish Episcopalians Act 1711","y":1711}
+uk/apgb/ann/10/8	{"c":"uk/apgb/Ann/10/8","r":false,"s":"apgb","t":"Princess Sophia’s Precedence Act 1711","y":1711}
+uk/apgb/ann/6/40	{"c":"uk/apgb/Ann/6/40","r":false,"s":"apgb","t":"Union with Scotland (Amendment ) Act 1707","y":1707}
+uk/apni/1921/2	{"c":"uk/apni/1921/2","r":false,"s":"apni","t":"Exchequer and Audit Act (Northern Ireland) 1921","y":1921}
+uk/apni/1922/13	{"c":"uk/apni/1922/13","r":false,"s":"apni","t":"Church Temporalities Fund Act (Northern Ireland) 1922","y":1922}
+uk/apni/1922/18	{"c":"uk/apni/1922/18","r":false,"s":"apni","t":"Finance Act (Northern Ireland) 1922","y":1922}
+uk/asc/2020/1	{"c":"uk/asc/2020/1","r":false,"s":"asc","t":"Health and Social Care (Quality and Engagement) (Wales) Act 2020","y":2020}
+uk/asc/2020/2	{"c":"uk/asc/2020/2","r":false,"s":"asc","t":"Wild Animals and Circuses (Wales) Act 2020","y":2020}
+uk/asc/2021/1	{"c":"uk/asc/2021/1","r":false,"s":"asc","t":"Local Government and Elections (Wales) Act 2021","y":2021}
 uk/asp/1999/1	{"c":"uk/asp/1999/1","r":true,"s":"asp","t":"Mental Health (Public Safety and Appeals) (Scotland) Act 1999","y":1999}
 uk/asp/2000/1	{"c":"uk/asp/2000/1","r":false,"s":"asp","t":"Public Finance and Accountability (Scotland) Act 2000","y":2000}
 uk/asp/2000/10	{"c":"uk/asp/2000/10","r":false,"s":"asp","t":"National Parks (Scotland) Act 2000","y":2000}
 uk/asp/2010/13	{"c":"uk/asp/2010/13","r":false,"s":"asp","t":"Criminal Justice and Licensing (Scotland) Act 2010","y":2010}
+uk/eudn/1953/30	{"c":"uk/eudn/1953/30","r":false,"s":"eudn","t":"ECSC High Authority: Decision No 30-53 of 2 May 1953 on practices prohibited by Article 60 (1) of the Treaty in the common market for coal and steel","y":1953}
+uk/eudn/1953/31	{"c":"uk/eudn/1953/31","r":false,"s":"eudn","t":"ECSC High Authority: Decision No 31-53 of 2 May 1953 on the publication of price lists and conditions of sale applied by undertakings in the steel industry","y":1953}
+uk/eudn/1953/32	{"c":"uk/eudn/1953/32","r":false,"s":"eudn","t":"ECSC High Authority: Décision No 32-53 of 20 May 1953 supplementing Décision No 31-53 of 2 May 1953 on the publication of price lists and conditions of sale applied by undertakings in the steel industry","y":1953}
+uk/eudr/1959/221	{"c":"uk/eudr/1959/221","r":false,"s":"eudr","t":"Directives laying down the basic standards for the protection of the health of workers and the general public against the dangers arising from ionizing radiations","y":1959}
+uk/eudr/1960/201	{"c":"uk/eudr/1960/201","r":false,"s":"eudr","t":"EEC Council: Directives determining the procedure for progressive implementation of the right of establishment in the overseas countries and territories and the french overseas departments","y":1960}
+uk/eudr/1960/921	{"c":"uk/eudr/1960/921","r":false,"s":"eudr","t":"EEC Council: First Directive for the implementation of Article 67 of the Treaty","y":1960}
 uk/eur/1970/1011	{"c":"uk/eur/1970/1011","r":true,"s":"eur","t":"Regulation (EEC) No 1011/70 of the Commission of 29 May 1970 on certain quality requirements for maize groats and meal used by the Community brewing industry","y":1970}
 uk/eur/1970/1014	{"c":"uk/eur/1970/1014","r":true,"s":"eur","t":"Regulation (EEC) No 1014/70 of the Commission of 29 May 1970 on import licences for wine","y":1970}
 uk/eur/1970/1017	{"c":"uk/eur/1970/1017","r":false,"s":"eur","t":"Regulation (EEC) No 1017/70 of the Commission of 29 May 1970 applying additional classes to certain fruit","y":1970}
+uk/gbla/geo3/38/1	{"c":"uk/gbla/Geo3/38/1","r":false,"s":"gbla","t":"All Saints Church, Southampton Act 1797","y":1797}
+uk/gbla/geo3/38/10	{"c":"uk/gbla/Geo3/38/10","r":false,"s":"gbla","t":"Cirencester Roads Act 1798","y":1798}
+uk/gbla/geo3/38/11	{"c":"uk/gbla/Geo3/38/11","r":false,"s":"gbla","t":"Lancashire Roads Act 1798","y":1798}
+uk/mnia/1974/2	{"c":"uk/mnia/1974/2","r":false,"s":"mnia","t":"Financial Provisions Measure (Northern Ireland) 1974","y":1974}
+uk/mnia/1974/4	{"c":"uk/mnia/1974/4","r":false,"s":"mnia","t":"National Insurance Measure (Northern Ireland) 1974","y":1974}
+uk/mwa/2008/1	{"c":"uk/mwa/2008/1","r":false,"s":"mwa","t":"NHS Redress (Wales) Measure 2008","y":2008}
+uk/mwa/2008/2	{"c":"uk/mwa/2008/2","r":false,"s":"mwa","t":"Learner Travel (Wales) Measure 2008","y":2008}
+uk/mwa/2009/1	{"c":"uk/mwa/2009/1","r":false,"s":"mwa","t":"Learning and Skills (Wales) Measure 2009","y":2009}
 uk/nia/2000/1	{"c":"uk/nia/2000/1","r":false,"s":"nia","t":"Financial Assistance for Political Parties Act (Northern Ireland) 2000","y":2000}
 uk/nia/2000/2	{"c":"uk/nia/2000/2","r":false,"s":"nia","t":"Appropriation Act (Northern Ireland) 2000","y":2000}
 uk/nia/2000/3	{"c":"uk/nia/2000/3","r":true,"s":"nia","t":"Allowances to Members of the Assembly Act (Northern Ireland) 2000","y":2000}
@@ -20,25 +49,38 @@ uk/nisi/1972/1100	{"c":"uk/nisi/1972/1100","r":false,"s":"nisi","t":"Finance (No
 uk/nisr/1974/101	{"c":"uk/nisr/1974/101","r":false,"s":"nisr","t":"The Seed Potato Marketing Scheme (Amendment) Order (Northern Ireland) 1974","y":1974}
 uk/nisr/1974/102	{"c":"uk/nisr/1974/102","r":false,"s":"nisr","t":"The Foyle Area (Weekly Close Time) Regulations (Northern Ireland) 1974","y":1974}
 uk/nisr/1974/103	{"c":"uk/nisr/1974/103","r":false,"s":"nisr","t":"The Road Traffic (Amendment) Order 1973 (Date of Commencement) Order (Northern Ireland) 1974","y":1974}
+uk/nisro/1922/1	{"c":"uk/nisro/1922/1","r":false,"s":"nisro","t":"The Aerated Waters Trade Board (Northern Ireland) 1922","y":1922}
+uk/nisro/1922/10	{"c":"uk/nisro/1922/10","r":false,"s":"nisro","t":"The Milk Distributive Trade Board (Northern Ireland) 1922","y":1922}
+uk/nisro/1922/11	{"c":"uk/nisro/1922/11","r":false,"s":"nisro","t":"The Paper Box Trade Board (Northern Ireland) 1922","y":1922}
 uk/ssi/1999/1	{"c":"uk/ssi/1999/1","r":false,"s":"ssi","t":"The Environmental Impact Assessment (Scotland) Regulations 1999","y":1999}
 uk/ssi/1999/104	{"c":"uk/ssi/1999/104","r":false,"s":"ssi","t":"The Registration of Births, Still-Births, Deaths and Marriages (Prescription of Forms) (Scotland) Amendment Regulations 1999","y":1999}
 uk/ssi/1999/107	{"c":"uk/ssi/1999/107","r":true,"s":"ssi","t":"The Organic Aid (Scotland) Amendment Regulations 1999","y":1999}
 uk/ukci/1991/1	{"c":"uk/ukci/1991/1","r":false,"s":"ukci","t":"Diocesan Boards of Education Measure 1991 (Appointed Day Instrument 1991)","y":1991}
 uk/ukci/1992/1	{"c":"uk/ukci/1992/1","r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
 uk/ukci/1992/2	{"c":"uk/ukci/1992/2","r":false,"s":"ukci","t":"Church of England (Miscellaneous Provisions) Measure 1992 (Appointed Day Instrument 1992)","y":1992}
-uk/ukcm/1970/1	{"c":"uk/ukcm/1970/1","r":false,"s":"ukcm","t":"Collegiate Churches (Capital Endowments) Measure 1970","y":1970}
-uk/ukcm/1970/2	{"c":"uk/ukcm/1970/2","r":false,"s":"ukcm","t":"SHARING OF CHURCH BUILDINGS MEASURE 1970 (No. 2)","y":1970}
-uk/ukcm/1970/3	{"c":"uk/ukcm/1970/3","r":false,"s":"ukcm","t":"Church Commissioners Measure 1970","y":1970}
-uk/ukla/1970/1	{"c":"uk/ukla/1970/1","r":false,"s":"ukla","t":"Glasgow Corporation Order Confirmation Act 1970","y":1970}
-uk/ukla/1970/10	{"c":"uk/ukla/1970/10","r":false,"s":"ukla","t":"Huddersfield Corporation Act 1970","y":1970}
-uk/ukla/1970/11	{"c":"uk/ukla/1970/11","r":false,"s":"ukla","t":"Bolton Corporation Act 1970","y":1970}
+uk/ukcm/1963/1	{"c":"uk/ukcm/1963/1","r":false,"s":"ukcm","t":"Ecclesiastical Jurisdiction Measure 1963","y":1963}
+uk/ukcm/1963/2	{"c":"uk/ukcm/1963/2","r":false,"s":"ukcm","t":"Cathedrals Measure 1963","y":1963}
+uk/ukcm/1964/1	{"c":"uk/ukcm/1964/1","r":false,"s":"ukcm","t":"CHURCH COMMISSIONERS (LOANS FOR THEOLOGICAL COLLEGES AND TRAINING HOUSES) MEASURE 1964 (No. 1)","y":1964}
+uk/ukla/1866/27	{"c":"uk/ukla/1866/27","r":false,"s":"ukla","t":"Leicester Waterworks Act 1866","y":1866}
+uk/ukla/1876/39	{"c":"uk/ukla/1876/39","r":false,"s":"ukla","t":"Flookersbrook Improvement Act 1876","y":1876}
+uk/ukla/1900/269	{"c":"uk/ukla/1900/269","r":false,"s":"ukla","t":"London County Council (Improvements) Act 1900","y":1900}
+uk/ukmd/2023/1	{"c":"uk/ukmd/2023/1","r":false,"s":"ukmd","t":"The Exception from the Duty to Publish (Department for Business and Trade) (No. 1) Direction 2023","y":2023}
+uk/ukmo/1972/1	{"c":"uk/ukmo/1972/1","r":false,"s":"ukmo","t":"The Rabbit Clearance Order No. 148 (England and Wales) 1972","y":1972}
+uk/ukmo/1977/1	{"c":"uk/ukmo/1977/1","r":false,"s":"ukmo","t":"The 70 miles per hour, 60 miles per hour and 50 miles per hour (Temporary Speed Limit) Order 1977","y":1977}
+uk/ukmo/1978/1	{"c":"uk/ukmo/1978/1","r":false,"s":"ukmo","t":"The 70 miles per hour, 60 miles per hour and 50 miles per hour (Temporary Speed Limit) (Variation) Order 1978","y":1978}
+uk/ukpga/1916/50	{"c":"uk/ukpga/1916/50","r":false,"s":"ukpga","t":"Larceny Act 1916","y":1916}
 uk/ukpga/1963/1	{"c":"uk/ukpga/1963/1","r":false,"s":"ukpga","t":"Consolidated Fund Act 1963","y":1963}
 uk/ukpga/1963/10	{"c":"uk/ukpga/1963/10","r":false,"s":"ukpga","t":"Drainage Rates Act 1963","y":1963}
-uk/ukpga/1963/11	{"c":"uk/ukpga/1963/11","r":false,"s":"ukpga","t":"Agriculture (Miscellaneous Provisions) Act 1963","y":1963}
+uk/ukppa/1963/1	{"c":"uk/ukppa/1963/1","r":false,"s":"ukppa","t":"Lucas Estate Act 1963","y":1963}
+uk/ukppa/1972/1	{"c":"uk/ukppa/1972/1","r":false,"s":"ukppa","t":"Wellington Estate Act 1972","y":1972}
+uk/ukppa/1975/1	{"c":"uk/ukppa/1975/1","r":false,"s":"ukppa","t":"James Hugh Maxwell (Naturalization) Act 1975","y":1975}
 uk/uksi/1948/1	{"c":"uk/uksi/1948/1","r":false,"s":"uksi","t":"The Statutory Instruments Regulations, 1947","y":1948}
 uk/uksi/1948/1000	{"c":"uk/uksi/1948/1000","r":false,"s":"uksi","t":"The Mental Deficiency Regulations, 1948","y":1948}
 uk/uksi/1948/1002	{"c":"uk/uksi/1948/1002","r":false,"s":"uksi","t":"The Defence Regulations (No. 4) Order, 1948","y":1948}
-uk/wsi/1999/2633	{"c":"uk/wsi/1999/2633","r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/1999/2641	{"c":"uk/wsi/1999/2641","r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/1999/2720	{"c":"uk/wsi/1999/2720","r":false,"s":"wsi","t":null,"y":1999}
-uk/wsi/2012/1427	{"c":"uk/wsi/2012/1427","r":false,"s":"wsi","t":null,"y":2012}
+uk/uksro/1823/513	{"c":"uk/uksro/1823/513","r":false,"s":"uksro","t":"Order in Council regulating appeals to His Majesty in Council from Guernsey (1823)","y":1823}
+uk/uksro/1835/715	{"c":"uk/uksro/1835/715","r":false,"s":"uksro","t":"Order in Council regulating appeals to His Majesty in Council from Jersey and Guernsey (1835)","y":1835}
+uk/uksro/1849/730	{"c":"uk/uksro/1849/730","r":false,"s":"uksro","t":"Proclamation giving currency to a new silver coinage of florins or tenths of a pound (1849)","y":1849}
+uk/wsi/1999/2633	{"c":"uk/wsi/1999/2633","r":true,"s":"wsi","t":"The Education (Change of Category of Maintained Schools) (Wales) Regulations 1999","y":1999}
+uk/wsi/1999/2641	{"c":"uk/wsi/1999/2641","r":true,"s":"wsi","t":"The Plant Health (Amendment) (Wales) Order 1999","y":1999}
+uk/wsi/1999/2720	{"c":"uk/wsi/1999/2720","r":false,"s":"wsi","t":"The Neath to Abergavenny Trunk Road (A465) (Abergavenny to Hirwaun Dualling and Slip Roads) and East of Abercynon to East of Dowlais Road (A4060), Cardiff to Glan Conwy Trunk Road (A470) (Connecting Roads) Order 1999","y":1999}
+uk/wsi/2012/1427	{"c":"uk/wsi/2012/1427","r":false,"s":"wsi","t":"The Mink Keeping (Prohibition) (Wales) Order 2012","y":2012}

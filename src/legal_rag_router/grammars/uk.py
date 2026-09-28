@@ -197,6 +197,12 @@ def legislation_path(provision: Sequence[str]) -> str:
 
 # Series whose official number is a UK SI number ("SI 2013/2729" may be canonically wsi).
 _UK_SI_SERIES: Final = frozenset({"uksi", "wsi", "nisi"})
+# From 2026 Welsh SIs are numbered in their own series: wsi/2026/10 is not SI 2026/10.
+_WSI_OWN_NUMBERS_FROM: Final = 2026
+# Series cited by one chapter sequence per session ("8 & 9 Eliz. 2 c. 69"). Local Acts
+# ("c. i"), personal Acts, Church Measures and the Irish and Northern Ireland Parliaments
+# number their own sequences, so a bare regnal chapter never names them.
+_REGNAL_CHAPTER_SERIES: Final = frozenset({"ukpga", "apgb", "aep"})
 _NUMBERED_SERIES_KEYS: Final = {
     "ssi": "ssi",  # Scottish SI: "SSI 2003/623"
     "nisr": "sr",  # Northern Ireland Statutory Rules: "SR 1996/123"
@@ -214,12 +220,18 @@ def number_keys(instrument: Sequence[str]) -> tuple[str, ...]:
     ``("uksi", "2011", "3006")`` → ``("si/2011/3006",)``;
     ``("ukpga", "1996", "18")`` → ``("c/1996/18",)`` (chapter 18 of 1996);
     ``("ukpga", "Eliz2", "8-9", "69")`` → ``("rc/eliz2/8-9/69",)`` (8 & 9 Eliz. 2 c. 69).
+    A local Act (``("ukla", "Edw7", "1", "1")``, 1 Edw. 7 c. i) and a Welsh SI from 2026
+    have no key: no number the grammar reads names them.
     The router builds the same keys from a parsed citation.
     """
     series = instrument[0]
     if len(instrument) == 4:  # noqa: PLR2004 - regnal
+        if series not in _REGNAL_CHAPTER_SERIES:
+            return ()
         return (f"rc/{instrument[1].casefold()}/{instrument[2]}/{instrument[3]}",)
     year, number = instrument[1], instrument[2]
+    if series == "wsi" and int(year) >= _WSI_OWN_NUMBERS_FROM:
+        return ()
     if series in _UK_SI_SERIES:
         return (f"si/{year}/{number}",)
     if series == "ukpga":

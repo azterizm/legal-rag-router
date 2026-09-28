@@ -22,6 +22,7 @@ htmlcov/
 # Raw scrape cache and externally scraped source data: build machine only, never published
 .cache/
 uk_scrap_data/
+spanish_scrap_data/
 
 # Corpus data: published as release assets, never committed (except the licence manifest)
 data/*

@@ -114,9 +114,10 @@ def _related(a: Coordinate, b: Coordinate) -> bool:
 def classify(router: Router, citation: dict[str, object]) -> tuple[Outcome, str]:
     """Route a harvested citation and compare with the source's own target.
 
-    A bound result without the target is a ``misroute`` when one of the router's citations
-    covers the cited text (it read that citation and bound something else), and ``dropped``
-    when none does (it bound other citations in the clause and never saw this one).
+    A bound result without the target is a ``misroute`` when one of the router's linked
+    citations covers the cited text (it read that citation and bound something else), and
+    ``dropped`` when none does (it bound other citations in the clause and never saw this one,
+    or saw a provision there and left it unlinked).
     """
     query, cited_start, cited_end = replay(citation)
     target = Coordinate.parse(str(citation["target_coordinate"]))
@@ -125,7 +126,10 @@ def classify(router: Router, citation: dict[str, object]) -> tuple[Outcome, str]
     if status is RouteStatus.BOUNDED:
         instruments = {c.instrument_id for c in result.coordinates}
         if target.instrument_id not in instruments:
-            seen = any(c.span[0] < cited_end and cited_start < c.span[1] for c in result.citations)
+            seen = any(
+                c.resolution != "unlinked" and c.span[0] < cited_end and cited_start < c.span[1]
+                for c in result.citations
+            )
             return ("misroute" if seen else "dropped"), query
         if target.is_instrument or any(
             _related(c, target)

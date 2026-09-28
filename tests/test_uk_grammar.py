@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from legal_rag_router.grammars.base import ProvisionRef
+from legal_rag_router.grammars.uk import number_keys
 from legal_rag_router.grammars.uk_grammar import (
     GRAMMAR,
     int_to_roman,
@@ -125,6 +126,27 @@ def test_number_forms(query: str, key: str) -> None:
     [mention] = GRAMMAR.numbers(query, fold(query))
     assert mention.key == key
     assert query[mention.start : mention.end].strip() == query.strip()
+
+
+@pytest.mark.parametrize(
+    ("coordinate", "keys"),
+    [
+        ("ukpga/Edw7/1/1", ("rc/edw7/1/1",)),
+        ("apgb/Geo3/41/1", ("rc/geo3/41/1",)),
+        ("aep/Ann/1/1", ("rc/ann/1/1",)),
+        ("ukla/Edw7/1/1", ()),  # local Act: 1 Edw. 7 c. i
+        ("ukppa/Edw7/3/1", ()),
+        ("ukcm/Edw8and1Geo6/1/1", ()),
+        ("aip/Ann/2/15", ()),
+        ("apni/Geo5/15-16/2", ()),
+        ("wsi/2025/10", ("si/2025/10",)),
+        ("wsi/2026/10", ()),  # Welsh SIs have their own numbers from 2026
+        ("nisi/1973/97", ("si/1973/97",)),
+        ("ukla/1991/1", ()),
+    ],
+)
+def test_number_keys_by_series(coordinate: str, keys: tuple[str, ...]) -> None:
+    assert number_keys(coordinate.split("/")) == keys
 
 
 @pytest.mark.parametrize(

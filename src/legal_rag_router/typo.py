@@ -175,27 +175,27 @@ def _ranked(
 ) -> tuple[str, ...]:
     """The ``wanted`` best by (shared words desc, year gap, title edits, id).
 
-    Each key is computed only for the candidates it can still decide: instruments are read
-    only for the shared-word groups that reach the result, edit distance only for the year
-    groups that do, capped in the last, partly taken group at the worst distance kept.
+    Each key is computed only for the candidates it can still decide: years only for the
+    shared-word groups that reach the result (from the id where it holds one), titles and
+    edit distance only for the year groups that do, capped in the last, partly taken group
+    at the worst distance kept.
     """
     chosen: list[str] = []
     for count in sorted(by_count, reverse=True):
         if len(chosen) >= wanted:
             break
-        by_gap: dict[int, list[tuple[str, str]]] = {}
+        by_gap: dict[int, list[str]] = {}
         for iid in by_count[count]:
-            info = index.info(iid)
-            gap = abs(info.year - year) if year is not None else 0
-            by_gap.setdefault(gap, []).append((iid, info.title))
+            gap = abs(_year_of(index, iid) - year) if year is not None else 0
+            by_gap.setdefault(gap, []).append(iid)
         for gap in sorted(by_gap):
             slots = wanted - len(chosen)
             if slots <= 0:
                 break
             best: list[tuple[int, str]] = []
             limit = _MAX_TITLE_EDITS
-            for iid, title in sorted(by_gap[gap]):
-                best.append((damerau(cited, title.casefold(), limit), iid))
+            for iid in sorted(by_gap[gap]):
+                best.append((damerau(cited, index.info(iid).title.casefold(), limit), iid))
                 best.sort()
                 if len(best) > slots:
                     best.pop()
@@ -244,6 +244,11 @@ def analyse_title(
 
 
 def _year_of(index: RouterIndex, instrument_id: str) -> int:
+    """``uk_uksi_2011_3006`` → 2011 without reading the instrument (the build checks that
+    a UK calendar id's year is its year); regnal and other ids are read."""
+    parts = instrument_id.split("_", 3)
+    if parts[0] == "uk" and len(parts) == 4 and parts[2].isdigit():  # noqa: PLR2004
+        return int(parts[2])
     return index.info(instrument_id).year
 
 

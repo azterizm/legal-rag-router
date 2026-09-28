@@ -152,9 +152,15 @@ _SI_RE: Final = re.compile(
 # A bare continuation needs 3+ digits, so "S.I. 2011/3006, 2 employees" is not SI 2011/2.
 _SI_NOTE: Final = r"(?:\s*\(\s*(?:c|w|cy|l|s|n\s?\.?\s?i)\s?\.?\s*\d{1,4}\s*\))"
 _SI_PINPOINT: Final = rf"(?:\s*\(\s*(?:{_ANY_UNIT})(?![a-z])[^()]{{0,24}}\))"
+_SI_SEP: Final = r"\s*(?:,\s*(?:and\b|or\b)?|;|&|\band\b|\bor\b)\s*(?:s\s?\.?\s?i\s?\.?\s*)?"
+# "S.I. 1969/1369, article 3, 1969/1371": an unbracketed pinpoint continues the list only
+# when the next item carries its year, so "…, article 3, 400" never becomes SI 400.
+_SI_BARE_PINPOINT: Final = (
+    rf"\s*,\s*(?:{_ANY_UNIT})(?![a-z])\s*{_DESIG}(?:\(\w{{1,4}}\))*"
+    rf"(?={_SI_SEP}(?:19|20)\d\d\s*(?:/|\s+no\.?\s*\d))"
+)
 _SI_CONTINUATION_RE: Final = re.compile(
-    rf"{_SI_NOTE}{{0,2}}{_SI_PINPOINT}?\s*(?:,\s*(?:and\b|or\b)?|;|&|\band\b|\bor\b)\s*"
-    r"(?:s\s?\.?\s?i\s?\.?\s*)?"
+    rf"{_SI_NOTE}{{0,2}}(?:{_SI_PINPOINT}|{_SI_BARE_PINPOINT})?{_SI_SEP}"
     r"(?:(?P<y>(?:19|20)\d\d)\s*(?:/\s*|\s+no\.?\s*)(?P<n>\d{1,5})|(?P<bare>\d{3,5}))"
     r"(?![\d/])"
 )

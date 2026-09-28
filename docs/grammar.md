@@ -56,7 +56,7 @@ The arity is chosen from the second instrument segment. A four-digit year means 
 |---|---|
 | `uk/ukpga/1996/18` | Act, calendar-numbered (1963 onwards) |
 | `uk/uksi/2011/3006` | Statutory Instrument |
-| `uk/wsi/2013/2729` | Welsh SI (legislation.gov.uk's canonical series, although it also carries a UK SI number) |
+| `uk/wsi/2013/2729` | Welsh SI (legislation.gov.uk's canonical series, although it also carries a UK SI number). From 2026 Welsh SIs are numbered in their own series: `uk/wsi/2026/10` is not `SI 2026/10`, so no SI number resolves to it |
 | `uk/ukpga/Eliz2/8-9/69` | Act of the 8 & 9 Eliz. 2 session (1960), chapter 69 |
 | `uk/ukpga/Geo3Sess2/47/78` | 47 Geo. 3 Sess. 2 c. 78 (1807) |
 | `uk/ukpga/Edw7and1Geo5/10/15` | 10 Edw. 7 & 1 Geo. 5 c. 15 (1910) |
@@ -195,7 +195,7 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-19 | Capitalised invented words in front of a real title: `Marchwood Commercial Arbitration Act 1996` | — | **I**, suggesting "Arbitration Act 1996" |
 | UK-I-20 | The same in lower case: `marchwood commercial arbitration act 1996` | — | **A**: "Did you mean the Arbitration Act 1996?" |
 | UK-I-21 | A chapter note after a title: `Employment Rights Act 1996 (c. 18)`, `(c.18, SIF 43:5)`, `Theft Act 1968 c. 60` | the Act | The note is part of the citation. A chapter that names a different Act → **A** (`chapter_mismatch`, both offered). An unknown title with a real chapter → **A** (`title_number_conflict`), never **I** |
-| UK-I-22 | SI number lists: `S.I. 2008/2767, 2010/641 and 2011/2425`, `S.I. 1988/663 and 1445`, `S.I. 2016/596 (C. 41) and 963`, `S.I. 1994/2166, 2004/3376, and 2008/2858`, `S.I. 1980 No. 765 and 1988 No. 1640` | one SI per item | A bare number continues the list only if it can be an SI number (`S.I. 2011/3006, 2 employees` is one SI). Items may carry a series note (`(C. 41)`, `(W. 107)`, `(Cy. 3)`, `(N.I. 24)`, `(L. 5)`, `(S. 2)`) or a pinpoint in brackets (`S.I. 1969/1369 (article 3), 1969/1371 (article 2)`, each linked to its own item), join with `, and`, and be written `1988 No. 1640` |
+| UK-I-22 | SI number lists: `S.I. 2008/2767, 2010/641 and 2011/2425`, `S.I. 1988/663 and 1445`, `S.I. 2016/596 (C. 41) and 963`, `S.I. 1994/2166, 2004/3376, and 2008/2858`, `S.I. 1980 No. 765 and 1988 No. 1640` | one SI per item | A bare number continues the list only if it can be an SI number (`S.I. 2011/3006, 2 employees` is one SI). Items may carry a series note (`(C. 41)`, `(W. 107)`, `(Cy. 3)`, `(N.I. 24)`, `(L. 5)`, `(S. 2)`) or a pinpoint in brackets (`S.I. 1969/1369 (article 3), 1969/1371 (article 2)`, each linked to its own item). An unbracketed pinpoint (`S.I. 1969/1369, article 3, 1969/1371, article 2`) continues the list only when the next item carries its year, so `S.I. 2011/3006, article 3, 400` is article 400, never SI 400, join with `, and`, and be written `1988 No. 1640` |
 | UK-I-29 | A series note after an SI number: `S.I. 2009/662 (S. 1)`, `SI1986/1915 (S 139)` | the SI | The note belongs to the number. `(S. 1)` is never read as section 1 |
 | UK-I-30 | A title followed by its SI number: `The Transparency Regulations 2015 (S.I. 2015/1755)`, `…Order 2017, S.I. 2017/612` | the SI | One citation when both name the same SI. An unknown title with a real SI number → **A** (`title_number_conflict`: "its SI number is that of …"), never **I**, as for a chapter number (UK-I-21). A real title with a bracketed SI number of another SI (`…Regulations 2017 (S.I. 2018/1232)`) → **A** (`number_mismatch`, both offered), never both bound. Without brackets (`…Order 2011, S.I. 2026/310`) it is a list of two |
 | UK-I-23 | A regnal Act cited by calendar year and chapter: `1925 c. 20` | `uk/ukpga/Geo5/15-16/20` | The build also keys every regnal Act by its calendar year |
@@ -225,7 +225,7 @@ Outcomes:
 
 | ID | Cue | Result |
 |---|---|---|
-| UK-O-01 | A title found in the other-series listing: devolved Acts and SIs (`asp`, `anaw`, `asc`, `nia`, `ssi`, `wsi`, `nisr`, `nisi`), local Acts (`ukla`), Church measures (`ukcm`), pre-1801 and old series (`apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`), `uksro`/`nisro` | **O** |
+| UK-O-01 | A title found in the other-series listing: devolved Acts and SIs (`asp`, `anaw`, `asc`, `nia`, `ssi`, `wsi`, `nisr`, `nisi`), local Acts (`ukla`), Church measures (`ukcm`), pre-1801 and old series (`apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`), `uksro`/`nisro`. By number only where the number names that series: a regnal chapter is keyed for the public general series (`ukpga`, `apgb`, `aep`), while local Acts (`c. i`), personal Acts, Church Measures, and Irish and Northern Ireland Acts number their own sequences and are found by title only. Known limit: `41 Geo. 3 c. 1` is both a Great Britain Act (`apgb`) and a UK Act; the indexed UK Act binds | **O** |
 | UK-O-02 | Retained EU law: `UK GDPR`, `Article 82 UK GDPR`, `Regulation (EU) 2016/679` | **O** |
 | UK-O-03 | Bills: `Employment Rights Bill` | **O** |
 | UK-O-04 | Case citations: `[2020] UKSC 1`, `[2019] EWCA Civ 123` | **O** |

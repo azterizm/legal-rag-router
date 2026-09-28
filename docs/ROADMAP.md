@@ -19,14 +19,40 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-28 |
-| Current stage | **Stage B (all of UK `ukpga` + `uksi`)**: ingest, index, sweep and latency done; Q-B-1 to Q-B-4 decided |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M5-UK ✅ (except your two fetches), M6 ✅ (UK, full data), **M7-UK ✅ (full index: sweep committed, p99 1.88 ms)** |
-| Next step | M8-UK batteries. When your fetches land: steps 4 and 6 of the runbook in `docs/sources.md` (re-ingest, rebuild, re-sweep) |
-| Waiting on you | Your catalogue harvest (U4) and your re-fetch of the pre-1963 Acts (U2): runbook in `docs/sources.md` |
+| Current stage | **Stage B (all of UK)**: data complete (U2 and U4 closed), ingest, index, sweep and latency done |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)** |
+| Next step | M8-UK batteries (halts for your review before they are sealed) |
+| Waiting on you | Nothing |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28 (5): **Your U2 re-fetch and U4 catalogue landed; checked, three fixes, re-swept. Committed locally.**
+  - **Your data, checked:**
+    - catalogue: 244,564 entries in 29 series, no duplicate coordinates, `ukpga` exactly 17,139 + 421;
+    - 421 Acts ingested (134,219 instruments), `missing` reports 0;
+    - the two hand-made records for the PDF-only Acts `ukpga/Geo5Sess2/13/3` and `/4` carry the right `IdURI`, the catalogue's titles and no provisions. They are recorded in `docs/sources.md`, because they are not from the source.
+  - **Fix 1: number keys by series (decision 22).** The new catalogue exposed that regnal number keys ignored the series. 11,240 catalogued instruments were silently left out of the out-of-coverage table, because a public Act shared their key:
+    - 10,116 local Acts (`c. i`), 858 personal Acts, 115 Church Measures, 3 Northern Ireland Acts;
+    - 116 Welsh SIs of 2026, which have their own numbers from 2026 (`wsi/2026/10` is not SI 2026/10);
+    - 32 Great Britain Acts of 41 Geo. 3.
+
+    Out of coverage now lists 103,008 instruments (was 91,768).
+  - **Fix 2: SI list with unbracketed pinpoints.** "S.I. 1969/1369, article 3, 1969/1371, article 2" bound both articles to 1969/1369. Now each item keeps its own (UK-I-22). ", article 3, 400" still reads as article 400, never SI 400.
+  - **Fix 3: sweep classifier.** A provision the router saw but left unlinked had counted as a misroute. It is now `dropped`.
+  - **Sweep (100,000, new seeded draw, because the re-fetch changed the harvest):**
+    - correct 80,024;
+    - miss 8,541 (about 7,900 bare `yyyy/n` table cells);
+    - false abstention 6,333;
+    - ambiguous 4,371 (21 `number_mismatch`);
+    - out of coverage 612;
+    - dropped 107;
+    - **misroute 7, all wrong link targets in the source**;
+    - wrong provision 5.
+  - **Latency, corrected:** the earlier p99 of 1.88 ms came from one easy 20,000-query draw. Over the full 100,000 it was **2.25 ms**, which misses the target. It was not caused by the new data (indexes without the 421 Acts, or without the catalogue, give the same). The tail was refusal suggestions parsing about 520 instrument records per refused title just to read their years. A UK calendar id carries its year, and the build now fails if the two disagree. With that, **p99 is 1.88 ms over all 100,000** (slices 1.81–1.91), p99.9 7.0 → 5.3 ms, with the ranking unchanged (checked on 450 calls). 4 KB noise: fixture 9.06 ms, full 9.21 ms. The fixture index is rebuilt from your catalogue: only its out-of-coverage sample changed (86 entries, was 44).
+  - Tests: 679 pass, 1 skip. Coverage 100 %.
+  - **Resume:** M8-UK batteries.
 
 - 2026-09-28 (4): **Q-B-1 to Q-B-4 answered and applied (decisions 20, 21; U2 and U4 fetches are yours). Committed locally.**
   - **Q-B-1 → `number_mismatch` (decision 20):** a title followed by a bracketed SI number of another SI is asked, with both offered, never both bound. Across 100,000 sweep citations this makes 18 questions, most of them drafting typos in the source ("… Regulations 2011 (S.I. 2011/998)" for 2011/988). It does not fire when the bracket numbers several titles named before it ("A Regs 1987 and B Regs 1989 (S.I. 1987/899 and …)"), or without brackets (a list). The last real misroute is gone: the sweep's 6 remaining misroutes are all wrong link targets in the source.
@@ -243,6 +269,7 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - **Fix:** key the queue and file paths on the `IdURI` path.
   - Until that fix, ingest reads the identity **from each file's own `IdURI`**, never from its path. M3-UK's catalogue lists the Acts that are still missing.
   - 🧑 The fix belongs in your running scraper.
+- **U2 and U4 — closed 28 Sept:** both fetches done by you; `missing` reports 0, and the catalogue covers 29 series (`docs/sources.md`, Known gaps). Two of the 421 files are hand-made metadata-only records for PDF-only Acts.
 - **U2/U4 fetches — decided 28 Sept:** you run both from your machine (runbook in `docs/sources.md`): the catalogue harvest with the repo's `ingest.uk_catalogue harvest` or your own harvester, and the re-fetch of the pre-1963 Acts from the list `ingest.uk_catalogue missing` writes.
 - **U3 — Fetch code lives outside the repo for now.** Decided: revisit once all data is downloaded. Until then the repo's `ingest/uk.py` *reads* `uk_scrap_data/`. `docs/sources.md` records how the data was obtained. Scraper hygiene to fix at port time:
   - the UA has a placeholder contact (`data-team@example.com`);
@@ -406,9 +433,9 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M5 — Full ingest in the background (plan steps 4–5) · starts day 3, ≈ 33 h UK + ES in parallel
 
-> **Status (28 Sept):** UK done from your download (§U): 133,798 files, 0 failures, the licence check passes on the full `data/`. Still open for UK: the feed harvest of the other series (U4, Q-B-2) and the 421 regnal Acts (U2, Q-B-4). ES waits for Stage C.
+> **Status (28 Sept):** UK done from your download (§U): 134,219 instruments, including the 421 regnal Acts you re-fetched (U2), 0 failures, and the licence check passes on the full `data/`. Your harvest supplied the other series' titles (U4): 244,564 catalogue entries. ES waits for Stage C.
 
-- [x] UK, `ukpga` + `uksi` (from your download; the Atom-feed titles of the other series are U4):
+- [x] UK, `ukpga` + `uksi` (from your download), and the other series' titles (from your harvest, U4):
   - Instrument lists from the Atom feeds.
   - `data.xml` per instrument: element ids down to subsection/paragraph depth, text, repealed status, part → sections map, chapter number.
   - `<Citation>` harvest → `data/harvest/uk_citations.jsonl`.
@@ -460,7 +487,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 > **Status (28 Sept):**
 > - 7a–7j are done for the UK.
 > - The Spanish parts (`es.py`, BOE identifiers, `artículo único`, `RDL`, state vs regional, Spanish negation words) wait for Stage C.
-> - 7k: done on the full index. `reports/coverage-sweep-uk.md` holds 100,000 citations, and the misses are grammar rows or documented unsupported forms. p99 is 1.89 ms on real queries (Stage B, 28 Sept).
+> - 7k: done on the full index. `reports/coverage-sweep-uk.md` holds 100,000 citations, and the misses are grammar rows or documented unsupported forms. p99 is 1.88 ms over the 100,000 real queries (28 Sept; the earlier 1.89 ms was one 20,000-query draw, see stop log (5)).
 
 - [x] **7a Normalise** (`normalise.py`):
   - NFKC and casefold; accent fold; look-alike skeleton map.
@@ -692,14 +719,19 @@ M9 docs are written alongside and finished before M10.
 16. **Q-M7-2 latency on 4 KB noise (27 Sept):** split budget.
     - **Real queries:** < 2 ms p99, published by `bench/latency.py`.
     - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`). On the Mac:
-      - fixture index: 9.17 ms (28 Sept, Stage B; 9.49 ms earlier that day, 7.22 ms on 27 Sept);
-      - **full UK index: 9.31 ms** (17.47 ms before decision 21).
+      - fixture index: 9.06 ms (28 Sept, after the U2 re-fetch; 9.49 ms earlier that day, 7.22 ms on 27 Sept);
+      - **full UK index: 9.21 ms** (17.47 ms before decision 21).
 
       The tests guard 2× the fixture floor, plus linear doubling (≤ 2.5×) per class.
     - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
 20. **Q-B-1 title vs SI number (28 Sept):** a real title followed by a bracketed SI number of another SI → `ROUTE_AMBIGUOUS`, new reason **`number_mismatch`**, both instruments offered. Not when another title named in the query owns that number (a bracket numbering several titles), and not without brackets (a list). Acts keep `chapter_mismatch` (UK-I-21). grammar.md UK-I-30, contract §2.
+22. **Number keys by series (28 Sept, found in your full catalogue):** an official number resolves only to the series it numbers.
+    - Regnal chapters (`rc/…`) are keyed for `ukpga`, `apgb` and `aep`. Local Acts, personal Acts, Church Measures, and Irish and Northern Ireland Acts get no number key, and resolve by title only.
+    - Welsh SIs from 2026 get no `si/…` key: they have their own number series.
+    - The out-of-coverage table drops a catalogue entry as "already indexed" only on an SI-number hit (the `wsi`/`nisi` canonical coordinates). A chapter hit doesn't count: 41 Geo. 3 c. 1 is both a Great Britain and a UK Act. Known limit: that citation binds the indexed UK Act.
+    - Index format is unchanged; only the keys' content changed.
 21. **Q-B-3 work limit (28 Sept):** an unknown-title check (typo tiers and suggestions) costs `UNKNOWN_TITLE_COST` = 32 of the 320 lookups (UK-W-03). Chosen as the largest power of two that changes no real query in the 100,000-citation sweep sample (40 would change 2).
 17. **Former titles (28 Sept):** a renamed Act cited by its former title binds to the current Act ("Supreme Court Act 1981" → Senior Courts Act 1981). The router adds a note saying the title is a former one.
     - **Source:** the `ukm:AffectedTitle` values in each Act's own effects list. It is the only place the CLML records old titles. The short-title section shows only the new words.
