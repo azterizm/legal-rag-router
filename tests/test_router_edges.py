@@ -17,6 +17,8 @@ from tests.test_build_index import write_aliases, write_records
 BOUND, AMBIGUOUS, OOC = RouteStatus.BOUNDED, RouteStatus.AMBIGUOUS, RouteStatus.OUT_OF_COVERAGE
 ERA, S124 = "uk/ukpga/1996/18", "uk/ukpga/1996/18/s124"
 SI_2011, SI_2026 = "uk/uksi/2011/3006", "uk/uksi/2026/310"
+ORDER_2011 = "The Employment Rights (Increase of Limits) Order 2011"
+ORDER_2026 = "The Employment Rights (Increase of Limits) Order 2026"
 
 
 @pytest.fixture(scope="module")
@@ -230,6 +232,16 @@ def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.Monkey
         ("S.I. 2011/3006, art. 3 and 1996 c. 18", BOUND, None, [f"{SI_2011}/art3", ERA]),
         # an unknown title with a real SI number is asked, never refused (UK-I-30)
         ("Marchwood Order 2011 (S.I. 2011/3006)", AMBIGUOUS, "title_number_conflict", []),
+        # a title and a bracketed SI number that name different SIs are asked (UK-I-30)
+        (f"{ORDER_2011} (S.I. 2026/310)", AMBIGUOUS, "number_mismatch", []),
+        (f"{ORDER_2011} (S.I. 2011/3006)", BOUND, None, [SI_2011]),
+        (f"{ORDER_2011}, S.I. 2026/310", BOUND, None, [SI_2011, SI_2026]),  # a list, not a note
+        (  # the bracket numbers both titles named before it
+            f"{ORDER_2011} and the {ORDER_2026[4:]} (S.I. 2011/3006 and 2026/310)",
+            BOUND,
+            None,
+            [SI_2011, SI_2026],
+        ),
     ],
 )
 def test_pinned_outcomes(
@@ -314,3 +326,22 @@ def test_an_unknown_title_with_a_real_si_number_names_the_si(router: Router) -> 
         "No instrument is titled “Marchwood Order 2011”, but its SI number is that of "
         "The Employment Rights (Increase of Limits) Order 2011. Did you mean that?"
     )
+
+
+def test_a_title_and_a_different_si_number_offer_both(router: Router) -> None:
+    result = router.route(f"{ORDER_2011} (S.I. 2026/310)")
+    assert [c.label for c in result.candidates] == [
+        ORDER_2011,
+        "The Employment Rights (Increase of Limits) Order 2026",
+    ]
+    assert result.clarification is not None
+    assert "the SI number names a different instrument" in result.clarification
+
+
+def test_unknown_title_checks_count_against_the_work_limit(router: Router) -> None:
+    # Each check costs UNKNOWN_TITLE_COST lookups (roadmap Q-B-3, grammar.md UK-W-03).
+    nine = "; ".join(f"employment theft {1970 + i}" for i in range(9))
+    assert router.route(nine).reason == "no_such_title"
+    ten = "; ".join(f"employment theft {1970 + i}" for i in range(10))
+    result = router.route(ten)
+    assert (result.status, result.reason) == (RouteStatus.UNRESOLVED, "too_complex")

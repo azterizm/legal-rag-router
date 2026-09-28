@@ -157,7 +157,11 @@ The margin under 2 ms is thin. The remaining tail is still suggestions for refus
 
 | Index | Floor (worst class, worst sample) | Worst class |
 |---|---|---|
-| Fixture (the test guard: 2× this) | **9.17 ms** (was 9.49) | `unicode_expanding` |
-| **Full UK** | **17.47 ms** | `title_vocabulary`: soup of title words makes up to 16 unknown-title analyses, each with suggestions over a much larger vocabulary |
+| Fixture (the test guard: 2× this) | **9.14 ms** (was 9.49) | `unicode_expanding` |
+| **Full UK** | **9.31 ms** (17.47 ms before Q-B-3) | `unicode_expanding` |
+
+Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a soup of title words made up to 16 unknown-title checks, each ranking suggestions over the full vocabulary. Since Q-B-3 (roadmap decision 21) each check costs 32 lookups against the 320-lookup work limit (grammar.md UK-W-03). At most 10 run per query, and that class now takes 8.6 ms at worst.
+
+**Real queries are unaffected.** Across the 100,000-citation sweep sample, no query needs more than 5 checks, and a charge of 32 moves none over the limit. The 154 over it were already over on plain lookups. The sweep's outcome counts are unchanged apart from decision 20, and p99 stays at 1.88 ms.
 
 `letters_digits` shows a 2.7× doubling ratio on both indexes. That is not superlinear cost: the bench's fixed 4 KB sample contains a bare provision that its 2 KB prefix doesn't, and resolving it over the salient instruments adds about 0.6 ms. Timed on other seeds, the class scales 1.6–1.7× per doubling. Results: `bench/results/stress-darwin-arm64.json` (fixture) and `stress-darwin-arm64-full-index.json`.

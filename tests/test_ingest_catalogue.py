@@ -133,3 +133,71 @@ def test_cli_import(tmp_path: Path) -> None:
 def test_cli_harvest_refuses_placeholder_contact(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="real contact"):
         main(["harvest", "--out", str(tmp_path / "x"), "--contact", "me@example.com"])
+
+
+def _entry(coordinate: str, title: str = "T", year: int = 1807) -> CatalogueEntry:
+    parts = coordinate.split("/")
+    return CatalogueEntry(
+        coordinate=coordinate, series=parts[1], year=int(parts[2]) if parts[2].isdigit() else year,
+        number=int(parts[-1]), title=title, source="t",
+    )  # fmt: skip
+
+
+def test_missing_lists_what_the_index_lacks(tmp_path: Path) -> None:
+    from ingest.uk_catalogue import missing  # noqa: PLC0415
+    from legal_rag_router.index import load_index  # noqa: PLC0415
+    from tests.conftest import FIXTURE_INDEX  # noqa: PLC0415
+
+    raw = tmp_path / "raw_xml"
+    (raw / "uksi" / "2011").mkdir(parents=True)
+    (raw / "uksi" / "2011" / "9999.xml.gz").write_bytes(b"")  # holds another instrument (U2)
+    entries = [
+        _entry("uk/ukpga/1996/18"),  # indexed
+        _entry("uk/uksi/2013/2729"),  # indexed as uk/wsi/2013/2729, found by its number
+        _entry("uk/ukpga/Geo3/47/78", "Lost Act 1807"),  # regnal, lost to a calendar key
+        _entry("uk/uksi/2011/9999"),
+        _entry("uk/asp/2010/13"),  # other series: never ingested
+    ]
+    rows = list(missing(entries, load_index(FIXTURE_INDEX), raw))
+    assert rows == [
+        (
+            "uk/ukpga/Geo3/47/78",
+            "https://www.legislation.gov.uk/ukpga/Geo3/47/78/data.xml",
+            "ukpga/Geo3-47/78.xml.gz",
+            "Lost Act 1807",
+        ),
+        (
+            "uk/uksi/2011/9999",
+            "https://www.legislation.gov.uk/uksi/2011/9999/data.xml",
+            "uksi/refetch-2011/9999.xml.gz",
+            "T",
+        ),
+    ]
+
+
+def test_cli_missing_writes_a_tsv(tmp_path: Path) -> None:
+    from tests.conftest import FIXTURE_INDEX  # noqa: PLC0415
+
+    catalogue = tmp_path / "catalogue.jsonl"
+    write_catalogue([_entry("uk/ukpga/Geo3/47/78", "Lost Act 1807")], catalogue)
+    out = tmp_path / "missing.tsv"
+    args = ["missing", "--catalogue", str(catalogue), "--index", str(FIXTURE_INDEX)]
+    assert main([*args, "--raw-xml", str(tmp_path / "raw"), "--out", str(out)]) == 0
+    lines = out.read_text().splitlines()
+    assert lines[0] == "coordinate\turl\tsave_path\ttitle"
+    assert lines[1].startswith("uk/ukpga/Geo3/47/78\thttps://www.legislation.gov.uk/ukpga/")
+
+
+def test_cli_harvest_merges_into_the_catalogue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import ingest.uk_catalogue as catalogue_module  # noqa: PLC0415
+
+    out = tmp_path / "uk_catalogue.jsonl"
+    write_catalogue([_entry("uk/wsi/2012/1427", ""), _entry("uk/asp/2010/13", "Kept")], out)
+    fed = [_entry("uk/wsi/2012/1427", "Titled Welsh Order 2012")]
+    monkeypatch.setattr(catalogue_module, "harvest", lambda fetcher, series: iter(fed))
+    args = ["harvest", "--out", str(out), "--contact", "abdullah@memonsystems.com"]
+    assert main([*args, "--cache", str(tmp_path / "cache")]) == 0
+    titles = {e["coordinate"]: e["title"] for e in map(json.loads, out.read_text().splitlines())}
+    assert titles == {"uk/wsi/2012/1427": "Titled Welsh Order 2012", "uk/asp/2010/13": "Kept"}

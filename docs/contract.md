@@ -38,7 +38,7 @@ own `resolution`. None is dropped silently.
 | `candidates`, `clarification` | What to offer the user (`ROUTE_AMBIGUOUS`) |
 | `suggestions`, `corrections` | Close real titles for a refusal, and the typo corrections the router applied when it bound |
 | `citations` | Every `ParsedCitation` found, with its span, what was cited and its `resolution` (`resolved`, `not_in_index`, `out_of_coverage`, `unlinked`, `excluded`) and `live_checkable` |
-| `reason` | A machine-readable detail for non-bound outcomes (`year_only`, `case_variants`, `provision_structure_unavailable`, `chapter_mismatch` …) |
+| `reason` | A machine-readable detail for non-bound outcomes (`year_only`, `case_variants`, `provision_structure_unavailable`, `chapter_mismatch`, `number_mismatch`, `title_number_conflict` …) |
 | `messages` | Human-readable refusal and coverage wording, and notes on how a citation was read ("“Supreme Court Act 1981” is a former title of the Senior Courts Act 1981.", "“PACE 1984” read as the Police and Criminal Evidence Act 1984.") |
 | `source` | `grammar`, `identifier` or `context`: `context` means a follow-up was bound against the previous turn's coordinates |
 | `repealed` | The bound instrument is repealed. It is still bound, never refused |

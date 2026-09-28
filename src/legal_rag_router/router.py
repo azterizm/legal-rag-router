@@ -66,6 +66,10 @@ MAX_CUES: Final = 64
 MAX_TITLE_LOOKUPS: Final = 320
 """Work cap per query. Past it the query is too complex to route safely: it fails safe to
 ``ROUTE_UNRESOLVED`` rather than binding on a partial reading (DoS and misroute guard)."""
+UNKNOWN_TITLE_COST: Final = 32
+"""What one unknown-title check (typo tiers and suggestions) costs against
+``MAX_TITLE_LOOKUPS``: it reads many instruments, so at most 10 run per query. No real
+citation in the 100,000-citation sweep sample needs more than 5 (roadmap Q-B-3)."""
 MAX_CITED_WORDS: Final = 20
 MAX_RANGE: Final = 20
 MAX_CANDIDATES_SHOWN: Final = 8
@@ -466,6 +470,8 @@ class Router:
         "Health Act 2009 c. 21": the number is the title's own. "Marchwood Order 2017
         (S.I. 2017/612)": no such title, but the number names a real instrument. The number
         is the stronger identity, so this is asked, never refused (as for "(c. N)").
+        "…Regulations 2017 (S.I. 2018/1232)": title and number name two different SIs, so
+        both are offered (``number_mismatch``), never both bound.
         """
         merged: list[_Instrument] = []
         for mention in mentions:
@@ -482,6 +488,27 @@ class Router:
                 ):
                     merged[-1] = replace(
                         mention, start=last.start, title_as_cited=last.title_as_cited, kind="number"
+                    )
+                    continue
+                if (
+                    last.kind in ("title", "alias", "acronym")
+                    and last.verdict == "resolved"
+                    and mention.instrument_type != "act"
+                    and "(" in scan.query[last.end : mention.start]
+                    and not any(  # "A Regs 1987 and B Regs 1989 (S.I. 1987/899 and …)"
+                        mention.ids[0] in m.ids
+                        for m in mentions
+                        if m is not last and m.kind in ("title", "alias", "acronym")
+                    )
+                ):
+                    # "…Regulations 2017 (S.I. 2018/1232)": title and number name two SIs.
+                    merged[-1] = replace(
+                        mention,
+                        start=last.start,
+                        title_as_cited=last.title_as_cited,
+                        verdict="ambiguous",
+                        ids=tuple(dict.fromkeys([*last.ids, *mention.ids])),
+                        reason="number_mismatch",
                     )
                     continue
                 if last.kind == "anchor" and last.verdict == "not_found":
@@ -927,6 +954,9 @@ class Router:
         known_core = sum(self._index.tables["words"].get(w) is not None for w in core)
         if not clear and (known_core == 0 or (not has_type and known_core < 2)):  # noqa: PLR2004
             return None  # a year after one ordinary word ("substituted 2007") is no claim
+        scan.lookups += UNKNOWN_TITLE_COST
+        if scan.lookups > MAX_TITLE_LOOKUPS:
+            return None  # the route fails safe as too complex
         verdict: TitleVerdict = analyse_title(
             self._index, content, year, type_words=type_words, policy=self._policy
         )
@@ -1473,6 +1503,12 @@ class Router:
             outcome.clarification = (
                 f"No instrument is titled “{mention.title_as_cited}”, but its {number} "
                 f"is that of {_the(names)}. Did you mean that?"
+            )
+        elif mention.reason == "number_mismatch":
+            number = _NUMBER_NAMES.get(mention.instrument_type or "", "number")
+            outcome.clarification = (
+                f"“{mention.title_as_cited}”: the {number} names a different instrument. "
+                f"Which do you mean: {names}?"
             )
         elif mention.reason == "chapter_mismatch":
             outcome.clarification = (

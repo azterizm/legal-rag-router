@@ -66,13 +66,61 @@ Porting the fetch into the repo is deferred until the data has finished download
 
 ### Known gaps (tracked in the roadmap)
 
-- **Download incomplete** (U5): ≈ 100k SIs and 24 large Acts are pending, including CA 2006, ITA 2007, CTA 2009/2010 and FSMA 2000.
-- **Pre-1963 key collisions in the external fetch** (U2): 421 Acts dropped. The regnal-keyed catalogue (U4 harvest, Stage B) lists exactly which.
-- **Other-series listing**:
+- **Download** (U5): complete since 28 Sept 2026: 17,139 Acts and 116,659 SIs.
+- **Pre-1963 key collisions in the external fetch** (U2): 421 Acts were never fetched, because their calendar `year/number` key clashed with another Act's. The regnal-keyed `ukpga` feed lists exactly which (runbook below).
+- **Other-series listing** (U4):
   - It starts in 1970 and misses `apgb`, `aep`, `aosp`, `aip`, `apni`, `mnia`, `mwa`, `uksro`, `nisro` and the draft series.
   - 6,656 Welsh rows (`wsi`, `anaw`, `asc`) have **no title**. They are kept as untitled catalogue entries, so they still count as existing by number.
-  - The Stage B harvest (`ALL_SERIES`) closes all of this.
-- **Stage B check before harvesting:** confirm with one request that `/{series}/data.feed` pages through the whole series via `rel="next"`. If it doesn't, switch to per-year feeds.
+
+### Runbook: the catalogue harvest and the U2 re-fetch (you run both)
+
+Both fetches are yours to run, from your machine, under your contact details. No other client may fetch from the same IP at the same time: together they must stay under the crawl-delay (U7).
+
+**1. What the catalogue harvest does.** `ingest.uk_catalogue harvest` reads each series' Atom feed, `https://www.legislation.gov.uk/{series}/data.feed`, and follows its `rel="next"` links to the last page. From each entry it keeps the identifier (the `IdURI`, so regnal Acts get their real coordinate), the title, and `ukm:Year` / `ukm:Number`. No legislation text is fetched. The result merges into `data/catalogue/uk_catalogue.jsonl`, and feed entries replace imported ones (that is how the untitled Welsh rows get titles). The index uses the catalogue for two things:
+- a citation to anything it lists but does not index is **out of coverage**, not refused as invented;
+- `missing` (step 4) compares it with the index.
+
+The fetch layer enforces the fair-use terms itself: one request per 5 s, a User-Agent carrying your contact (placeholders such as `example.com` are refused), back-off on 429/5xx and `Retry-After`. Every response is cached under `.cache/http`, so an interrupted run resumes where it stopped, and a re-run costs no requests.
+
+**2. Check first (1 request).** Open `https://www.legislation.gov.uk/ukpga/data.feed` and confirm:
+- the page has `<link rel="next" …>`;
+- the entries' `<id>` values are `…/id/ukpga/…` URIs.
+
+If there is no next link, the feed does not page through the whole series. Tell me, and I'll switch the harvester to per-year feeds.
+
+**3. Run it.** Each page lists a few dozen entries, and the harvester logs the pages per series as it goes. I can't count the pages offline; the estimates below assume about 20 entries per page.
+
+Targeted run (recommended; roughly 2–3 h): the series missing from your listing, `ukpga` (regnal-correct, for U2), and the older series whose listing starts in 1970:
+
+```bash
+uv run python -m ingest.uk_catalogue harvest \
+    --out data/catalogue/uk_catalogue.jsonl --contact YOUR-CONTACT \
+    --series ukpga ukla ukci ukcm nisr apgb aep aosp aip apni mnia mwa ukppa gbppa gbla \
+             ukmo eudn eudr eut uksro nisro ukdsi sdsi wdsi nidsr ukmd
+```
+
+Full run (roughly 13–14 h): leave out `--series`. That re-reads every series, including the ones your listing already covers, and fills the untitled Welsh rows.
+
+**4. List what is still missing (offline).** Rebuild the index, then:
+
+```bash
+uv run python -m ingest.build_index --data data --out data/index --snapshot YYYY-MM-DD \
+    --catalogue data/catalogue/uk_catalogue.jsonl
+uv run python -m ingest.uk_catalogue missing --catalogue data/catalogue/uk_catalogue.jsonl \
+    --index data/index --raw-xml uk_scrap_data/raw_xml --out missing.tsv
+```
+
+`missing.tsv` holds one row per `ukpga`/`uksi` instrument the catalogue lists but the index lacks: `coordinate`, `url` (its `data.xml`), `save_path` and `title`. Expect the 421 regnal Acts (U2), and possibly the 12 `uksi` feed mismatches.
+
+**5. Fetch them (your scraper).** Fetch each `url` and save it gzip-compressed at `uk_scrap_data/raw_xml/{save_path}`:
+- for a regnal Act, the save path mirrors its coordinate, e.g. `ukpga/Geo3Sess2-47/78.xml.gz`;
+- where the calendar path already holds another instrument, the directory gets a `refetch-` prefix.
+
+Ingest reads identity from the file's own `IdURI`, never from its path. **Do not re-fetch an instrument already on disk:** two files with the same `IdURI` fail the ingest (`identity_collisions` in the report). Key your queue on the `IdURI` path so the collision cannot recur.
+
+**6. Re-ingest and rebuild.** `uv run python -m ingest.uk --source uk_scrap_data --data data`, then step 4's `build_index`. Ingest skips unchanged instruments. Also update `document_count` in `data/MANIFEST.json`; the licence check fails until it matches.
+
+**Using your own harvester instead of step 3:** write one JSON line per instrument with `coordinate` (e.g. `uk/ukpga/Geo3/47/78`), `series`, `year`, `number` and `title`, as in `router_other_series.jsonl`. `import` replaces the catalogue, so the file must cover every series, `router_other_series.jsonl` included. Then run `import --listing <file>` followed by `import-queue`.
 
 ## BOE (Spain) — Stage C
 

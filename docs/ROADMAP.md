@@ -19,14 +19,24 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-28 |
-| Current stage | **Stage B (all of UK `ukpga` + `uksi`)**: full ingest, index, sweep and latency done. The catalogue harvest (U4) waits for your go |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M5-UK ✅ (except the U4 feed harvest), M6 ✅ (UK, full data), **M7-UK ✅ (full index: sweep committed, p99 1.89 ms)** |
-| Next step | Your answers to Q-B-1 to Q-B-4 (stop log, 28 Sept (3)), then M8-UK batteries |
-| Waiting on you | Q-B-1 to Q-B-4. U2: the 421 pre-1963 Acts lost to calendar keys in your scraper are still missing |
-| Blocked | Nothing. The fixture is complete (CA 2006, SI 2011/3006, SI 2026/310, FSMA 2000) |
+| Current stage | **Stage B (all of UK `ukpga` + `uksi`)**: ingest, index, sweep and latency done; Q-B-1 to Q-B-4 decided |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, M5-UK ✅ (except your two fetches), M6 ✅ (UK, full data), **M7-UK ✅ (full index: sweep committed, p99 1.88 ms)** |
+| Next step | M8-UK batteries. When your fetches land: steps 4 and 6 of the runbook in `docs/sources.md` (re-ingest, rebuild, re-sweep) |
+| Waiting on you | Your catalogue harvest (U4) and your re-fetch of the pre-1963 Acts (U2): runbook in `docs/sources.md` |
+| Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-28 (4): **Q-B-1 to Q-B-4 answered and applied (decisions 20, 21; U2 and U4 fetches are yours). Committed locally.**
+  - **Q-B-1 → `number_mismatch` (decision 20):** a title followed by a bracketed SI number of another SI is asked, with both offered, never both bound. Across 100,000 sweep citations this makes 18 questions, most of them drafting typos in the source ("… Regulations 2011 (S.I. 2011/998)" for 2011/988). It does not fire when the bracket numbers several titles named before it ("A Regs 1987 and B Regs 1989 (S.I. 1987/899 and …)"), or without brackets (a list). The last real misroute is gone: the sweep's 6 remaining misroutes are all wrong link targets in the source.
+  - **Q-B-3 → unknown-title checks count against the work limit (decision 21):** each costs 32 of the 320 lookups (UK-W-03), so at most 10 run per query. 4 KB noise on the full index fell from 17.47 to 9.31 ms. No real query in the 100k sample changes; p99 stays 1.88 ms.
+  - **Q-B-2 / Q-B-4 → you run both fetches.** For the repo side:
+    - `harvest` now merges into the catalogue, with feed entries winning, instead of overwriting it;
+    - a new offline `missing` command lists every catalogued Act or SI the index lacks, with its `data.xml` URL and a free save path;
+    - runbook in `docs/sources.md`.
+  - Tests: 661 pass, 1 skip. Coverage 100 %.
+  - **Resume:** M8-UK batteries. When your fetches land, follow runbook steps 4 and 6, then re-run the sweep.
 
 - 2026-09-28 (3): **Stage B: the full UK run. Committed locally.**
   - **Data:** your download is complete: 17,139 Acts and 116,659 SIs, 133,798 files, all `done`. The U2 gap remains: 421 pre-1963 Acts share a calendar key with another Act and were never fetched (U2).
@@ -58,6 +68,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     2. **Q-B-2** The U4 catalogue harvest from the Atom feeds needs a contact for the User-Agent (the fair-use policy requires one). Your fetch is finished, so the two can't overlap. At 1 request per 5 s, the whole site is about 9,000–10,000 pages (13–14 h). A targeted run is 2–3 h: only the series missing from your listing, plus `ukpga`, which measures the U2 gap. Which run, and which contact?
     3. **Q-B-3** 4 KB noise on the full index is 17.5 ms. Publish it as measured (decision 16), or count unknown-title analyses against the UK-W-03 work budget, so title-word soup stops earlier as `too_complex`?
     4. **Q-B-4** U2: can your scraper re-fetch the 421 regnal Acts keyed on their `IdURI`? Until then they are catalogued but not indexed.
+    - **Answered 28 Sept:** Q-B-1 → `number_mismatch` (decision 20); Q-B-2 and Q-B-4 → you run both fetches (runbook in `docs/sources.md`); Q-B-3 → count against the work limit (decision 21).
   - **Resume:** answers to Q-B-1 to Q-B-4, then M8-UK batteries.
 
 - 2026-09-28 (2): **Your answers applied (decisions 5, 17, 18, 19). Committed locally.**
@@ -232,6 +243,7 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - **Fix:** key the queue and file paths on the `IdURI` path.
   - Until that fix, ingest reads the identity **from each file's own `IdURI`**, never from its path. M3-UK's catalogue lists the Acts that are still missing.
   - 🧑 The fix belongs in your running scraper.
+- **U2/U4 fetches — decided 28 Sept:** you run both from your machine (runbook in `docs/sources.md`): the catalogue harvest with the repo's `ingest.uk_catalogue harvest` or your own harvester, and the re-fetch of the pre-1963 Acts from the list `ingest.uk_catalogue missing` writes.
 - **U3 — Fetch code lives outside the repo for now.** Decided: revisit once all data is downloaded. Until then the repo's `ingest/uk.py` *reads* `uk_scrap_data/`. `docs/sources.md` records how the data was obtained. Scraper hygiene to fix at port time:
   - the UA has a placeholder contact (`data-team@example.com`);
   - concurrency is 15 in parallel, against the plan's 1 req/s.
@@ -681,12 +693,14 @@ M9 docs are written alongside and finished before M10.
     - **Real queries:** < 2 ms p99, published by `bench/latency.py`.
     - **Random noise at the 4 KB cap:** the published number is the *measured* worst case across gibberish classes (`bench/stress.py`). On the Mac:
       - fixture index: 9.17 ms (28 Sept, Stage B; 9.49 ms earlier that day, 7.22 ms on 27 Sept);
-      - **full UK index: 17.47 ms**, from title-vocabulary soup (Q-B-3).
+      - **full UK index: 9.31 ms** (17.47 ms before decision 21).
 
       The tests guard 2× the fixture floor, plus linear doubling (≤ 2.5×) per class.
     - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
+20. **Q-B-1 title vs SI number (28 Sept):** a real title followed by a bracketed SI number of another SI → `ROUTE_AMBIGUOUS`, new reason **`number_mismatch`**, both instruments offered. Not when another title named in the query owns that number (a bracket numbering several titles), and not without brackets (a list). Acts keep `chapter_mismatch` (UK-I-21). grammar.md UK-I-30, contract §2.
+21. **Q-B-3 work limit (28 Sept):** an unknown-title check (typo tiers and suggestions) costs `UNKNOWN_TITLE_COST` = 32 of the 320 lookups (UK-W-03). Chosen as the largest power of two that changes no real query in the 100,000-citation sweep sample (40 would change 2).
 17. **Former titles (28 Sept):** a renamed Act cited by its former title binds to the current Act ("Supreme Court Act 1981" → Senior Courts Act 1981). The router adds a note saying the title is a former one.
     - **Source:** the `ukm:AffectedTitle` values in each Act's own effects list. It is the only place the CLML records old titles. The short-title section shows only the new words.
     - **Acts only.** SI effect titles are mostly abbreviations ("Regs", "O") and typos.

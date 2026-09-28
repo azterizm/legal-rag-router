@@ -11,8 +11,16 @@ Two sources write the same :class:`~ingest.records.CatalogueEntry` JSONL:
     Converts an existing listing (``router_other_series.jsonl``) offline. Stage A.
 ``harvest``
     Reads the Atom feeds through :class:`~ingest.cache.Fetcher` (1 request / 5 s, cached,
-    resumable). Stage B only, after the XML download finishes, so two clients never share
-    the rate budget (roadmap decision 9).
+    resumable) and merges them into the catalogue; feed entries win. Stage B only, after
+    the XML download finishes, so two clients never share the rate budget (roadmap U7).
+
+One offline report reads the catalogue back:
+
+``missing``
+    Every ``ukpga``/``uksi`` instrument the catalogue lists but the index lacks (roadmap
+    U2), as a TSV of coordinate, ``data.xml`` URL, a free save path under ``raw_xml/`` and
+    title, for an external fetcher. Ingest reads identity from each file's ``IdURI``, so any
+    free path of the form ``raw_xml/{series}/{dir}/{file}.xml.gz`` works.
 
 Usage::
 
@@ -20,6 +28,8 @@ Usage::
         --out data/catalogue/uk_catalogue.jsonl
     uv run python -m ingest.uk_catalogue harvest --out data/catalogue/uk_catalogue.jsonl \\
         --contact you@yourcompany.com [--series asp ssi …]
+    uv run python -m ingest.uk_catalogue missing --catalogue data/catalogue/uk_catalogue.jsonl \\
+        --index data/index --raw-xml uk_scrap_data/raw_xml --out missing.tsv
 """
 
 from __future__ import annotations
@@ -40,8 +50,10 @@ from ingest.cache import Fetcher, FetchPolicy
 from ingest.records import CatalogueEntry, canonical_json
 from ingest.uk import clean_title, coordinate_from_uri
 from legal_rag_router.coordinate import Coordinate
+from legal_rag_router.grammars.uk import number_keys
+from legal_rag_router.index import RouterIndex, load_index
 
-__all__ = ["ALL_SERIES", "harvest", "import_listing", "main", "parse_feed"]
+__all__ = ["ALL_SERIES", "harvest", "import_listing", "main", "missing", "parse_feed"]
 
 log = logging.getLogger("ingest.uk_catalogue")
 
@@ -211,6 +223,34 @@ def harvest(fetcher: Fetcher, series: Sequence[str]) -> Iterator[CatalogueEntry]
         log.info("%s: %d pages", name, pages)
 
 
+def missing(
+    entries: Iterable[CatalogueEntry],
+    index: RouterIndex,
+    raw_xml: Path,
+    series: Sequence[str] = ("ukpga", "uksi"),
+) -> Iterator[tuple[str, str, str, str]]:
+    """Catalogued instruments the index lacks: (coordinate, data.xml URL, save path, title).
+
+    An instrument counts as present if the index knows its id or its official number, so a
+    Welsh SI listed as ``uksi`` is not reported. The save path mirrors the coordinate
+    (``ukpga/Geo3Sess2-47/78.xml.gz``); if that file already exists (it holds another
+    instrument, U2) the directory gets a ``refetch-`` prefix.
+    """
+    for entry in entries:
+        coordinate = Coordinate.parse(entry.coordinate)
+        if entry.series not in series or index.instrument(coordinate.instrument_id):
+            continue
+        if any(index.ids("numbers", key) for key in number_keys(coordinate.instrument)):
+            continue
+        series_name, *middle, number = coordinate.instrument
+        folder = "-".join(middle)
+        save = Path(series_name) / folder / f"{number}.xml.gz"
+        if (raw_xml / save).exists():
+            save = Path(series_name) / f"refetch-{folder}" / f"{number}.xml.gz"
+        url = f"{SITE}/{'/'.join(coordinate.instrument)}/data.xml"
+        yield entry.coordinate, url, save.as_posix(), entry.title or ""
+
+
 def write_catalogue(entries: Iterable[CatalogueEntry], out: Path) -> int:
     """Write entries de-duplicated by coordinate (first wins), sorted, atomically."""
     unique: dict[str, CatalogueEntry] = {}
@@ -240,9 +280,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     har.add_argument("--cache", type=Path, default=Path(".cache/http"))
     har.add_argument("--series", nargs="*", default=list(ALL_SERIES))
     har.add_argument("--interval", type=float, default=FetchPolicy().min_interval)
+    gaps = sub.add_parser("missing", help="list catalogued ukpga/uksi the index lacks (offline)")
+    gaps.add_argument("--catalogue", type=Path, required=True)
+    gaps.add_argument("--index", type=Path, required=True)
+    gaps.add_argument("--raw-xml", type=Path, required=True, help="where the XML is saved")
+    gaps.add_argument("--out", type=Path, required=True, help="TSV to write")
+    gaps.add_argument("--series", nargs="*", default=["ukpga", "uksi"])
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
+    if args.command == "missing":
+        rows = list(
+            missing(
+                read_catalogue(args.catalogue), load_index(args.index), args.raw_xml, args.series
+            )
+        )
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        with args.out.open("w", encoding="utf-8", newline="\n") as fh:
+            fh.write("coordinate\turl\tsave_path\ttitle\n")
+            fh.writelines("\t".join(row) + "\n" for row in rows)
+        log.info("%d instruments missing; list written to %s", len(rows), args.out)
+        return 0
     if args.command == "import-queue":
         existing = list(read_catalogue(args.out))  # existing entries win on duplicates
         count = write_catalogue(
@@ -257,7 +315,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         user_agent = f"legal-rag-router-ingest/0.1 ({args.contact})"
         policy = FetchPolicy(min_interval=max(args.interval, FetchPolicy().min_interval))
         with Fetcher(args.cache, user_agent, policy) as fetcher:
-            count = write_catalogue(harvest(fetcher, args.series), args.out)
+            harvested = list(harvest(fetcher, args.series))
+        # Feed entries win over imported ones (titles for the untitled Welsh rows, U4).
+        count = write_catalogue([*harvested, *read_catalogue(args.out)], args.out)
     log.info("wrote %d catalogue entries to %s", count, args.out)
     return 0
 
