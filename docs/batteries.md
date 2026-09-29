@@ -56,7 +56,11 @@ Each invented instrument carries `absence_verified_via`:
   - **`SI 2011/9999`:** the source answered `400 Bad Request`, its answer for an SI number it has no record of. The fetch layer caches only 200, 404 and 410, so this one was recorded from your run's log (the row's `notes` say so). The script now treats 400, 404 and 410 as absent for number-cited rows, and saves after every row.
   - To redo it: `build_uk` rewrites the rows without dates, then `verify_absence --contact …` (or `--from-cache`) fills them again.
 
-## Intended scoring (implemented by M10's `eval/run.py`)
+## Scoring (implemented in `eval/metrics.py`, run by `eval/run.py`)
+
+The plan defines a misroute as "bound, but to the wrong coordinate"; the review text below says "no coordinate in an expected instrument", which is narrower. Fixed before the run (29 Sept 2026): the headline **misroute** uses the plan's definition, any bound row whose expected coordinates are not all met. It is reported in two parts: **wrong instrument** (in the `collision` battery, the **collision** rate) and **wrong provision** (right instrument, another provision). Every rate carries a one-sided 95 % Clopper-Pearson upper bound. Typo metrics use the `test` split only.
+
+The rules as reviewed at M8:
 
 - **A `ROUTE_BOUNDED` row is met** when each expected coordinate is bound, or something above or beneath it is. The source's links are often to the whole instrument (the same `_related` rule as the sweep).
   - Bound but with no coordinate in an expected instrument: a **collision** (`collision`) or **misroute** (other batteries).

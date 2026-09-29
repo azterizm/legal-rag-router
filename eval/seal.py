@@ -141,6 +141,44 @@ def verify_battery_seal(seal_path: Path, repo: Path, index_dir: Path) -> dict[st
     return dict(seal)
 
 
+def seal_results(
+    repo: Path, files: list[Path], battery_seal: Path, *, now: datetime | None = None
+) -> dict[str, Any]:
+    """The results seal: the SHA-256 of each results file, citing the battery seal's hash."""
+    cited = json.loads(battery_seal.read_text(encoding="utf-8"))
+    contents = {
+        "results": _file_hashes(files, repo),
+        "battery_seal": {
+            "file": battery_seal.relative_to(repo).as_posix(),
+            "seal_sha256": cited["seal_sha256"],
+        },
+        "package_version": __version__,
+    }
+    return {
+        "seal_format": SEAL_FORMAT,
+        "kind": "results",
+        "sealed_at": (now or datetime.now(UTC)).isoformat(timespec="seconds"),
+        "git_commit": _git(repo, "rev-parse", "HEAD"),
+        "seal_sha256": sha256_of(canonical(contents)),
+        "contents": contents,
+    }
+
+
+def verify_results_seal(seal_path: Path, repo: Path) -> dict[str, Any]:
+    """The results seal, if the results files are unchanged. Raises :class:`SealError`."""
+    seal = json.loads(seal_path.read_text(encoding="utf-8"))
+    if seal.get("kind") != "results" or seal.get("seal_format") != SEAL_FORMAT:
+        raise SealError(f"{seal_path} is not a format-{SEAL_FORMAT} results seal")
+    if sha256_of(canonical(seal["contents"])) != seal["seal_sha256"]:
+        raise SealError(f"{seal_path} has been edited: its contents no longer match its hash")
+    sealed = seal["contents"]["results"]
+    now = _file_hashes((repo / name for name in sealed if (repo / name).is_file()), repo)
+    differences = _differences(sealed, now)
+    if differences:
+        raise SealError("the sealed results changed:\n  " + "\n  ".join(differences))
+    return dict(seal)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument("--repo", type=Path, default=REPO, help=argparse.SUPPRESS)
