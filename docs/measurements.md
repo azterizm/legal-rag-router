@@ -220,6 +220,21 @@ This is outside `route()`'s < 2 ms path: discovery is an interactive step, follo
 
 It counts every call rather than the best of three per query, which is stricter than the earlier 1.88 ms figure.
 
-### After the sealed-run fixes (v2, 29 Sept)
+The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise.
 
-The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise. The x86-64 run is pending (`scripts/latency_x86.sh`, on the v2 seal).
+## 2026-09-29: sealed-run latency, x86-64 (roadmap M10)
+
+`bench/results/latency-windows-x86_64.json`: the same 100,000 replayed citations plus every battery row, 3 repeats (306,336 calls), garbage collection paused. Full UK index, verified byte-for-byte against the v2 seal (`024da21e…`). Machine: Intel64 Family 6 Model 58, Windows 10 AMD64, Python 3.11.16 via Git Bash (`scripts/latency_x86.sh`).
+
+| Status | calls | p50 | p99 | max |
+|---|---|---|---|---|
+| All | 306,336 | 623 µs | **12.27 ms** | 229.3 ms |
+| `ROUTE_BOUNDED` | 246,285 | 618 µs | 5.50 ms | 229.3 ms |
+| `ROUTE_UNRESOLVED` | 25,794 | 180 µs | 19.38 ms | 93.9 ms |
+| Provision not found | 18,282 | 904 µs | 11.46 ms | 76.7 ms |
+| `ROUTE_AMBIGUOUS` | 12,804 | 1,955 µs | 36.01 ms | 97.2 ms |
+| Out of coverage | 1,899 | 643 µs | 8.23 ms | 31.5 ms |
+| Instrument not found | 1,272 | 2,250 µs | 44.70 ms | 95.7 ms |
+
+Deterministic outcome counts match Mac v2 row for row. Across all calls, p50 is 623 µs; bound queries run at p50 618 µs and p99 5.50 ms.
+

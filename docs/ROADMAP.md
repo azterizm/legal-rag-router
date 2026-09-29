@@ -19,14 +19,19 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-29 |
-| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); x86 latency pending. Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)** |
-| Next step | Your x86 latency run on the v2 seal, then M11 (Unit 1–2 comparison) |
-| Waiting on you | 🧑 `bash scripts/latency_x86.sh` on the rig. ⛔ The Mac p99 of 2.11 ms after the fixes (stop log 16). Optional: a go for the vault proposals |
+| Current stage | **M10-UK done: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`), **x86-64 latency measured** (`bench/results/latency-windows-x86_64.json`). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
+| Next step | M11 (Unit 1–2 comparison) |
+| Waiting on you | ⛔ The Mac p99 of 2.11 ms after the fixes (stop log 16). Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
+  - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
+  - **Latency results (Intel64 / Windows AMD64):** 306,336 calls, p50 623 µs, p99 12.27 ms (bound queries: p50 618 µs, p99 5.50 ms). All 306,336 call outcomes match Mac v2 exactly.
+  - **Resume:** M11 (Unit 1–2 comparison).
 
 - 2026-09-29 (16): **M10-UK v2: the fixes, a second seal and one run; x86 latency pending.** Reading: `reports/sealed-run-uk.md`, "Second sealed run (v2)".
   - **Your decisions on stop 15:** fix the deviations (the cross-sentence link above all) and the two titles, then one final clean seal.
