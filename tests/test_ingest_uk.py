@@ -373,3 +373,25 @@ def test_other_titles_come_from_effects_on_this_instrument() -> None:
     )
     record = parse_clml(clml("ukpga/2020/5", "", extra_meta=meta)).instrument
     assert record.other_titles == ("Former Test Act 2020",)
+
+
+def test_cross_headings_and_the_long_title_are_kept() -> None:
+    body = (
+        f'<Pblock IdURI="{ID}ukpga/2020/5/crossheading/compensation"><Title>Compensation</Title>'
+        + p1("ukpga/2020/5/section/1", "1", p2("ukpga/2020/5/section/1/1", "(1)", "<Text>a</Text>"))
+        + f'<PsubBlock IdURI="{ID}ukpga/2020/5/crossheading/limits"><Title>Limits</Title>'
+        + p1("ukpga/2020/5/section/2", "2", "<Text>b</Text>")
+        + "</PsubBlock></Pblock>"
+        + p1("ukpga/2020/5/section/3", "3", "<Text>c</Text>")
+    )
+    long_title = (
+        '<PrimaryPrelims><LongTitle><CommentaryRef Ref="c1"/>An Act to limit awards.'
+        "</LongTitle></PrimaryPrelims>"
+    )
+    parsed = parse_clml(clml("ukpga/2020/5", body, tail=long_title))
+    records = by_coordinate(parsed.provisions)
+    assert records["uk/ukpga/2020/5/s1"].crossheading == "Compensation"
+    assert records["uk/ukpga/2020/5/s1/1"].crossheading is None  # sections only
+    assert records["uk/ukpga/2020/5/s2"].crossheading == "Compensation - Limits"
+    assert records["uk/ukpga/2020/5/s3"].crossheading is None
+    assert parsed.instrument.long_title == "An Act to limit awards."

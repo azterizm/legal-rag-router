@@ -42,7 +42,8 @@ __all__ = [
     "write_instrument_file",
 ]
 
-RECORD_SCHEMA_VERSION = 1
+RECORD_SCHEMA_VERSION = 2
+"""2 (29 Sept 2026): ``long_title`` on instruments, ``crossheading`` on provisions (stage D)."""
 
 AuthorityType = Literal["PRIMARY_ACT", "SECONDARY_INSTRUMENT"]
 TextVersion = Literal["current", "as_enacted"]
@@ -127,6 +128,9 @@ class InstrumentRecord(_Record):
     """Coordinates the source publishes more than once (e.g. schedule parts that restart
     paragraph numbering under one id). Only the first occurrence has a record."""
     groups: dict[str, tuple[str, ...]] = Field(default_factory=dict)
+    long_title: str | None = None
+    """The Act's long title ("An Act to consolidate enactments relating to employment
+    rights…"); SIs have none. Used by concept discovery (stage D), not by the router."""
     other_titles: tuple[str, ...] = ()
     """Other titles the source's effects list for this instrument (former titles, and
     source variants or errors). Raw evidence: the index build decides what to trust
@@ -155,6 +159,9 @@ class ProvisionRecord(_Record):
     order: int = Field(ge=0)
     number_label: str | None = None
     title: str | None = None
+    crossheading: str | None = None
+    """The cross-heading a section-level provision sits under ("Compensation" above ERA
+    1996 ss. 118-127), with a sub-cross-heading after " - ". Used by concept discovery."""
     repealed: bool = False
     prospective: bool = False
     text: str = ""

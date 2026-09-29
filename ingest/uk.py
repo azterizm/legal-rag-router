@@ -338,7 +338,15 @@ class _Parser:
     # --- walk
 
     def walk(self) -> None:
-        self._walk(self.root, self.instrument, status=None, groups=(), heading=None, context=None)
+        self._walk(
+            self.root,
+            self.instrument,
+            status=None,
+            groups=(),
+            heading=None,
+            context=None,
+            crossheading=None,
+        )
         commentaries = self.root.find(f".//{_COMMENTARIES}")
         if commentaries is not None:
             self._harvest_all(commentaries, self.instrument, None, in_commentary=True)
@@ -373,6 +381,7 @@ class _Parser:
         groups: tuple[str, ...],
         heading: str | None,
         context: Element | None,
+        crossheading: str | None,
     ) -> None:
         if element.tag in _SKIP or element.tag == _COMMENTARIES:
             return
@@ -387,8 +396,17 @@ class _Parser:
         status = element.get("Status", status)
         if element.tag == f"{LEG}P1group":
             heading = _text_of(element.find(f"{LEG}Title"))
+        elif element.tag == f"{LEG}Pblock":
+            crossheading = _text_of(element.find(f"{LEG}Title"))
+        elif element.tag == f"{LEG}PsubBlock":
+            sub = _text_of(element.find(f"{LEG}Title"))
+            crossheading = (
+                f"{crossheading} - {sub}" if crossheading and sub else sub or crossheading
+            )
         coordinate = self.provision_of(element)
-        if coordinate is not None and self._emit(element, coordinate, status, groups, heading):
+        if coordinate is not None and self._emit(
+            element, coordinate, status, groups, heading, crossheading=crossheading
+        ):
             enclosing = coordinate
             if coordinate.provision[-1].startswith(_GROUP_PREFIXES):
                 groups = (*groups, "/".join(coordinate.provision))
@@ -402,6 +420,7 @@ class _Parser:
                 groups=groups,
                 heading=heading if element.tag == f"{LEG}P1group" else None,
                 context=context,
+                crossheading=crossheading,
             )
 
     def _emit(
@@ -411,6 +430,8 @@ class _Parser:
         status: str | None,
         groups: tuple[str, ...],
         heading: str | None,
+        *,
+        crossheading: str | None,
     ) -> bool:
         text = str(coordinate)
         if text in self.seen:
@@ -451,6 +472,7 @@ class _Parser:
                 order=len(self.provisions),
                 number_label=label,
                 title=title,
+                crossheading=crossheading if element.tag == f"{LEG}P1" else None,
                 repealed=status == "Repealed",
                 prospective=status == "Prospective",
                 text=text_before,
@@ -608,6 +630,7 @@ def parse_clml(data: bytes, *, source_sha256: str | None = None) -> ParsedInstru
         alternative_versions=parser.alternative_versions,
         duplicated_provisions=tuple(parser.duplicated),
         groups={k: tuple(v) for k, v in sorted(parser.groups.items())},
+        long_title=_text_of(root.find(f".//{LEG}LongTitle")),
         other_titles=other_titles(metadata, instrument, title),
         text_version="current" if cls_value("DocumentStatus") == "revised" else "as_enacted",
         version_date=_date(_text_of(metadata.find(f"{DCT}valid"))),
