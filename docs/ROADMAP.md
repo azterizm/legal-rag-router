@@ -19,14 +19,24 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-29 |
-| Current stage | **Stage B (all of UK)**: data complete, ingest, index, sweep and latency done; **UK batteries sealed and tagged** |
+| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: D0 evidence done, ⛔ D1 decisions. Stage B done; UK batteries sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`)** |
-| Next step | M10-UK: `eval/run.py` and `eval/metrics.py`, `bench/latency.py`, then the sealed run |
-| Waiting on you | Nothing |
+| Next step | Stage D, one step at a time (`docs/discovery.md`): D1 decisions, then D2 (concept battery, evaluation first). M10-UK after stage D |
+| Waiting on you | ⛔ **D1 decisions** (`docs/discovery.md`) |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (8): **Stage D planned (concept discovery), D0 evidence done; ⛔ D1 decisions.**
+  - **Why (your note, citing Mart 2017):** research queries rarely carry a citation, so `ROUTE_UNRESOLVED` → discover-then-bind is the main path, not a Phase 4 fallback. Section headings alone won't find ERA s. 124 for "unfair dismissal compensatory award statutory cap".
+  - **D0 probe** (scratch, not committed; the 15 probe queries are excluded from any battery). BM25 over all 1,118,604 section-level provisions of the full index:
+    - headings only (the vault's design) put the gold provision in the top 10 for 6 of 15;
+    - adding Part / Chapter titles, the instrument title, stemming and 6 synonyms gave 12 of 15;
+    - rank 1 was right for only 4 of 15, so discovery must offer candidates and never bind;
+    - text concatenated into one field hurt (8 of 15): it needs its own weighted field.
+  - **Plan:** `docs/discovery.md`, steps D1 to D6, one at a time. It uses a separate `data/concepts/` index and a separate method, so `route()`, the router index and the sealed batteries are unchanged.
+  - **Resume:** D1 answers, then D2 (concept battery first, sealed before any tuning).
 
 - 2026-09-29 (7): **M8-UK sealed and tagged locally (`battery-seal-2026-09-29`).**
   - **Your review:** all six review points in `docs/batteries.md` approved as written.
@@ -331,6 +341,20 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
   - 697 files under `uksi/` are canonically `wsi/…` or `nisi/…` (their `IdURI`). They keep that canonical coordinate and resolve from `SI yyyy/n` through the numbers table.
   - Provision ids inside `<BlockAmendment>` are quoted text from another Act and are never indexed.
   - Lower-case designators occur only on schedules and paragraphs in older Acts (`sch13/parab`).
+
+---
+
+## D. Stage D: concept discovery, UK (added 29 Sept 2026, before M10)
+
+Plan, evidence and signals: `docs/discovery.md`. Executed one step at a time; ⛔ marks a stop.
+
+- [x] **D0** Evidence probe: headings-only search finds the gold provision in the top 10 for 6 of 15 keyword queries. Adding structure titles, stemming and synonyms raises that to 12 of 15. Rank 1 was right for 4 of 15.
+- [ ] ⛔ **D1** Decisions: API shape and index location, signals (case law?), how the evaluation set is made.
+- [ ] ⛔ **D2** Concept battery (evaluation first): keyword queries in Mart's style with acceptable gold provisions, dev / test split. Reviewed by you, then sealed before any ranking is tuned.
+- [ ] **D3** Ingest keeps long titles and cross-headings. Concept index `data/concepts/` (own manifest, SHA-256 verified, stdlib tables).
+- [ ] **D4** `discover()`: BM25F, stemming, curated thesaurus. Candidates re-validated by exact lookup, with headings and evidence; never text, never bound. Tuned on dev only.
+- [ ] ⛔ **D5** Sealed evaluation on test against the heading-only baseline: recall@1/5/10, MRR, safety invariants, latency.
+- [ ] ⛔ **D6** Contract §5 and README; proposed vault changes (02 §5, 05 §4, 07, 10 Phase 4) need your go.
 
 ---
 
