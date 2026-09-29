@@ -181,7 +181,7 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-05 | `ERA 1996`, `ERA 96`, `ERA '96`, `CA 2006` | the Act | Alias table (`aliases/uk.toml`) |
 | UK-I-06 | `employment rights 1996` | the Act | No type word: **B** if the key fits one instrument, else **A**. Never **I** |
 | UK-I-07 | `Employment Rights Act` | the Act if unique, else **A** | No year. `Finance Act` → **A** |
-| UK-I-08 | `1996 c. 18`, `1996 c 18`, `c. 18 of 1996` | `uk/ukpga/1996/18` | Chapter citation. A bare `c.18` → **A** |
+| UK-I-08 | `1996 c. 18`, `1996 c 18`, `c. 18 of 1996` | `uk/ukpga/1996/18` | Chapter citation, also `1996.c.18`. A bare `c.18` → **A** (`chapter_without_year`), except right after the citation it annotates, where it is a series note (`S.I. 2007/2194, C. 84`) |
 | UK-I-09 | `SI 2011/3006`, `S.I. 2011/3006`, `S.I. 2011 No. 3006`, `SI 2011 No 3006`, `2011 No. 3006`, `S.I. 2011/ 3006`, `S.I.s 2011/3006 and …` | `uk/uksi/2011/3006` (or `wsi`/`nisi` if that is canonical) | Official number |
 | UK-I-10 | `8 & 9 Eliz. 2 c. 69`, `47 Geo. 3 Sess. 2 c. 78`, `10 Edw. 7 & 1 Geo. 5 c. 15` | the regnal coordinate | Regnal citation |
 | UK-I-11 | `the 1996 Act`, `(“the 1996 Act”)`, `section 124 of the 1996 Act` | the Act of 1996 named earlier in the query, else — | Refers back to the nearest earlier Act of that year in the query. Otherwise **A** (`year_only`) across the indexed Acts of 1996, narrowed to those holding the cited provision. **B** only when neither the index nor the catalogue knows another Act of that year |
@@ -189,9 +189,9 @@ Every form is matched case-insensitively after normalisation (§6, R-rows).
 | UK-I-13 | `The Employment Rights (Increase of Limits) Order 2011` | the SI | A leading `The` is optional. `(Amendment)`, `(No. 2)`, `(Commencement No. 3)` are distinguishing words and are never dropped |
 | UK-I-14 | Several SIs sharing a title and year | — | **A**, asking for the SI number |
 | UK-I-15 | Title + year where no such instrument exists: `Marchwood Commercial Arbitration Order 2022`, `Employment Rights Act 1995` | — | **I**, with suggestions (typo tiers, plan departure 7) |
-| UK-I-16 | A real title with a small typo: `Employment Rihgts Act 1996` | the Act | **B** with `corrections=[("rihgts","rights")]` |
+| UK-I-16 | A real title with a small typo: `Employment Rihgts Act 1996` | the Act | **B** with `corrections=[("rihgts","rights")]`. A known but rare title word (in at most 3 titles) is also a typo when it is one edit from a word at least 20 times as common (`Road Trafic Act 1988`), and so is singular for plural (`Employment Right Act 1996`). This pass runs only when the title has a year. One fit binds; several ask |
 | UK-I-17 | A bigger typo: `Emplyment Rihgts Act 1996` | — | **A**: "did you mean …?" |
-| UK-I-18 | Reordered title: `Rights of Employment Act 1996` | the Act | **B** with the reordering recorded, if exactly one real title has that word set |
+| UK-I-18 | Reordered title: `Rights of Employment Act 1996` | the Act | **B** with the reordering recorded, if exactly one real title has that word set. A reordered title that also needs a correction (`Rights of Employmnet Act 1996`) is **A** |
 | UK-I-19 | Capitalised invented words in front of a real title: `Marchwood Commercial Arbitration Act 1996` | — | **I**, suggesting "Arbitration Act 1996" |
 | UK-I-20 | The same in lower case: `marchwood commercial arbitration act 1996` | — | **A**: "Did you mean the Arbitration Act 1996?" |
 | UK-I-21 | A chapter note after a title: `Employment Rights Act 1996 (c. 18)`, `(c.18, SIF 43:5)`, `Theft Act 1968 c. 60` | the Act | The note is part of the citation. A chapter that names a different Act → **A** (`chapter_mismatch`, both offered). An unknown title with a real chapter → **A** (`title_number_conflict`), never **I** |
@@ -254,7 +254,7 @@ These limits keep routing linear in the query length. Past a limit the router ne
 |---|---|---|
 | UK-W-01 | Queries longer than 4,096 characters | **U**, `query_too_long` |
 | UK-W-02 | Prefilter: text with no digit, `/`, `_`, `§`, instrument-type word, alias word or trigger word (`Part`, `Schedule`, `Bill`, `GDPR` …) cannot hold a citation | **U** without scanning |
-| UK-W-03 | More than 24 instrument mentions, 64 cues or 320 title lookups. An unknown-title check (typo tiers and suggestions) counts as 32 lookups, so at most 10 run per query | **U**, `too_complex` |
+| UK-W-03 | More than 64 cues, 48 title anchors (counted before repeated titles merge) or 320 title lookups. An unknown-title check (typo tiers and suggestions) counts as 32 lookups, so at most 10 run per query. More than 24 instrument and provision mentions | **U**, `too_complex`; mentions: **U**, `too_many_citations` |
 | UK-W-04 | A cited title is read at most 20 words to the left of its type word (28 for a known title) | A longer unknown title is left unread, never refused (**I**) |
 | UK-W-05 | Ranges wider than 20 provisions | **A**, `range` |
 
@@ -264,7 +264,7 @@ These limits keep routing linear in the query length. Past a limit the router ne
 |---|---|---|
 | UK-U-01 | Concept-only queries: "the unfair dismissal law" | **U** (discover-then-bind) |
 | UK-U-02 | Relative references: "subsection (2) above" | **U** |
-| UK-U-03 | Pinpoints to recitals, preambles, explanatory notes | **U** |
+| UK-U-03 | Pinpoints to recitals, preambles, explanatory notes: the instrument right after the cue is not bound | **U**, `unsupported_pinpoint` |
 | UK-U-04 | Popular names not in the alias table: "the Bribery law" | **U** |
 | UK-U-05 | A bare `yyyy/n` with no `S.I.` or other cue: `2005/275` (commencement tables cite SIs this way in a column headed "S.I. No.") | **U**: a bare slash number could be anything |
 

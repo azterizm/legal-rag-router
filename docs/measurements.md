@@ -168,10 +168,10 @@ After the change the five slices give p99 1.81–1.91 ms. The margin is still th
 
 | Index | Floor (worst class, worst sample) | Worst class |
 |---|---|---|
-| Fixture (the test guard: 2× this) | **9.06 ms** (was 9.49) | `unicode_expanding` |
-| **Full UK** | **9.21 ms** (17.47 ms before Q-B-3) | `unicode_expanding` |
+| Fixture (the test guard: 2× this) | **9.38 ms** (9.06 before the M10 fixes) | `unicode_expanding` |
+| **Full UK** | **9.34 ms** (9.21 before the M10 fixes; 17.47 ms before Q-B-3) | `unicode_expanding` |
 
-Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a soup of title words made up to 16 unknown-title checks, each ranking suggestions over the full vocabulary. Since Q-B-3 (roadmap decision 21) each check costs 32 lookups against the 320-lookup work limit (grammar.md UK-W-03). At most 10 run per query, and that class now takes 8.6 ms at worst. The figures above are from after the U2 re-fetch and the year-from-id change (fixture 9.14 → 9.06 ms, rebuilt from your catalogue; full 9.31 → 9.21 ms).
+Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a soup of title words made up to 16 unknown-title checks, each ranking suggestions over the full vocabulary. Since Q-B-3 (roadmap decision 21) each check costs 32 lookups against the 320-lookup work limit (grammar.md UK-W-03). At most 10 run per query, and that class now takes 8.6 ms at worst. The figures above are from after the U2 re-fetch and the year-from-id change (fixture 9.14 → 9.06 ms, rebuilt from your catalogue; full 9.31 → 9.21 ms). The fixes from the first sealed run (29 Sept: the known-word typo pass, the 48-anchor limit) move the floor by a few tenths of a millisecond, inside run-to-run noise. On the full index the anchor limit now stops `title_vocabulary` soup early (8.6 → 1.4 ms), and `digits_and_years` falls from 7.3 to 2.6 ms.
 
 **Real queries are unaffected.** Across the 100,000-citation sweep sample, no query needs more than 5 checks, and a charge of 32 moves none over the limit. The 154 over it were already over on plain lookups. The sweep's outcome counts are unchanged apart from decision 20, and p99 on that 20,000-query draw stays at 1.88 ms.
 
