@@ -137,6 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--baseline", choices=sorted(BASELINES))
     parser.add_argument("--misses", action="store_true", help="list dev rows without a hit")
     parser.add_argument("--json", type=Path)
+    parser.add_argument("--details", action="store_true", help="per-row results in --json")
     args = parser.parse_args(argv)
     if args.split == "test":
         if args.misses:
@@ -154,7 +155,14 @@ def main(argv: list[str] | None = None) -> int:
     router = Router.from_path(args.index, concepts=args.concepts, discovery_policy=policy)
     rows = [r for r in read_concepts(args.battery) if r.split == args.split]
     results = evaluate(router, rows)
-    summary = {"split": args.split, "baseline": args.baseline, **report(results)}
+    summary: dict[str, Any] = {"split": args.split, "baseline": args.baseline, **report(results)}
+    if args.details:
+        summary["rows"] = [
+            {"id": r.row.id, "source": r.row.source, "area": r.row.area, "query": r.row.query,
+             "rank": r.rank, "confident": r.confident, "route_ok": r.route_ok, "top": r.top,
+             "notes": r.row.notes}
+            for r in results
+        ]  # fmt: skip
     print(json.dumps(summary, indent=2))
     if args.misses:
         for r in results:
