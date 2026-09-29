@@ -186,6 +186,8 @@ def _invented(url: str) -> BatteryRow:
         (SEARCH, 200, _feed("Moon Mining (Licensing) Act 2016"), False),
         (SEARCH, 503, b"", False),
         ("https://www.legislation.gov.uk/uksi/2011/9999", 404, b"", True),
+        ("https://www.legislation.gov.uk/uksi/2011/9999", 400, b"", True),  # rejected number
+        (SEARCH, 400, b"", False),  # a rejected search is never an absence
         ("https://www.legislation.gov.uk/uksi/2011/3006", 200, b"<x/>", False),
     ],
 )
@@ -202,7 +204,7 @@ def test_verify_absence(tmp_path: Path, url: str, status: int, body: bytes, abse
         sleep=lambda _: None, rng=random.Random(0),
     ) as fetcher:  # fmt: skip
         try:
-            result = verify(fetcher, _invented(url))[0]
+            result = verify(fetcher.get, _invented(url))[0]
         except Exception:  # noqa: BLE001 - a failed fetch must never count as absent
             result = False
     assert result is absent
@@ -223,3 +225,27 @@ def test_verify_absence_dry_run_fetches_nothing(
     out = capsys.readouterr().out
     assert "/all/data.feed?title=Moon" in out
     assert "1 row(s) to confirm" in out
+
+
+def test_verify_absence_from_cache_needs_no_request(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cache = tmp_path / "cache"
+    policy = FetchPolicy(min_interval=0.0, max_retries=0)
+    with Fetcher(
+        cache, "test (you@lrr.test)", policy,
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, content=_feed())),
+        sleep=lambda _: None, rng=random.Random(0),
+    ) as fetcher:  # fmt: skip
+        fetched_on = fetcher.get(feed_url(SEARCH)).fetched_at[:10]
+    other = SEARCH.replace("Moon", "Sun")
+    rows = [_invented(SEARCH), _invented(other).model_copy(update={"id": "uk-invented-0002"})]
+    path = tmp_path / "uk" / "invented.jsonl"
+    write_battery(path, rows)
+    assert main(["--battery", str(path), "--cache", str(cache), "--from-cache"]) == 0
+    assert "confirmed 1, found 0, still unconfirmed 1" in capsys.readouterr().out
+    first, second = read_battery(path)
+    assert first.absence_verified_via is not None
+    assert str(first.absence_verified_via.searched) == fetched_on  # the response's own date
+    assert second.absence_verified_via is not None
+    assert second.absence_verified_via.searched is None  # not cached: left for a real search

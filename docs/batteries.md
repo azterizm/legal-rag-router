@@ -2,7 +2,7 @@
 
 The labelled queries the sealed run (M10) scores the router on (plan step 8). One JSON Lines file per battery under `batteries/uk/`, validated in CI by `tests/test_batteries.py` against `batteries/schema.py`.
 
-**Status (28 Sept 2026): built, not sealed.** They are frozen only after your review (roadmap M8 ⛔).
+**Status (29 Sept 2026): sealed.** You approved the six review points below on 29 Sept, and every invented instrument is confirmed absent at the source. The seal is `seals/battery-2026-09-29.json`, tagged locally as `battery-seal-2026-09-29` (see Seal below).
 
 The `misroute` queries quote source text from legislation.gov.uk: Crown copyright, used under the Open Government Licence v3.0.
 
@@ -51,10 +51,10 @@ Rebuild with `uv run python -m batteries.build_uk` (build machine: needs `data/`
 Each invented instrument carries `absence_verified_via`:
 
 - **Offline check:** done. The row names the index snapshot and the catalogue hash.
-- **Source's own search:** pending, because it is a fetch and you run fetches.
-  - `uv run python -m batteries.verify_absence --dry-run` lists the 52 URLs.
-  - `uv run python -m batteries.verify_absence --contact YOUR-CONTACT` fetches them through the repo's fetch layer: one request per 5 s, about 5 minutes, cached. It fills `searched` for every row the source doesn't know.
-  - The site's title search matches by containment, so only a result with the same full-title key counts as found. A number-cited row (`SI 2011/9999`) is absent when the source answers 404.
+- **Source's own search:** done on 29 Sept, by your run of `batteries.verify_absence` with your contact. Every one of the 52 is absent.
+  - **51 title searches** (`/all/data.feed?title=…&year=…`) found no instrument with the same full-title key. The site matches by containment, so "Employment Rights Act" 1995 returned 20 other titles and none of them is that one. They were recorded from your fetched responses with `verify_absence --from-cache`, which makes no request. Your run had stopped before saving, on the last row.
+  - **`SI 2011/9999`:** the source answered `400 Bad Request`, its answer for an SI number it has no record of. The fetch layer caches only 200, 404 and 410, so this one was recorded from your run's log (the row's `notes` say so). The script now treats 400, 404 and 410 as absent for number-cited rows, and saves after every row.
+  - To redo it: `build_uk` rewrites the rows without dates, then `verify_absence --contact …` (or `--from-cache`) fills them again.
 
 ## Intended scoring (implemented by M10's `eval/run.py`)
 
@@ -66,9 +66,9 @@ Each invented instrument carries `absence_verified_via`:
 - **An `ambiguous` typo row** scores clarify recall: its first expected coordinate should be the top candidate.
 - Other rows compare the status only.
 
-## Review points (⛔ before sealing)
+## Review points (approved 29 Sept 2026)
 
-These are the labels where the plan, grammar.md and the data could be read more than one way. Please confirm or overrule each.
+These are the labels where the plan, grammar.md and the data could be read more than one way. You approved all six as written.
 
 1. **Year-less "Employment Rights Act" is ambiguous.** The plan's informal example (`employment rights act section 124`) assumed one Act. The index also holds the **Employment Rights Act 2025**, which has ss. 98 and 124. Those rows are labelled **A**, per the plan's own rule (bound only when one instrument fits). Likewise "Working Time Regulations" (1998 and 1999) and "the equality act" (2006 and 2010).
 2. **`Employment Right Act 1996` (singular) is labelled B.** The plan lists singular/plural among small typos. "right" is itself a word in other titles, so this tests whether a known word one edit from the right one is corrected.
@@ -76,3 +76,18 @@ These are the labels where the plan, grammar.md and the data could be read more 
 4. **Injection-shaped identifiers are labelled B** with only the safe key bound (`uk/ukpga/1996/18' or '1'=='1` → the Act). That is what the code guarantees. grammar.md said the input "fails the grammar"; that wording is now corrected.
 5. **Stratified `false_abstention` draw** (half Acts, half SIs), explained above.
 6. **UK-C-17 has no row**, because it is an API argument.
+
+## Seal
+
+`uv run python -m eval.seal battery` writes `seals/battery-YYYY-MM-DD.json` (plan step 9). It records the canonical-JSON SHA-256 (sorted keys, no spaces, UTF-8) of:
+- every battery file;
+- every index file, since the index is not in git;
+- the alias TOMLs;
+- the harvest split manifest (`reports/harvest-split.json`: which citations are held out);
+- the frozen typo thresholds (`TypoPolicy`);
+- the package version;
+- the git commit the batteries were sealed at.
+
+The seal needs a committed tree. It is committed, then tagged locally as `battery-seal-YYYY-MM-DD` (`git tag -a`; never pushed without your go).
+
+`uv run python -m eval.seal verify seals/battery-….json` recomputes all of it and names every file that differs. M10's `eval/run.py` refuses to start on any difference. `tests/test_seal.py` checks this with one changed byte in a battery, index or alias file, an added battery file, and an edited seal.

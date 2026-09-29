@@ -18,15 +18,25 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-09-28 |
-| Current stage | **Stage B (all of UK)**: data complete, ingest, index, sweep and latency done; **UK batteries built, awaiting your review** |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK built ⛔ (your review)** |
-| Next step | After your review: seal and run (M10-UK) |
-| Waiting on you | ⛔ **Review the UK batteries** (`docs/batteries.md`, review points 1–6), and run `batteries.verify_absence` with your contact (about 5 minutes) |
+| Last updated | 2026-09-29 |
+| Current stage | **Stage B (all of UK)**: data complete, ingest, index, sweep and latency done; **UK batteries sealed and tagged** |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`)** |
+| Next step | M10-UK: `eval/run.py` and `eval/metrics.py`, `bench/latency.py`, then the sealed run |
+| Waiting on you | Nothing |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (7): **M8-UK sealed and tagged locally (`battery-seal-2026-09-29`).**
+  - **Your review:** all six review points in `docs/batteries.md` approved as written.
+  - **Invented instruments: all 52 confirmed absent at the source.** Your `verify_absence` run stopped on the last row: legislation.gov.uk answers `400 Bad Request` for `uksi/2011/9999`, and the fetch layer raised on it before anything was saved.
+    - The 51 title searches were recorded from your cached responses (`--from-cache`, no request). None found an instrument with the same title.
+    - Row 52 was recorded from your run's log, and its notes say so.
+    - Fixed: 400/404/410 count as absent for a number-cited row, each row is saved at once, `--from-cache` exists, and `FetchError` carries the HTTP status. The cache helpers are module-level (`read_cached`).
+  - **`eval/seal.py`:** canonical-JSON SHA-256 over the battery files, every index file, the alias TOMLs, the harvest split manifest, the typo thresholds, the package version and the git commit. `verify` names every difference. Tests cover one changed byte in a battery, index, alias or split file, an added battery file, an edited seal, and a dirty tree.
+  - **The sealed index is reproducible:** a fresh build from the committed code is byte-identical to `data/index`.
+  - **Resume:** M10-UK. Write `eval/run.py` (refuses to start unless `eval.seal verify` passes), `eval/metrics.py` and `bench/latency.py`, then the sealed run.
 
 - 2026-09-28 (6): **M8-UK batteries built; halted for your review (⛔). Committed locally.**
   - **2,112 rows in nine files** (`batteries/uk/`), schema in `batteries/schema.py`, validated in CI:
@@ -583,7 +593,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M8 — Batteries (plan step 8) · written during M4–M7, frozen at the end of M8
 
-> **Status (28 Sept):** UK built (2,112 rows, `docs/batteries.md`); ⛔ waiting for your review. ES follows in Stage C.
+> **Status (29 Sept):** UK sealed (2,112 rows, `docs/batteries.md`, `seals/battery-2026-09-29.json`, tag `battery-seal-2026-09-29`). ES follows in Stage C.
 
 - [x] `batteries/schema.py` (pydantic). Row fields:
   - `id, query, context?, lang, domain, expected_status, expected_coordinates, source (hand|real_document|sampled), notes`;
@@ -606,9 +616,9 @@ Each of these changes order or method but not what gets delivered. See §4.
   | `catalogue` | ≥ 1 row per catalogue entry | |
 
 - [x] Coverage check: every supported surface-form row in grammar.md is exercised by at least one battery row (CI test).
-- [ ] 🧑 (offline check done; `batteries.verify_absence` is yours to run) Invented rows need the absence confirmed with the source's own search. I record the search URL and date for each; you may want to spot-check a sample.
+- [x] 🧑 (confirmed 29 Sept: all 52 absent at the source) Invented rows need the absence confirmed with the source's own search. I record the search URL and date for each; you may want to spot-check a sample.
 - [x] Typo thresholds are tuned on the `dev` slice only (D2), then frozen in the constants block. (22/22 dev rows met: no change.)
-- ⛔ **Halt: you review the batteries before they are sealed.**
+- ⛔ **Halt: you review the batteries before they are sealed.** ✅ Approved 29 Sept; sealed as `battery-seal-2026-09-29`.
 
 ### M9 — Documentation (production-readiness; spread across M1–M8, finished here)
 
@@ -630,7 +640,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 ### M10 — Seal, then run (plan step 9) · day 8
 
 - [ ] `eval/seal.py`: canonical-JSON SHA-256 (ported from `jev-vs-sovereign-benchmark/src/engine/audit_seal.py`, without torch/transformers).
-  - `seal_battery`: hashes the batteries, index files, alias TOMLs, harvest split manifest, package version and git commit → `seals/battery-YYYY-MM-DD.json`.
+  - [x] `seal_battery` (29 Sept, also the typo thresholds): hashes the batteries, index files, alias TOMLs, harvest split manifest, package version and git commit → `seals/battery-YYYY-MM-DD.json`.
   - `seal_results`: hashes the results and cites the battery-seal hash.
 - [ ] `eval/run.py`: refuses to start if the recomputed battery hash differs from the tagged seal. A negative test flips one byte to prove this.
 - [ ] `eval/metrics.py`, per domain:
@@ -639,7 +649,7 @@ Each of these changes order or method but not what gets delivered. See §4.
   - auto-correct precision and recall, and clarify recall;
   - each with a Clopper–Pearson 95 % upper bound, implemented in stdlib and tested against known values.
 - [ ] `bench/latency.py`: p50/p99 per status, `perf_counter_ns`, warm-up, GC paused, platform recorded.
-- [ ] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag.
+- [x] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag. (You said go on 29 Sept: `battery-seal-2026-09-29`, local only.)
 - [ ] The run → `results/*.json`, a markdown table, and the sealed results.
 - [ ] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file.
 - **Done when:** the per-domain table exists from one sealed run, collision is 0.0 %, bound-on-invented is 0.0 %, and both platforms' p50/p99 are recorded.

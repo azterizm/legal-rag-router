@@ -43,7 +43,7 @@ from typing import Final
 
 import httpx
 
-__all__ = ["FetchError", "FetchPolicy", "FetchResult", "Fetcher"]
+__all__ = ["FetchError", "FetchPolicy", "FetchResult", "Fetcher", "read_cached"]
 
 log = logging.getLogger("ingest.cache")
 
@@ -54,7 +54,14 @@ _PLACEHOLDER: Final = re.compile(r"example\.(com|org|net)|localhost|your(domain|
 
 
 class FetchError(RuntimeError):
-    """Raised when a URL cannot be fetched after all retries."""
+    """Raised when a URL cannot be fetched after all retries.
+
+    ``status`` is the HTTP status when the server answered one the cache does not keep.
+    """
+
+    def __init__(self, message: str, *, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,9 +167,9 @@ class Fetcher:
         Raises:
             FetchError: when the request keeps failing or the body exceeds the size cap.
         """
-        meta = self._load_meta(url)
+        meta = _load_meta(self.cache_dir, url)
         if meta is not None and not revalidate:
-            return self._result(meta, from_cache=True)
+            return _result(self.cache_dir, meta, from_cache=True)
         headers: dict[str, str] = {}
         if meta is not None:
             if meta.get("etag"):
@@ -192,7 +199,7 @@ class Fetcher:
             try:
                 with self._client.stream("GET", url, headers=headers) as response:
                     if response.status_code == 304 and meta is not None:  # noqa: PLR2004
-                        return self._result(meta, from_cache=True)
+                        return _result(self.cache_dir, meta, from_cache=True)
                     if response.status_code in _RETRY_STATUSES:
                         last_error = f"HTTP {response.status_code}"
                         self._back_off(attempt, response.headers.get("Retry-After"), url)
@@ -222,7 +229,7 @@ class Fetcher:
     def _store(self, url: str, response: httpx.Response) -> FetchResult:
         status = response.status_code
         if status not in _CACHEABLE_STATUSES:
-            raise FetchError(f"{url}: unexpected HTTP {status}")
+            raise FetchError(f"{url}: unexpected HTTP {status}", status=status)
         body_sha: str | None = None
         if status == 200:  # noqa: PLR2004
             body_sha = self._write_blob(url, response)
@@ -234,8 +241,10 @@ class Fetcher:
             "body_sha256": body_sha,
             "fetched_at": datetime.fromtimestamp(self._wall(), tz=UTC).isoformat(),
         }
-        self._atomic_write(self._meta_path(url), json.dumps(meta, sort_keys=True).encode())
-        return self._result(meta, from_cache=False)
+        self._atomic_write(
+            _meta_path(self.cache_dir, url), json.dumps(meta, sort_keys=True).encode()
+        )
+        return _result(self.cache_dir, meta, from_cache=False)
 
     def _write_blob(self, url: str, response: httpx.Response) -> str:
         blob_dir = self.cache_dir / "blobs"
@@ -244,7 +253,7 @@ class Fetcher:
         try:
             with os.fdopen(fd, "wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as gz:
                 sha = self._copy_capped(url, response, gz)
-            target = self._blob_path(sha)
+            target = _blob_path(self.cache_dir, sha)
             target.parent.mkdir(parents=True, exist_ok=True)
             Path(tmp).replace(target)
         except BaseException:
@@ -264,38 +273,6 @@ class Fetcher:
             sink.write(chunk)
         return digest.hexdigest()
 
-    def _result(self, meta: dict[str, object], *, from_cache: bool) -> FetchResult:
-        body_sha = meta.get("body_sha256")
-        return FetchResult(
-            url=str(meta["url"]),
-            status=int(str(meta["status"])),
-            body_path=self._blob_path(str(body_sha)) if body_sha else None,
-            from_cache=from_cache,
-            fetched_at=str(meta["fetched_at"]),
-            etag=str(meta["etag"]) if meta.get("etag") else None,
-            last_modified=str(meta["last_modified"]) if meta.get("last_modified") else None,
-        )
-
-    def _meta_path(self, url: str) -> Path:
-        key = _sha(url)
-        return self.cache_dir / "meta" / key[:2] / f"{key}.json"
-
-    def _blob_path(self, sha: str) -> Path:
-        return self.cache_dir / "blobs" / sha[:2] / f"{sha}.gz"
-
-    def _load_meta(self, url: str) -> dict[str, object] | None:
-        path = self._meta_path(url)
-        try:
-            meta = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            return None
-        if not isinstance(meta, dict):
-            return None
-        body_sha = meta.get("body_sha256")
-        if body_sha and not self._blob_path(str(body_sha)).exists():
-            return None  # body evicted or incomplete: refetch
-        return meta
-
     @staticmethod
     def _atomic_write(path: Path, data: bytes) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -307,3 +284,44 @@ class Fetcher:
         except BaseException:
             Path(tmp).unlink(missing_ok=True)
             raise
+
+
+def read_cached(cache_dir: Path, url: str) -> FetchResult | None:
+    """The cached response for ``url``, without any request; ``None`` if not cached."""
+    meta = _load_meta(cache_dir, url)
+    return None if meta is None else _result(cache_dir, meta, from_cache=True)
+
+
+def _result(cache_dir: Path, meta: dict[str, object], *, from_cache: bool) -> FetchResult:
+    body_sha = meta.get("body_sha256")
+    return FetchResult(
+        url=str(meta["url"]),
+        status=int(str(meta["status"])),
+        body_path=_blob_path(cache_dir, str(body_sha)) if body_sha else None,
+        from_cache=from_cache,
+        fetched_at=str(meta["fetched_at"]),
+        etag=str(meta["etag"]) if meta.get("etag") else None,
+        last_modified=str(meta["last_modified"]) if meta.get("last_modified") else None,
+    )
+
+
+def _meta_path(cache_dir: Path, url: str) -> Path:
+    key = _sha(url)
+    return cache_dir / "meta" / key[:2] / f"{key}.json"
+
+
+def _blob_path(cache_dir: Path, sha: str) -> Path:
+    return cache_dir / "blobs" / sha[:2] / f"{sha}.gz"
+
+
+def _load_meta(cache_dir: Path, url: str) -> dict[str, object] | None:
+    try:
+        meta = json.loads(_meta_path(cache_dir, url).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(meta, dict):
+        return None
+    body_sha = meta.get("body_sha256")
+    if body_sha and not _blob_path(cache_dir, str(body_sha)).exists():
+        return None  # body evicted or incomplete: refetch
+    return meta
