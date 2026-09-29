@@ -145,6 +145,8 @@ def seal_results(
     repo: Path, files: list[Path], battery_seal: Path, *, now: datetime | None = None
 ) -> dict[str, Any]:
     """The results seal: the SHA-256 of each results file, citing the battery seal's hash."""
+    repo, battery_seal = repo.resolve(), battery_seal.resolve()
+    files = [f.resolve() for f in files]
     cited = json.loads(battery_seal.read_text(encoding="utf-8"))
     contents = {
         "results": _file_hashes(files, repo),

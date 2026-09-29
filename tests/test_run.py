@@ -128,3 +128,10 @@ def test_a_results_seal_is_checked(repo: Path) -> None:
     seal.write_text(json.dumps(edited))
     with pytest.raises(SealError, match="has been edited"):
         verify_results_seal(seal, repo)
+
+
+def test_a_relative_seal_path_is_accepted(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(repo)
+    assert main(["--repo", str(repo), "--seal", "seals/battery.json", "--index", "index"]) == 0
+    [seal] = (repo / "seals").glob("results-*.json")
+    assert json.loads(seal.read_text())["contents"]["battery_seal"]["file"] == "seals/battery.json"
