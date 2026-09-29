@@ -80,6 +80,12 @@ def test_editorial_notes_leave_the_title_key(title: str, key: str) -> None:
     assert title_variants(title)[0] == key
 
 
+@pytest.mark.parametrize("query", ["Road Trafic Act", "The Harbour Light Order"])
+def test_the_known_word_pass_needs_a_year(router: Router, query: str) -> None:
+    result = router.route(query)  # a year-less phrase is too weak to correct a known word
+    assert (result.status, result.corrections) == (RouteStatus.UNRESOLVED, ())
+
+
 def test_two_single_word_corrections_that_fit_different_titles_ask(router: Router) -> None:
     result = router.route("The Harbour Light Order 2010")  # "harbours light" or "lights"?
     assert (result.status, result.reason) == (RouteStatus.AMBIGUOUS, "typo")

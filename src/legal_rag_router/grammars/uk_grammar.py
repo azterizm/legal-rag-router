@@ -162,7 +162,7 @@ _SI_BARE_PINPOINT: Final = (
 _SI_CONTINUATION_RE: Final = re.compile(
     rf"{_SI_NOTE}{{0,2}}(?:{_SI_PINPOINT}|{_SI_BARE_PINPOINT})?{_SI_SEP}"
     r"(?:(?P<y>(?:19|20)\d\d)\s*(?:/\s*|\s+no\.?\s*)(?P<n>\d{1,5})|(?P<bare>\d{3,5}))"
-    r"(?![\d/])"
+    r"(?![\d/])(?!\s*,?\s*(?:c|ch|chapter)\.?\s*\d)"  # "…, 1993 c. 50" is an Act's year
 )
 # The series note right after an SI number belongs to it: "S.I. 2009/662(S.1)" has no s. 1.
 _SI_NUMBER_NOTE_RE: Final = re.compile(
@@ -181,7 +181,7 @@ _SR_RE: Final = re.compile(
     rf"\s*(?:/|\s+no\.?\s*)(?P<n>\d{{1,5}})(?!\d)"
 )
 _CHAPTER_RE: Final = re.compile(
-    rf"(?<![a-z0-9/]){_Y}\s*,?\s*(?:c|ch|chapter)\.?\s*(?P<n>\d{{1,3}})(?![\d/])"
+    rf"(?<![a-z0-9/]){_Y}(?:\s*,?\s*(?:c|ch|chapter)|\s*\.\s*c)\.?\s*(?P<n>\d{{1,3}})(?![\d/])"
     rf"|(?<![a-z0-9])(?:c|ch|chapter)\.?\s*(?P<n2>\d{{1,3}})\s+of\s+(?P<y2>{_YEAR_RX})(?!\d)"
 )
 # UK-U-03: explanatory notes, preambles and recitals are not provisions; the instrument named

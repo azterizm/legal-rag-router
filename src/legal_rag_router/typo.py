@@ -248,7 +248,7 @@ def analyse_title(
         verdict = _typo_verdict(index, vocabulary, words, unknown, year=year, policy=policy)
         if verdict is not None:
             return verdict
-    if not unknown:
+    if not unknown and year is not None:  # only a clear citation: prose has no year
         verdict = _known_word_typo(index, vocabulary, words, year=year, policy=policy)
         if verdict is not None:
             return verdict

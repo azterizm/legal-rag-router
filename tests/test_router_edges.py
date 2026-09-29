@@ -232,6 +232,16 @@ def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.Monkey
         ("recital 12 of the Equality Act 2010", RouteStatus.UNRESOLVED, "unsupported_pinpoint", []),
         ("Theft Act 1968 and " * 24 + "Theft Act 1968", RouteStatus.UNRESOLVED, "too_complex", []),
         ("Employment Right Act 1996", BOUND, None, ["uk/ukpga/1996/18"]),  # singular for plural
+        # regressions the v2 fixes caused in the 100k sweep, fixed before the v2 seal
+        ("S.I. 2011/3006, C. 84", BOUND, None, [SI_2011]),  # a commencement-series note
+        ("1996.c.18", BOUND, None, [ERA]),
+        ("S.I. 2011/3006, 1996 c. 18", BOUND, None, [SI_2011, ERA]),  # not SI 2011/1996
+        (
+            "S.I. 2011/3006, 1996 c.18, S.I. 2026/310",
+            BOUND,
+            None,
+            [SI_2011, ERA, SI_2026],
+        ),
         # a negation cue too far from the citation excludes nothing
         ("not relevant here: section 124 of the Employment Rights Act 1996", BOUND, None, [S124]),
         # SI lists (UK-I-22), series notes (UK-I-29), years ending a provision list (UK-P-06)

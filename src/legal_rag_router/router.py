@@ -1096,6 +1096,9 @@ class Router:
                 )
                 taken.append((start, cue.end))
             elif cue.kind == "bare_chapter":  # UK-I-08: no year, so ask which
+                before = [m for m in found if m.end <= cue.start]
+                if before and scan.query[max(m.end for m in before) : cue.start].strip(" ,(") == "":
+                    continue  # "S.I. 2007/2194, C. 84": the series note of the number before it
                 mentions.append(
                     _Instrument(
                         cue.start,
