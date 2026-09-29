@@ -1,6 +1,6 @@
 # Concept discovery (discover-then-bind), UK
 
-Status (29 Sept 2026): **D0 and D1 done; D2 built, ⛔ waiting for your review.** Roadmap stage D.
+Status (29 Sept 2026): **D0–D2 done; the concept battery is sealed (`seals/concept-2026-09-29.json`); D3 next.** Roadmap stage D.
 
 ## The gap
 
@@ -85,7 +85,7 @@ Sources quoted verbatim:
 - Mart's searches: S. N. Mart, *Appendix B: The Algorithm as a Human Artifact: Implications for Legal [Re]Search*, 109 Law Libr. J. app. B (2017), https://scholar.law.colorado.edu/research-data/5;
 - the probe queries: `rag-security-probes` (Memon Systems Ltd).
 
-### ⛔ D2 review points
+### D2 review points (all four approved, 29 Sept 2026)
 
 1. **Appendix B as out-of-jurisdiction negatives.** I read "add appendixb.md" as: use its 50 searches verbatim, where the good outcome is *no confident UK candidate*. Several have UK analogues ("age employment discrimination disparate treatment" ↔ Equality Act 2010 s. 13 / s. 19). The alternative is to translate them into UK questions with gold. But then I would write them, and they would no longer be independent of me.
 2. **Gold where your repository names an Act or a range rather than a section:**
@@ -95,7 +95,7 @@ Sources quoted verbatim:
 3. **The dev / test split** of my rows is 112 / 91: a 50 % hash, landing where it did. Your rows are reported as their own slice, as the independent result.
 4. **The scoring above,** in particular "no confident candidate" for the negatives. `discover()` will need a confidence threshold, tuned on dev only.
 
-After your review: seal the concept battery (`eval.seal` gets a `concept` kind; a tag only with your go), then D3.
+Sealed with `uv run python -m eval.seal concept` and verified with `eval.seal verify seals/concept-2026-09-29.json`. It pins the battery file and the router index its gold was checked against. It is not tagged, since a tag needs your go.
 
 ## Plan (roadmap stage D; executed one step at a time)
 
@@ -103,7 +103,7 @@ After your review: seal the concept battery (`eval.seal` gets a `concept` kind; 
 |---|---|---|
 | **D0** | Evidence probe (above) | — done |
 | **D1** | Decisions: API shape, index location, signals, evaluation method | ✅ 29 Sept |
-| **D2** | ⛔ built, waiting for your review. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
+| **D2** | ✅ approved and sealed 29 Sept. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
 | **D3** | Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
 | **D4** | `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
 | **D5** | Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results |

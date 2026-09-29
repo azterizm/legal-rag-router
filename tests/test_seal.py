@@ -108,3 +108,20 @@ def test_the_concept_battery_has_its_own_seal(repo: Path) -> None:
     (repo / "batteries" / "concept").mkdir()
     (repo / "batteries" / "concept" / "uk.jsonl").write_text("{}\n")
     assert verify_battery_seal(path, repo, repo / "index")["kind"] == "battery"
+
+
+def test_concept_seal_pins_the_concept_battery_only(repo: Path) -> None:
+    (repo / "batteries" / "concept").mkdir()
+    concept = repo / "batteries" / "concept" / "uk.jsonl"
+    concept.write_text('{"id": "uk-concept-0001"}\n')
+    _git(repo, "add", "-A")
+    _git(repo, "-c", "user.name=t", "-c", "user.email=t@lrr.test", "commit", "-qm", "concept")
+    assert main(["--repo", str(repo), "concept", "--index", str(repo / "index")]) == 0
+    [path] = (repo / "seals").glob("concept-*.json")
+    seal = json.loads(path.read_text())
+    assert set(seal["contents"]["batteries"]) == {"batteries/concept/uk.jsonl"}
+    (repo / "batteries" / "uk" / "collision.jsonl").write_text("changed\n")  # not pinned here
+    assert verify_battery_seal(path, repo, repo / "index")["kind"] == "concept"
+    concept.write_text("changed\n")
+    with pytest.raises(SealError, match=r"concept/uk\.jsonl"):
+        verify_battery_seal(path, repo, repo / "index")

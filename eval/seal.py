@@ -1,6 +1,7 @@
 """Battery seal (plan step 9): canonical-JSON SHA-256 over everything a run depends on.
 
     uv run python -m eval.seal battery            # writes seals/battery-YYYY-MM-DD.json
+    uv run python -m eval.seal concept            # the stage-D concept battery (D2)
     uv run python -m eval.seal verify seals/battery-YYYY-MM-DD.json
 
 The seal records the SHA-256 of every battery file, every index file (the index is not in
@@ -55,18 +56,31 @@ def _file_hashes(paths: Iterable[Path], root: Path) -> dict[str, str]:
     return out
 
 
-def battery_contents(repo: Path, index_dir: Path) -> dict[str, Any]:
+KINDS: Final = ("battery", "concept")
+"""``battery``: the nine plan batteries (M8); ``concept``: the stage-D concept battery (D2)."""
+
+
+def battery_contents(repo: Path, index_dir: Path, kind: str = "battery") -> dict[str, Any]:
     """Everything a sealed run depends on, by content hash."""
     manifest = json.loads((index_dir / "index-manifest.json").read_text(encoding="utf-8"))
+    index = {
+        "snapshot": manifest["snapshot"],
+        "format_version": manifest["format_version"],
+        "files": _file_hashes((p for p in index_dir.iterdir() if p.is_file()), index_dir),
+    }
+    if kind == "concept":
+        # Frozen before any ranking is tuned (roadmap D2). The index is the one its gold
+        # coordinates were checked against; the concept index (D3) does not exist yet.
+        return {
+            "batteries": _file_hashes((repo / "batteries" / "concept").glob("*.jsonl"), repo),
+            "index": index,
+            "package_version": __version__,
+        }
     return {
         # The plan batteries live in a jurisdiction directory (batteries/uk/…); the stage-D
         # concept battery (batteries/concept/) has its own seal.
         "batteries": _file_hashes((repo / "batteries").glob("[a-z][a-z]/*.jsonl"), repo),
-        "index": {
-            "snapshot": manifest["snapshot"],
-            "format_version": manifest["format_version"],
-            "files": _file_hashes((p for p in index_dir.iterdir() if p.is_file()), index_dir),
-        },
+        "index": index,
         "aliases": _file_hashes((repo / "aliases").glob("*.toml"), repo),
         "harvest_split": _file_hashes([repo / "reports" / "harvest-split.json"], repo),
         "typo_policy": asdict(DEFAULT_POLICY),
@@ -84,14 +98,16 @@ def _git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
-def seal_battery(repo: Path, index_dir: Path, *, now: datetime | None = None) -> dict[str, Any]:
-    """The battery seal for the current commit. Tracked files must be committed first."""
+def seal_battery(
+    repo: Path, index_dir: Path, *, kind: str = "battery", now: datetime | None = None
+) -> dict[str, Any]:
+    """The seal of ``kind`` for the current commit. Tracked files must be committed first."""
     if _git(repo, "status", "--porcelain", "--untracked-files=no"):
         raise SealError("commit every tracked change before sealing")
-    contents = battery_contents(repo, index_dir)
+    contents = battery_contents(repo, index_dir, kind)
     return {
         "seal_format": SEAL_FORMAT,
-        "kind": "battery",
+        "kind": kind,
         "sealed_at": (now or datetime.now(UTC)).isoformat(timespec="seconds"),
         "git_commit": _git(repo, "rev-parse", "HEAD"),
         "battery_sha256": sha256_of(canonical(contents["batteries"])),
@@ -115,11 +131,11 @@ def _differences(sealed: Mapping[str, Any], now: Mapping[str, Any], path: str = 
 def verify_battery_seal(seal_path: Path, repo: Path, index_dir: Path) -> dict[str, Any]:
     """The seal, if everything it pins is unchanged. Raises :class:`SealError` otherwise."""
     seal = json.loads(seal_path.read_text(encoding="utf-8"))
-    if seal.get("kind") != "battery" or seal.get("seal_format") != SEAL_FORMAT:
+    if seal.get("kind") not in KINDS or seal.get("seal_format") != SEAL_FORMAT:
         raise SealError(f"{seal_path} is not a format-{SEAL_FORMAT} battery seal")
     if sha256_of(canonical(seal["contents"])) != seal["seal_sha256"]:
         raise SealError(f"{seal_path} has been edited: its contents no longer match its hash")
-    differences = _differences(seal["contents"], battery_contents(repo, index_dir))
+    differences = _differences(seal["contents"], battery_contents(repo, index_dir, seal["kind"]))
     if differences:
         raise SealError("the sealed inputs changed:\n  " + "\n  ".join(differences))
     return dict(seal)
@@ -129,17 +145,19 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument("--repo", type=Path, default=REPO, help=argparse.SUPPRESS)
     sub = parser.add_subparsers(dest="command", required=True)
-    make = sub.add_parser("battery", help="seal the batteries at the current commit")
-    make.add_argument("--index", type=Path, default=REPO / "data" / "index")
-    make.add_argument("--out", type=Path, default=None)
+    for kind in KINDS:
+        make = sub.add_parser(kind, help=f"seal the {kind} batteries at the current commit")
+        make.add_argument("--index", type=Path, default=REPO / "data" / "index")
+        make.add_argument("--out", type=Path, default=None)
     check = sub.add_parser("verify", help="check a battery seal against the working tree")
     check.add_argument("seal", type=Path)
     check.add_argument("--index", type=Path, default=REPO / "data" / "index")
     args = parser.parse_args(argv)
     try:
-        if args.command == "battery":
-            seal = seal_battery(args.repo, args.index)
-            out = args.out or args.repo / "seals" / f"battery-{seal['sealed_at'][:10]}.json"
+        if args.command in KINDS:
+            seal = seal_battery(args.repo, args.index, kind=args.command)
+            name = f"{args.command}-{seal['sealed_at'][:10]}.json"
+            out = args.out or args.repo / "seals" / name
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(seal, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             print(f"sealed {len(seal['contents']['batteries'])} battery files at "
