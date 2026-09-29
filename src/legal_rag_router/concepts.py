@@ -20,6 +20,9 @@ Files:
 ``postings.tf``      uint32 per posting: the term's count in each field, 6 bits a field
 ``docs.tbl/.off``    ``{doc id:08d}`` → JSON ``{"c": coordinate, "h": heading, "k": kind}``
 ``lengths.bin``      uint16 x fields per document: each field's length in terms
+``thesaurus.json``   stemmed term → stemmed expansions (query expansion; curated TOML)
+``priors.bin``       2 bytes per document: authority flags (:data:`PRIOR_FLAGS`) and the
+                     instrument's citation in-degree, ``round(16 * log2(1 + n))`` capped at 255
 ``concepts-manifest.json``  format, fields, counts, average lengths, SHA-256 of each file
 
 Terms come from :func:`terms`: NFKC, casefold, letters and digits, stop words dropped, and a
@@ -48,6 +51,7 @@ __all__ = [
     "CONCEPTS_MANIFEST",
     "CONCEPT_FILES",
     "FIELDS",
+    "PRIOR_FLAGS",
     "ConceptDoc",
     "ConceptIndex",
     "ConceptIndexError",
@@ -73,7 +77,21 @@ CONCEPT_FILES: Final = (
     "docs.tbl",
     "docs.off",
     "lengths.bin",
+    "thesaurus.json",
+    "priors.bin",
 )
+PRIOR_FLAGS: Final = (
+    "repealed",
+    "northern_ireland",
+    "scotland",
+    "amending",
+    "commencement",
+    "secondary",
+)
+"""Bit ``i`` of a document's flags byte is ``PRIOR_FLAGS[i]``: facts about its source, never
+about a query. ``discover`` weighs them (a researcher usually wants current principal law).
+``amending`` is set for an amending instrument (by title) and for a provision whose opening
+words amend another enactment."""
 
 _STOP: Final = frozenset(
     "a an and any are as at be been being but by can for from has have if in into is it its "  # noqa: SIM905
@@ -83,8 +101,10 @@ _STOP: Final = frozenset(
 )
 _SUFFIXES: Final = (
     "ational", "ations", "ation", "atory", "ments", "ment", "ions", "ion", "ings", "ing",
-    "ies", "ied", "ed", "es", "ory", "ive", "s", "y",
+    "ies", "ied", "ed", "ory", "ive", "y",
 )  # fmt: skip
+_IRREGULAR: Final = {"children": "child", "women": "woman", "men": "man", "people": "person"}
+_SIBILANTS: Final = ("s", "x", "z", "ch", "sh")
 _WORD_RE: Final = re.compile(r"[a-z0-9]+")
 
 
@@ -93,12 +113,29 @@ class ConceptIndexError(RuntimeError):
 
 
 def stem(word: str) -> str:
-    """A light suffix stemmer: the first listed suffix that leaves at least four letters."""
+    """A light stemmer that lets a word and its plural or past tense meet.
+
+    The first listed suffix that leaves at least four letters is stripped (``compensation``
+    and ``compensatory`` give ``compens``). Otherwise ``-es`` goes after a sibilant, then a
+    plain ``-s``, then a final ``-e`` (``magistrates`` and ``magistrate`` give ``magistrat``).
+    ``-ssal`` loses ``-al`` (``dismissal`` meets ``dismissed``), and a few irregular plurals
+    map to their singular (``children`` → ``child``).
+    """
     if word.isdigit():
         return word
+    if word in _IRREGULAR:
+        return _IRREGULAR[word]
+    if word.endswith("ssal") and len(word) >= 7:  # noqa: PLR2004
+        return word[:-2]
     for suffix in _SUFFIXES:
         if len(word) - len(suffix) >= 4 and word.endswith(suffix):  # noqa: PLR2004
             return word[: -len(suffix)]
+    if word.endswith("es") and word[:-2].endswith(_SIBILANTS) and len(word) >= 5:  # noqa: PLR2004
+        return word[:-2]
+    if word.endswith("s") and not word.endswith("ss") and len(word) >= 4:  # noqa: PLR2004
+        word = word[:-1]
+    if word.endswith("e") and len(word) >= 5:  # noqa: PLR2004
+        word = word[:-1]
     return word
 
 
@@ -138,7 +175,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _map_uint(path: Path, typecode: Literal["I", "H"]) -> memoryview:
+def _map_uint(path: Path, typecode: Literal["I", "H", "B"]) -> memoryview:
     if path.stat().st_size == 0:
         return memoryview(b"").cast(typecode)
     with path.open("rb") as fh:
@@ -156,10 +193,17 @@ class ConceptIndex:
     doc_ids: memoryview
     tfs: memoryview
     lengths: memoryview
+    thesaurus: Mapping[str, tuple[str, ...]]
+    priors: memoryview
 
     @property
     def doc_count(self) -> int:
         return int(self.manifest["counts"]["docs"])
+
+    @property
+    def first_instrument_doc(self) -> int:
+        """Documents from this id on are whole instruments; those before are provisions."""
+        return int(self.manifest["first_instrument_doc"])
 
     @property
     def average_lengths(self) -> tuple[float, ...]:
@@ -181,6 +225,10 @@ class ConceptIndex:
     def field_lengths(self, doc_id: int) -> tuple[int, ...]:
         width = len(FIELDS)
         return tuple(self.lengths[doc_id * width : (doc_id + 1) * width])
+
+    def prior(self, doc_id: int) -> tuple[int, int]:
+        """(flags byte, in-degree byte) of a document."""
+        return self.priors[2 * doc_id], self.priors[2 * doc_id + 1]
 
     def doc(self, doc_id: int) -> ConceptDoc:
         raw = self.doc_table.get(f"{doc_id:08d}")
@@ -225,4 +273,14 @@ def load_concepts(directory: str | Path) -> ConceptIndex:
         doc_ids=_map_uint(root / "postings.doc", "I"),
         tfs=_map_uint(root / "postings.tf", "I"),
         lengths=_map_uint(root / "lengths.bin", "H"),
+        thesaurus=_thesaurus(root / "thesaurus.json"),
+        priors=_map_uint(root / "priors.bin", "B"),
     )
+
+
+def _thesaurus(path: Path) -> dict[str, tuple[str, ...]]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        raise ConceptIndexError("thesaurus.json is not valid JSON") from exc
+    return {str(k): tuple(str(t) for t in v) for k, v in raw.items()}

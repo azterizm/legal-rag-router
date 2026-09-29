@@ -1,6 +1,6 @@
 # Concept discovery (discover-then-bind), UK
 
-Status (29 Sept 2026): **D0–D3 done (the concept battery is sealed; the concept index is built); D4 next.** Roadmap stage D.
+Status (29 Sept 2026): **D0–D4 done: `Router.discover()` is built and tuned on dev; D5 (the sealed run on test) next.** Roadmap stage D.
 
 ## The gap
 
@@ -111,6 +111,48 @@ Sealed with `uv run python -m eval.seal concept` and verified with `eval.seal ve
   - Numbers are in `docs/measurements.md`: 1.32M documents, 575 MB, built in 141 s, loaded in 213 ms, deterministic.
 - **Terms:** NFKC, casefold, stop words dropped, a light suffix stemmer (`compensation` and `compensatory` both give `compens`). One known gap is left for D4 to tune on dev: `dismissal` stays `dismissal` while `dismissed` becomes `dismiss`.
 
+## D4: `discover()` (29 Sept 2026)
+
+**API** (D1: a separate method; `route()` is unchanged):
+
+```python
+router = Router.from_path("data/index", concepts="data/concepts")
+result = router.discover("unfair dismissal compensatory award statutory cap")
+result.candidates[0].label  # "Employment Rights Act 1996, s. 124: Limit of compensatory award etc."
+result.confident, result.next_action  # True, NextAction.ASK_USER
+router.route(str(result.candidates[0].coordinate))  # bound only once the user confirms
+```
+
+- A `DiscoveryResult` holds `candidates`, each a `Discovered` with its coordinate, label, heading, score and the query terms it matched. It also holds `confident`, a `reason` (`no_concept_index`, `not_a_string`, `query_too_long`, `no_terms`, `no_match`, `low_confidence`) and `index_snapshot`.
+- It never returns provision text and never binds. It never raises for any input.
+- Every candidate is re-checked against the router index. A coordinate the router cannot bind is never offered: 0 on dev.
+
+**Ranking** (`src/legal_rag_router/discovery.py`):
+- **BM25F over the five fields.** Each field's count is normalised by that field's length, weighted, summed, then saturated.
+- **Terms:**
+  - a light stemmer that lets plurals and past tenses meet (magistrate / magistrates, dismissal / dismissed, child / children);
+  - a curated thesaurus (`thesaurus/uk.toml`, compiled into the index) for everyday words (cap → limit, sacked → dismissal). Seeded from general usage; one entry added from a dev failure (magistrate → justice of the peace).
+- **Authority priors** (`priors.bin`, facts about the source, never the query):
+  - score multipliers for repealed, Northern Ireland, Scotland, amending (by title, or by a provision's opening amending words: "for … substitute"), commencement, and secondary legislation;
+  - a boost for instruments that the text of other legislation cites often (harvest in-degree).
+
+  A query naming Northern Ireland or Scotland lifts that penalty. Dev failures before the priors were mostly this: the Insolvency (Northern Ireland) Order, the Race Relations Act 1968, and Finance Act sections that amend another Act, all ranked above the law they mirror or amend.
+- **Common words:** a word in more than 10 % of documents is not scored, unless every typed word is that common. Then the two rarest are scored.
+
+**Tuning, on the dev slice only:** a coordinate search maximising MRR, two sweeps over field weights, length normalisation, k1, synonym weight, the common-word cut-off, prior penalties and in-degree weight. The frozen values are the `DiscoveryPolicy` defaults. The test slice has not been run.
+
+| Dev slice (112 queries) | hit@1 | hit@5 | hit@10 | MRR |
+|---|---|---|---|---|
+| Headings only (the vault's design; no other field, thesaurus or priors) | 17 % | 46 % | 55 % | 0.29 |
+| `discover()`, first version | 26 % | 62 % | 68 % | 0.41 |
+| **`discover()`, tuned** | **68 %** | **84 %** | **91 %** | **0.75** |
+
+- **By area** (hit@10): 100 % for criminal procedure, consumer, data, employment, equality, housing and insolvency; lowest for tax (70 %), land (75 %) and companies (80 %).
+- **Confidence cut-off** (`min_share` 0.5), set by a rule written down before looking: the largest value keeping 90 % of dev hits confident. **It separates poorly: at 0.5, 90 % of dev misses are also "confident".** The share of the query's weight that the top candidate matches is a weak signal. D5 will show how the negatives fare. A better signal (the margin between the top candidates, or agreement across fields) is a candidate follow-up.
+- **Latency** on dev: p50 73 ms, p99 181 ms (`docs/measurements.md`).
+- **Safety on dev:** 0 candidates the router cannot bind. All 112 queries still route `ROUTE_UNRESOLVED`: discovery changes nothing about routing.
+- **Bug found by a test while tuning:** once the synonym weight was tuned to 1, `discover` counted synonyms as typed words when measuring confidence. It now identifies typed words directly.
+
 ## Plan (roadmap stage D; executed one step at a time)
 
 | Step | What | Stops for you |
@@ -119,7 +161,7 @@ Sealed with `uv run python -m eval.seal concept` and verified with `eval.seal ve
 | **D1** | Decisions: API shape, index location, signals, evaluation method | ✅ 29 Sept |
 | **D2** | ✅ approved and sealed 29 Sept. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
 | **D3** | ✅ 29 Sept. Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
-| **D4** | `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
+| **D4** | ✅ 29 Sept. `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
 | **D5** | Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results |
 | **D6** | Contract §5, README; proposed vault changes for 02 §5, 05 §4, 07 and 10 Phase 4 (vault edits need your go) | ⛔ vault |
 

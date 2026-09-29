@@ -25,7 +25,14 @@ from datetime import date
 from pathlib import Path
 from typing import Final
 
+from legal_rag_router.concepts import ConceptIndex, load_concepts
 from legal_rag_router.coordinate import Coordinate
+from legal_rag_router.discovery import (
+    DEFAULT_DISCOVERY,
+    DiscoveryPolicy,
+    DiscoveryResult,
+    discover,
+)
 from legal_rag_router.grammars.base import Cue, NumberMention, ProvisionMention, ProvisionRef
 from legal_rag_router.grammars.uk_grammar import GRAMMAR as UK_GRAMMAR
 from legal_rag_router.grammars.uk_grammar import UKGrammar
@@ -283,6 +290,8 @@ class Router:
         log_misses: bool = False,
         redact: Callable[[str], str] | None = None,
         typo_policy: TypoPolicy | None = None,
+        concepts: ConceptIndex | None = None,
+        discovery_policy: DiscoveryPolicy | None = None,
     ) -> None:
         """
         Args:
@@ -293,12 +302,17 @@ class Router:
             redact: turns a query into loggable text for that event. Without it the event
                 carries only a hash and the length: query text is never logged by default.
             typo_policy: typo-tier thresholds (tuned on the dev slice; frozen with the seal).
+            concepts: a loaded concept index (:func:`legal_rag_router.concepts.load_concepts`)
+                for :meth:`discover`. Optional: ``route`` never uses it.
+            discovery_policy: ranking parameters for :meth:`discover`.
         """
         self._index = index
         self._grammar: UKGrammar = UK_GRAMMAR
         self._log_misses = log_misses
         self._redact = redact
         self._policy = typo_policy or TypoPolicy()
+        self._concepts = concepts
+        self._discovery_policy = discovery_policy or DEFAULT_DISCOVERY
         self._alias_last_words = frozenset(key.split()[-1] for key in index.aliases)
         self._alias_words = {tuple(key.split()) for key in index.aliases}
         self._alias_max_words = max((len(k) for k in self._alias_words), default=0)
@@ -317,15 +331,33 @@ class Router:
         )
 
     @classmethod
-    def from_path(cls, path: str | Path, **options: object) -> Router:
-        """Load and verify the index at ``path`` (hashes, format version), then build a router."""
-        return cls(load_index(path), **options)  # type: ignore[arg-type]
+    def from_path(
+        cls, path: str | Path, *, concepts: str | Path | None = None, **options: object
+    ) -> Router:
+        """Load and verify the index at ``path`` (hashes, format version), then build a router.
+
+        ``concepts`` is the concept index directory for :meth:`discover` (loaded and verified
+        the same way); without it, ``discover`` answers ``reason="no_concept_index"``.
+        """
+        loaded = load_concepts(concepts) if concepts is not None else None
+        return cls(load_index(path), concepts=loaded, **options)  # type: ignore[arg-type]
 
     @property
     def index(self) -> RouterIndex:
         return self._index
 
     # ------------------------------------------------------------------ public
+
+    def discover(self, query: object, *, limit: int | None = None) -> DiscoveryResult:
+        """Candidate coordinates for a citation-less query (discover-then-bind).
+
+        Candidates are offered for confirmation, never bound: route the confirmed coordinate
+        with :meth:`route`. Never raises for any input (``docs/contract.md`` §5).
+        """
+        policy = self._discovery_policy
+        if limit is not None:
+            policy = replace(policy, limit=max(1, min(limit, 50)))
+        return discover(self._concepts, self._index, query, policy)
 
     def route(
         self,

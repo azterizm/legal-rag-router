@@ -1,0 +1,58 @@
+# Concept thesaurus for discover() (roadmap stage D, docs/discovery.md).
+#
+# Everyday and practitioners' words → the vocabulary statutes use. Query expansion only:
+# an expansion is searched at a lower weight than the word typed, and never replaces it.
+# Keys are single words; expansions may be phrases. Compiled into data/concepts/thesaurus.json
+# by ingest.build_concept_index (stemmed, like every indexed term).
+#
+# Seeded from general legal usage on 29 Sept 2026, not from any battery query. Additions
+# may only come from failures on the concept battery's dev slice (roadmap D2); never from
+# the test slice.
+
+[synonyms]
+cap = ["limit", "maximum"]
+ceiling = ["limit", "maximum"]
+sacked = ["dismissal", "dismissed"]
+sacking = ["dismissal"]
+fired = ["dismissal", "dismissed"]
+boss = ["employer"]
+staff = ["employees", "workers"]
+pay = ["wages", "remuneration"]
+salary = ["wages", "remuneration"]
+holiday = ["annual leave"]
+strike = ["industrial action"]
+whistleblowing = ["protected disclosure"]
+whistleblower = ["protected disclosure", "worker"]
+pregnant = ["pregnancy", "maternity"]
+hacking = ["unauthorised access", "computer"]
+hacker = ["unauthorised access", "computer"]
+squatter = ["adverse possession"]
+squatting = ["adverse possession"]
+eviction = ["possession", "eviction"]
+evict = ["possession"]
+home = ["dwelling", "residence"]
+house = ["dwelling", "dwelling-house"]
+flat = ["dwelling"]
+fine = ["penalty"]
+jail = ["imprisonment", "custody"]
+prison = ["imprisonment", "custody"]
+deadline = ["time limit", "period"]
+refund = ["repayment", "reimbursement"]
+faulty = ["defective", "conform"]
+shop = ["trader"]
+seller = ["trader", "seller"]
+buyer = ["consumer", "purchaser"]
+firm = ["company", "undertaking"]
+business = ["company", "trade", "undertaking"]
+bribe = ["bribery", "bribing"]
+drunk = ["alcohol"]
+drink = ["alcohol"]
+lawyer = ["legal advice", "solicitor"]
+kid = ["child"]
+kids = ["children"]
+privacy = ["personal data", "data protection"]
+gift = ["transfer", "disposition"]
+vat = ["value added tax"]
+
+# Added from dev-slice failures (29 Sept 2026)
+magistrate = ["justice of the peace", "magistrates"]

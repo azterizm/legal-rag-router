@@ -5,6 +5,10 @@ coordinate, a clarifying question, a refusal because the cited law does not exis
 an out-of-coverage notice, or "no citation found". It uses no model, no network and
 no disk I/O per query.
 
+A query that cites nothing ("unfair dismissal compensatory award statutory cap") routes
+``ROUTE_UNRESOLVED``; ``Router.discover`` then offers candidate coordinates from the concept
+index for the user to confirm, and the confirmed coordinate is routed like any citation.
+
     >>> from legal_rag_router import Router, RouteStatus, partition_filter
     >>> router = Router.from_path("data/index")                    # doctest: +SKIP
     >>> result = router.route("section 124 of the Employment Rights Act 1996")  # doctest: +SKIP
@@ -17,7 +21,9 @@ no disk I/O per query.
 from importlib.metadata import PackageNotFoundError, version
 
 from legal_rag_router import grammars as _grammars  # registers bundled coordinate schemes
+from legal_rag_router.concepts import ConceptIndexError, load_concepts
 from legal_rag_router.coordinate import Coordinate, CoordinateError
+from legal_rag_router.discovery import Discovered, DiscoveryPolicy, DiscoveryResult
 from legal_rag_router.filters import FilterError, partition_filter
 from legal_rag_router.index import IndexLoadError, RouterIndex, load_index
 from legal_rag_router.result import (
@@ -39,8 +45,12 @@ del _grammars
 
 __all__ = [
     "Candidate",
+    "ConceptIndexError",
     "Coordinate",
     "CoordinateError",
+    "Discovered",
+    "DiscoveryPolicy",
+    "DiscoveryResult",
     "FilterError",
     "IndexLoadError",
     "NextAction",
@@ -51,6 +61,7 @@ __all__ = [
     "Router",
     "RouterIndex",
     "__version__",
+    "load_concepts",
     "load_index",
     "partition_filter",
 ]

@@ -177,19 +177,28 @@ Before Q-B-3 the full index's worst class was `title_vocabulary` at 17.47 ms: a 
 
 `letters_digits` shows a 2.7× doubling ratio on both indexes. That is not superlinear cost: the bench's fixed 4 KB sample contains a bare provision that its 2 KB prefix doesn't, and resolving it over the salient instruments adds about 0.6 ms. Timed on other seeds, the class scales 1.6–1.7× per doubling. Results: `bench/results/stress-darwin-arm64.json` (fixture) and `stress-darwin-arm64-full-index.json`.
 
-## 2026-09-29: concept index (stage D3)
+## 2026-09-29: concept index and discovery (stages D3–D4)
 
-`ingest.build_concept_index` over the full UK records (schema 2: long titles and cross-headings). Mac (Apple silicon), Python 3.11.15.
+`ingest.build_concept_index` over the full UK records (schema 2: long titles and cross-headings), with the D4 stemmer, priors and thesaurus. Mac (Apple silicon), Python 3.11.15.
 
 | Measure | Value |
 |---|---|
 | Documents | 1,322,050: 1,187,831 section-level provisions and schedules, 134,219 instruments |
-| Terms / postings | 201,473 / 53,142,796 |
-| Average field length (terms) | heading 2.5, cross-heading 0.7, structure 3.1, title 15.1, body 48.9 |
-| Build | 141 s, peak RSS 2.8 GB |
-| Size on disk | 575 MB (postings 2 × 213 MB, documents 131 MB) |
-| Load (SHA-256 of every file) | 213 ms |
-| Determinism | a second build is byte-identical |
+| Terms / postings | 197,195 / 52,552,653 |
+| Build (with the harvest's citation in-degree) | 168 s, peak RSS about 2.8 GB |
+| Size on disk | 546 MB (postings 2 × 210 MB, documents 131 MB, priors 2.6 MB) |
+| Load (SHA-256 of every file) | about 210 ms |
+| Determinism | a second build is byte-identical (checked at D3) |
 
 The concept index is a separate directory from the router index. Building it doesn't change the router index, and loading the router doesn't load it.
 
+**`discover()` latency, on the concept battery's dev slice (112 queries), tuned policy:** p50 73 ms, p99 181 ms, max 219 ms.
+
+This is outside `route()`'s < 2 ms path: discovery is an interactive step, followed by confirmation. The common-word cut-off trades speed for recall:
+
+| Cut-off (share of documents) | Top 10 | p99 |
+|---|---|---|
+| 2 % | 73 % | 46 ms |
+| 10 % (chosen) | 91 % | 181 ms |
+| 20 % | 91 % | 245 ms |
+| no cut-off | 92 % | 334 ms |

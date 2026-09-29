@@ -7,10 +7,17 @@ from pathlib import Path
 
 import pytest
 
-from ingest.build_concept_index import build_concepts, main, unit_of, write_concepts
+from ingest.build_concept_index import (
+    build_concepts,
+    instrument_docs,
+    main,
+    unit_of,
+    write_concepts,
+)
 from legal_rag_router.concepts import (
     CONCEPTS_MANIFEST,
     FIELDS,
+    PRIOR_FLAGS,
     ConceptIndexError,
     load_concepts,
     pack_tf,
@@ -28,8 +35,15 @@ ERA = "uk/ukpga/1996/18"
         ("compensation", "compens"),
         ("compensatory", "compens"),
         ("dismissed", "dismiss"),
+        ("dismissal", "dismiss"),
         ("rights", "right"),
-        ("act", "act"),  # too short to strip
+        ("magistrates", "magistrat"),
+        ("magistrate", "magistrat"),
+        ("required", "requir"),
+        ("taxes", "tax"),
+        ("businesses", "business"),
+        ("children", "child"),
+        ("act", "act"),
         ("1996", "1996"),
     ],
 )
@@ -154,3 +168,16 @@ def test_load_refuses_a_damaged_index(index_dir: Path, damage: object, message: 
     damage(index_dir)  # type: ignore[operator]
     with pytest.raises(ConceptIndexError, match=message):
         load_concepts(index_dir)
+
+
+def test_a_provision_that_amends_another_enactment_is_flagged() -> None:
+    records = [
+        {"coordinate": "uk/ukpga/2016/24", "title": "Finance Act 2016"},
+        {"coordinate": "uk/ukpga/2016/24/s93", "title": "Inheritance tax: nil-rate band",
+         "text": "In section 8D of the Inheritance Tax Act 1984, for 100 substitute 175."},
+        {"coordinate": "uk/ukpga/2016/24/s94", "title": "Rates", "text": "The rate is 40%."},
+    ]  # fmt: skip
+    flags = {d.coordinate: d.flags for d in instrument_docs(records)}
+    amending = 1 << PRIOR_FLAGS.index("amending")
+    assert flags["uk/ukpga/2016/24/s93"] & amending
+    assert not flags["uk/ukpga/2016/24/s94"] & amending
