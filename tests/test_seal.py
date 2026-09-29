@@ -101,3 +101,10 @@ def test_canonical_form_is_key_order_free() -> None:
     assert (
         canonical({"b": 1, "a": "é"}) == canonical({"a": "é", "b": 1}) == '{"a":"é","b":1}'.encode()
     )
+
+
+def test_the_concept_battery_has_its_own_seal(repo: Path) -> None:
+    path = _sealed(repo)
+    (repo / "batteries" / "concept").mkdir()
+    (repo / "batteries" / "concept" / "uk.jsonl").write_text("{}\n")
+    assert verify_battery_seal(path, repo, repo / "index")["kind"] == "battery"

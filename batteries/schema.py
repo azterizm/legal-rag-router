@@ -19,10 +19,14 @@ from legal_rag_router.coordinate import Coordinate
 __all__ = [
     "BATTERIES",
     "BATTERY_DIR",
+    "CONCEPT_DIR",
     "AbsenceCheck",
     "BatteryRow",
+    "ConceptRow",
     "read_battery",
+    "read_concepts",
     "write_battery",
+    "write_concepts",
 ]
 
 BATTERY_DIR: Final = Path(__file__).resolve().parent
@@ -141,6 +145,64 @@ def read_battery(path: Path) -> list[BatteryRow]:
 
 def write_battery(path: Path, rows: list[BatteryRow]) -> None:
     """Canonical form: one compact JSON object per line, fields in schema order."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        json.dumps(row.model_dump(mode="json", exclude_defaults=True), ensure_ascii=False)
+        for row in rows
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+# ---------------------------------------------------------------- concept battery (stage D)
+
+CONCEPT_DIR: Final = BATTERY_DIR / "concept"
+"""``batteries/concept/{jurisdiction}.jsonl``: outside the nine plan batteries and their seal."""
+
+
+class ConceptRow(BaseModel):
+    """A citation-less research query and the provisions that answer it (docs/discovery.md).
+
+    ``gold`` holds the acceptable answers: a discovered candidate is a hit when it is one
+    of them or lies beneath one. An empty ``gold`` is a query no indexed statute answers
+    (out of jurisdiction, or no statutory answer): the good outcome is no confident candidate.
+    ``route_status`` is what ``route()`` must return for the same query (grammar.md labels).
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    id: str = Field(pattern=r"^[a-z]{2}-concept-[0-9]{4}$")
+    query: str = Field(min_length=1, max_length=4096)
+    lang: Literal["en", "es"]
+    domain: Literal["uk_legislation", "es_legislation"]
+    area: str = Field(pattern=r"^[a-z_]+$")
+    route_status: Status
+    gold: tuple[str, ...] = ()
+    source: Literal["hand", "user_probe", "appendix_b"]
+    split: Literal["dev", "test"]
+    notes: str = ""
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        for coordinate in self.gold:
+            Coordinate.parse(coordinate)
+        if self.source != "hand" and self.split != "test":
+            raise ValueError("rows from your sources are test only")
+        return self
+
+
+def read_concepts(path: Path) -> list[ConceptRow]:
+    rows = [
+        ConceptRow.model_validate_json(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    ids = [row.id for row in rows]
+    if len(set(ids)) != len(ids):
+        raise ValueError(f"{path.name}: duplicate row ids")
+    return rows
+
+
+def write_concepts(path: Path, rows: list[ConceptRow]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         json.dumps(row.model_dump(mode="json", exclude_defaults=True), ensure_ascii=False)

@@ -19,14 +19,26 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-29 |
-| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: D0 evidence done, ⛔ D1 decisions. Stage B done; UK batteries sealed and tagged |
+| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: D0 and D1 done; **D2 concept battery built, ⛔ your review**. Stage B done; UK batteries sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`)** |
 | Next step | Stage D, one step at a time (`docs/discovery.md`): D1 decisions, then D2 (concept battery, evaluation first). M10-UK after stage D |
-| Waiting on you | ⛔ **D1 decisions** (`docs/discovery.md`) |
+| Waiting on you | ⛔ **D2 review** (`docs/discovery.md`, D2 review points 1–4) |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (9): **D1 decided, D2 concept battery built; ⛔ your review.**
+  - **D1:** a separate `discover()` over its own index; legislation only; evaluation queries from both of us.
+  - **D2:** 265 rows in `batteries/concept/uk.jsonl`:
+    - 203 drafted in Mart's keyword style across 12 areas, gold verified in the index, split dev 112 / test 91;
+    - your 12 statute-related `rag-security-probes` (gold from the provisions your repository names), test only;
+    - Mart's 50 Appendix B searches verbatim, as out-of-jurisdiction negatives, test only.
+
+    Each row also says what `route()` must return for it (concept queries must stay unresolved).
+  - **The plan-battery seal** now hashes the jurisdiction directories only (`batteries/uk/`), so the concept battery gets its own seal. `seals/battery-2026-09-29.json` still verifies unchanged.
+  - Tests: all pass.
+  - **Resume:** your answers to the D2 review points. Then seal the concept battery (tag only with your go), then D3.
 
 - 2026-09-29 (8): **Stage D planned (concept discovery), D0 evidence done; ⛔ D1 decisions.**
   - **Why (your note, citing Mart 2017):** research queries rarely carry a citation, so `ROUTE_UNRESOLVED` → discover-then-bind is the main path, not a Phase 4 fallback. Section headings alone won't find ERA s. 124 for "unfair dismissal compensatory award statutory cap".
@@ -349,8 +361,13 @@ Why D can't start early: the plan's exit criteria need **one sealed run** across
 Plan, evidence and signals: `docs/discovery.md`. Executed one step at a time; ⛔ marks a stop.
 
 - [x] **D0** Evidence probe: headings-only search finds the gold provision in the top 10 for 6 of 15 keyword queries. Adding structure titles, stemming and synonyms raises that to 12 of 15. Rank 1 was right for 4 of 15.
-- [ ] ⛔ **D1** Decisions: API shape and index location, signals (case law?), how the evaluation set is made.
-- [ ] ⛔ **D2** Concept battery (evaluation first): keyword queries in Mart's style with acceptable gold provisions, dev / test split. Reviewed by you, then sealed before any ranking is tuned.
+- [x] ⛔ **D1** Decisions (29 Sept, your answers):
+  1. **A separate `discover()`**, over its own `data/concepts/` index. `route()`, its statuses, the router index and the sealed M8 batteries stay unchanged.
+  2. **Legislation only** in this stage: headings, cross-headings, structure titles, long titles, definitions, text, citing descriptions, and a curated thesaurus. Case law later.
+  3. **The evaluation set comes from both of us:**
+     - about 200 queries I draft across 12 UK areas, split dev / test;
+     - your sources, test only: the 12 statute-related probes of `rag-security-probes` (6 fabrication + 6 Mode C, gold from the provisions your repo names) and Mart's Appendix B (50 US queries: out-of-jurisdiction negatives and the style reference).
+- [ ] ⛔ **D2** (built 29 Sept: 265 rows, `batteries/concept/uk.jsonl`; waiting for your review) Concept battery (evaluation first): keyword queries in Mart's style with acceptable gold provisions, dev / test split. Reviewed by you, then sealed before any ranking is tuned.
 - [ ] **D3** Ingest keeps long titles and cross-headings. Concept index `data/concepts/` (own manifest, SHA-256 verified, stdlib tables).
 - [ ] **D4** `discover()`: BM25F, stemming, curated thesaurus. Candidates re-validated by exact lookup, with headings and evidence; never text, never bound. Tuned on dev only.
 - [ ] ⛔ **D5** Sealed evaluation on test against the heading-only baseline: recall@1/5/10, MRR, safety invariants, latency.

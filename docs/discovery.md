@@ -1,6 +1,6 @@
 # Concept discovery (discover-then-bind), UK
 
-Status: **plan and evidence (29 Sept 2026)**. Roadmap stage D. Nothing here is built yet.
+Status (29 Sept 2026): **D0 and D1 done; D2 built, ⛔ waiting for your review.** Roadmap stage D.
 
 ## The gap
 
@@ -47,13 +47,63 @@ Fifteen queries is a small sample: these numbers show direction, not a result.
 | Case-law headnotes and judicial vocabulary | **no** | a new source (The National Archives' Find Case Law, under its own licence). A fetch you would run, and a licence check first |
 | Everyday synonyms ("cap" → "limit", "sacked" → "dismissal") | no | a small curated thesaurus, like `aliases/` |
 
+## D1 decisions (29 Sept 2026)
+
+1. **A separate `discover()`**, over its own `data/concepts/` index. `route()`, its statuses, the router index and the sealed M8 batteries stay unchanged.
+2. **Legislation only** in this stage. Case law comes later.
+3. **Evaluation queries from both of us:** mine, split dev / test; yours, test only.
+
+## D2: the concept battery (`batteries/concept/uk.jsonl`, 265 rows)
+
+Built by `batteries/build_concepts.py` and validated in CI (`tests/test_batteries.py`). No row went through the router or any ranking.
+
+| Source | Rows | Split | Gold |
+|---|---|---|---|
+| Drafted by me (`batteries/concept_uk.py`) | 203, in 12 areas of 15–23 each | dev 112 / test 91 (salted hash of the query, 50 %) | The provisions that answer it. Written from the doctrine first; then every gold coordinate was checked in the index and its heading read. No query was reworded to match a heading |
+| Your `rag-security-probes` | 12: 6 fabrication, 6 Mode C | test only | The real provision your repository names for each (`real_law_reached_for`, Mode C pass strings). FAB-004 has none, since materiality is not fixed by statute |
+| Mart (2017) Appendix B | 50, verbatim | test only | None: US questions answered by case law, so no indexed UK statute answers them |
+
+Areas: employment, equality, criminal offences, criminal procedure, housing, land, companies, insolvency, consumer and contract, data and information, family, tax. Queries follow Mart's form, a dense keyword string with no citation. Some use statutory terms ("indirect discrimination provision criterion"), some practitioners' words ("sacked for being pregnant", "hacking", "squatter").
+
+Each row also carries **`route_status`**, what `route()` must return for the same query, labelled from grammar.md and checked against the index:
+- drafted and Appendix B rows: `ROUTE_UNRESOLVED`, since they carry no citation;
+- your probes, by their citation:
+  - invented Acts: instrument not found;
+  - ERA s. 342: provision not found;
+  - the repealed Sex Discrimination Act 1975 s. 6: bound with `repealed=True` (UK-C-02).
+
+This makes a second check possible: citation-less queries never get bound by `route()`.
+
+**Scoring at D5 (proposed):**
+- **Rows with gold:** a candidate is a hit when it is a gold coordinate or lies beneath one. Reported: recall@1, @5, @10 and MRR, per source and per area, against the headings-only baseline.
+- **Rows without gold** (Appendix B, FAB-004): the share that get a confident candidate. Lower is better.
+- **Safety, which must be 0:** candidates that don't exist in the index, and results that bind.
+
+The 15 D0 probe queries are recorded in `concept_uk.py` and kept out of the battery (CI test).
+
+Sources quoted verbatim:
+- Mart's searches: S. N. Mart, *Appendix B: The Algorithm as a Human Artifact: Implications for Legal [Re]Search*, 109 Law Libr. J. app. B (2017), https://scholar.law.colorado.edu/research-data/5;
+- the probe queries: `rag-security-probes` (Memon Systems Ltd).
+
+### ⛔ D2 review points
+
+1. **Appendix B as out-of-jurisdiction negatives.** I read "add appendixb.md" as: use its 50 searches verbatim, where the good outcome is *no confident UK candidate*. Several have UK analogues ("age employment discrimination disparate treatment" ↔ Equality Act 2010 s. 13 / s. 19). The alternative is to translate them into UK questions with gold. But then I would write them, and they would no longer be independent of me.
+2. **Gold where your repository names an Act or a range rather than a section:**
+   - DEVOLV-UK-001 → MCA 2005 ss. 16 and 19 (Court of Protection powers; appointment of deputies);
+   - FAB-005 and FAB-006 → the 1993 Act's ss. 76–84 (FAB-005 also CLRA 2002 Sch. 11);
+   - REPEAL-UK-001 → Equality Act 2010 s. 124 (remedies; no cap).
+3. **The dev / test split** of my rows is 112 / 91: a 50 % hash, landing where it did. Your rows are reported as their own slice, as the independent result.
+4. **The scoring above,** in particular "no confident candidate" for the negatives. `discover()` will need a confidence threshold, tuned on dev only.
+
+After your review: seal the concept battery (`eval.seal` gets a `concept` kind; a tag only with your go), then D3.
+
 ## Plan (roadmap stage D; executed one step at a time)
 
 | Step | What | Stops for you |
 |---|---|---|
 | **D0** | Evidence probe (above) | — done |
-| **D1** | Decisions: API shape, index location, signals, evaluation method | ⛔ |
-| **D2** | **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
+| **D1** | Decisions: API shape, index location, signals, evaluation method | ✅ 29 Sept |
+| **D2** | ⛔ built, waiting for your review. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
 | **D3** | Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
 | **D4** | `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
 | **D5** | Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results |

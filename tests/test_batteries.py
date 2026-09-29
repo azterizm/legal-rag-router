@@ -12,7 +12,18 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from batteries.schema import BATTERIES, BATTERY_DIR, BatteryRow, read_battery, write_battery
+from batteries.concept_uk import AREAS, D0_PROBE_QUERIES
+from batteries.schema import (
+    BATTERIES,
+    BATTERY_DIR,
+    CONCEPT_DIR,
+    BatteryRow,
+    ConceptRow,
+    read_battery,
+    read_concepts,
+    write_battery,
+    write_concepts,
+)
 from batteries.verify_absence import feed_url, found_titles, main, verify
 from ingest.cache import Fetcher, FetchPolicy
 
@@ -249,3 +260,56 @@ def test_verify_absence_from_cache_needs_no_request(
     assert str(first.absence_verified_via.searched) == fetched_on  # the response's own date
     assert second.absence_verified_via is not None
     assert second.absence_verified_via.searched is None  # not cached: left for a real search
+
+
+# ---------------------------------------------------------------- concept battery (stage D)
+
+
+@pytest.fixture(scope="module")
+def concepts() -> list[ConceptRow]:
+    return read_concepts(CONCEPT_DIR / "uk.jsonl")
+
+
+def test_concept_battery_sources_and_splits(concepts: list[ConceptRow]) -> None:
+    by_source = Counter(row.source for row in concepts)
+    assert by_source["hand"] >= 200
+    assert by_source["user_probe"] == 12
+    assert by_source["appendix_b"] == 50
+    assert {row.split for row in concepts if row.source != "hand"} == {"test"}
+    assert {row.split for row in concepts if row.source == "hand"} == {"dev", "test"}
+
+
+def test_concept_battery_covers_twelve_areas(concepts: list[ConceptRow]) -> None:
+    areas = Counter(row.area for row in concepts if row.source == "hand")
+    assert set(areas) == set(AREAS)
+    assert min(areas.values()) >= 15
+
+
+def test_drafted_concepts_have_gold_and_carry_no_citation(concepts: list[ConceptRow]) -> None:
+    hand = [row for row in concepts if row.source == "hand"]
+    assert all(row.gold and row.route_status == "ROUTE_UNRESOLVED" for row in hand)
+    assert all(not row.gold for row in concepts if row.source == "appendix_b")
+
+
+def test_concept_battery_never_reuses_the_probe_queries(concepts: list[ConceptRow]) -> None:
+    queries = {row.query.casefold() for row in concepts}
+    assert len(queries) == len(concepts)
+    assert not queries & {q.casefold() for q in D0_PROBE_QUERIES}
+
+
+def test_concept_rows_from_your_sources_are_test_only() -> None:
+    row = {"id": "uk-concept-0001", "query": "x", "lang": "en", "domain": "uk_legislation",
+           "area": "us_law", "route_status": "ROUTE_UNRESOLVED", "source": "appendix_b",
+           "split": "dev"}  # fmt: skip
+    with pytest.raises(ValidationError, match="test only"):
+        ConceptRow.model_validate(row)
+    with pytest.raises(ValidationError, match="Value error"):
+        ConceptRow.model_validate({**row, "split": "test", "gold": ["not a coordinate"]})
+
+
+def test_concept_battery_rejects_duplicate_ids(tmp_path: Path) -> None:
+    rows = read_concepts(CONCEPT_DIR / "uk.jsonl")
+    path = tmp_path / "uk.jsonl"
+    write_concepts(path, [*rows, rows[0]])
+    with pytest.raises(ValueError, match="duplicate row ids"):
+        read_concepts(path)

@@ -59,7 +59,9 @@ def battery_contents(repo: Path, index_dir: Path) -> dict[str, Any]:
     """Everything a sealed run depends on, by content hash."""
     manifest = json.loads((index_dir / "index-manifest.json").read_text(encoding="utf-8"))
     return {
-        "batteries": _file_hashes((repo / "batteries").glob("*/*.jsonl"), repo),
+        # The plan batteries live in a jurisdiction directory (batteries/uk/…); the stage-D
+        # concept battery (batteries/concept/) has its own seal.
+        "batteries": _file_hashes((repo / "batteries").glob("[a-z][a-z]/*.jsonl"), repo),
         "index": {
             "snapshot": manifest["snapshot"],
             "format_version": manifest["format_version"],
