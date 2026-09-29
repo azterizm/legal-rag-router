@@ -1,6 +1,6 @@
 # Concept discovery (discover-then-bind), UK
 
-Status (29 Sept 2026): **D0–D2 done; the concept battery is sealed (`seals/concept-2026-09-29.json`); D3 next.** Roadmap stage D.
+Status (29 Sept 2026): **D0–D3 done (the concept battery is sealed; the concept index is built); D4 next.** Roadmap stage D.
 
 ## The gap
 
@@ -97,6 +97,20 @@ Sources quoted verbatim:
 
 Sealed with `uv run python -m eval.seal concept` and verified with `eval.seal verify seals/concept-2026-09-29.json`. It pins the battery file and the router index its gold was checked against. It is not tagged, since a tag needs your go.
 
+## D3: the concept index (29 Sept 2026)
+
+- **Ingest, record schema 2:**
+  - instruments carry `long_title` ("An Act to consolidate enactments relating to employment rights.");
+  - sections, regulations, articles and schedule paragraphs carry `crossheading` ("Compensation" for ERA 1996 s. 124).
+
+  A forced re-ingest of all 134,219 instruments left the harvest and the router index byte-identical, so both seals still verify.
+- **`data/concepts/`** (`ingest/build_concept_index.py`, format and loader in `src/legal_rag_router/concepts.py`):
+  - one document per section-level unit (and per schedule), with its subdivisions' text as the body, and one per instrument;
+  - five fields: heading, cross-heading, structure (Part / Chapter / Schedule titles), title (with the long title), body (the first 200 terms);
+  - postings are uint32 arrays read through `mmap`: document ids plus per-field term counts, 6 bits a field. Terms, documents and lengths are in sorted tables. Every file's SHA-256 is in its own manifest and checked on load. Stdlib only.
+  - Numbers are in `docs/measurements.md`: 1.32M documents, 575 MB, built in 141 s, loaded in 213 ms, deterministic.
+- **Terms:** NFKC, casefold, stop words dropped, a light suffix stemmer (`compensation` and `compensatory` both give `compens`). One known gap is left for D4 to tune on dev: `dismissal` stays `dismissal` while `dismissed` becomes `dismiss`.
+
 ## Plan (roadmap stage D; executed one step at a time)
 
 | Step | What | Stops for you |
@@ -104,7 +118,7 @@ Sealed with `uv run python -m eval.seal concept` and verified with `eval.seal ve
 | **D0** | Evidence probe (above) | — done |
 | **D1** | Decisions: API shape, index location, signals, evaluation method | ✅ 29 Sept |
 | **D2** | ✅ approved and sealed 29 Sept. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
-| **D3** | Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
+| **D3** | ✅ 29 Sept. Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
 | **D4** | `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
 | **D5** | Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results |
 | **D6** | Contract §5, README; proposed vault changes for 02 §5, 05 §4, 07 and 10 Phase 4 (vault edits need your go) | ⛔ vault |

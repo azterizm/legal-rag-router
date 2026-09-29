@@ -17,6 +17,7 @@
       ],
       "derived_paths": [
         "index",
+        "concepts",
         "harvest/uk_citations.jsonl",
         "catalogue"
       ],

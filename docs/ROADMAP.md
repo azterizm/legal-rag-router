@@ -19,7 +19,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-29 |
-| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: D0–D2 done (concept battery sealed); **D3 in progress**. Stage B done; UK batteries sealed and tagged |
+| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: D0–D3 done (concept battery sealed, concept index built); **D4 (`discover()`) next**. Stage B done; UK batteries sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`)** |
 | Next step | Stage D, one step at a time (`docs/discovery.md`): D1 decisions, then D2 (concept battery, evaluation first). M10-UK after stage D |
 | Waiting on you | Nothing (optional: say go to tag the concept seal) |
@@ -27,6 +27,13 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (11): **D3 done: long titles, cross-headings and the concept index.**
+  - **Ingest (record schema 2):** instruments keep `long_title`; section-level provisions keep `crossheading`. A forced re-ingest of all 134,219 left the harvest and the router index byte-identical, so both seals still verify.
+  - **`data/concepts/`:** 1,322,050 documents in five fields (heading, cross-heading, structure, title with long title, body), 53M postings, 575 MB. Built in 141 s, loaded with SHA-256 checks in 213 ms, and a rebuild is byte-identical.
+    - Stdlib `mmap` arrays and sorted tables (`src/legal_rag_router/concepts.py`); licensed as derived legislation.gov.uk data (`data/MANIFEST.json`).
+  - Tests: 755 pass, 1 skip. Coverage 100 %.
+  - **Resume:** D4. `discover()`: BM25F over the five fields, stemming and a thesaurus, with a confidence cut-off. Candidates are re-validated by exact lookup and never bound; tuned on the dev slice only.
 
 - 2026-09-29 (10): **D2 approved (all four review points) and the concept battery sealed.**
   - `eval.seal` has a `concept` kind. It pins `batteries/concept/*.jsonl` and the router index the gold was checked against. `seals/concept-2026-09-29.json` is committed, not tagged (a tag needs your go).
@@ -373,7 +380,7 @@ Plan, evidence and signals: `docs/discovery.md`. Executed one step at a time; �
      - about 200 queries I draft across 12 UK areas, split dev / test;
      - your sources, test only: the 12 statute-related probes of `rag-security-probes` (6 fabrication + 6 Mode C, gold from the provisions your repo names) and Mart's Appendix B (50 US queries: out-of-jurisdiction negatives and the style reference).
 - [x] ⛔ **D2** (29 Sept: 265 rows, `batteries/concept/uk.jsonl`; review points approved; sealed as `seals/concept-2026-09-29.json`, untagged) Concept battery (evaluation first): keyword queries in Mart's style with acceptable gold provisions, dev / test split. Reviewed by you, then sealed before any ranking is tuned.
-- [ ] **D3** Ingest keeps long titles and cross-headings. Concept index `data/concepts/` (own manifest, SHA-256 verified, stdlib tables).
+- [x] **D3** (29 Sept: record schema 2; `data/concepts/` 1.32M documents, 575 MB, 213 ms load, deterministic) Ingest keeps long titles and cross-headings. Concept index `data/concepts/` (own manifest, SHA-256 verified, stdlib tables).
 - [ ] **D4** `discover()`: BM25F, stemming, curated thesaurus. Candidates re-validated by exact lookup, with headings and evidence; never text, never bound. Tuned on dev only.
 - [ ] ⛔ **D5** Sealed evaluation on test against the heading-only baseline: recall@1/5/10, MRR, safety invariants, latency.
 - [ ] ⛔ **D6** Contract §5 and README; proposed vault changes (02 §5, 05 §4, 07, 10 Phase 4) need your go.
