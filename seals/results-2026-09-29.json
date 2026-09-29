@@ -1,0 +1,18 @@
+{
+  "contents": {
+    "battery_seal": {
+      "file": "seals/battery-2026-09-29.json",
+      "seal_sha256": "30be2e57f07e95435cd051bea21ee9c5e7ad1c0c946bb716beace1b0760062c9"
+    },
+    "package_version": "0.1.0.dev0",
+    "results": {
+      "results/uk-run-2026-09-29.json": "a8bf12833ebcb2964e59cad0ebdeee3cca42fcd84d22b9331babc213b03f2fb0",
+      "results/uk-run-2026-09-29.md": "1e3d379babd791975ef1e69853813c2368e9ef621bb9d8b758f75371cc280155"
+    }
+  },
+  "git_commit": "5df82afd2236a2a9860a0193d33b3691e5ff802a",
+  "kind": "results",
+  "seal_format": 1,
+  "seal_sha256": "3248958d4695b44c0490b01f14e6f8a22f764848e1a6405fb50a10c3a23ec45a",
+  "sealed_at": "2026-09-29T06:49:33+00:00"
+}

@@ -202,3 +202,20 @@ This is outside `route()`'s < 2 ms path: discovery is an interactive step, follo
 | 10 % (chosen) | 91 % | 181 ms |
 | 20 % | 91 % | 245 ms |
 | no cut-off | 92 % | 334 ms |
+
+
+## 2026-09-29: sealed-run latency, Apple Silicon (roadmap M10)
+
+`bench/latency.py`, `bench/results/latency-darwin-arm64.json`: the 100,000 replayed real citations of the coverage sweep plus every battery row. That is 102,112 queries, 3 timed repeats each (306,336 calls), after a warm-up pass, with garbage collection paused. The full UK index. macOS 26.6.2 arm64, Python 3.11.15.
+
+| Status | calls | p50 | p99 | max |
+|---|---|---|---|---|
+| All | 306,336 | 138 µs | **1.98 ms** | 31.2 ms |
+| `ROUTE_BOUNDED` | 245,652 | 135 µs | 0.70 ms | 31.2 ms |
+| `ROUTE_UNRESOLVED` | 25,854 | 35 µs | 3.40 ms | 10.5 ms |
+| Provision not found | 18,246 | 191 µs | 1.65 ms | 12.7 ms |
+| `ROUTE_AMBIGUOUS` | 13,371 | 391 µs | 5.95 ms | 13.6 ms |
+| Out of coverage | 1,905 | 135 µs | 1.70 ms | 4.9 ms |
+| Instrument not found | 1,308 | 388 µs | 4.86 ms | 17.8 ms |
+
+It counts every call rather than the best of three per query, which is stricter than the earlier 1.88 ms figure. The x86-64 run is pending (`scripts/latency_x86.sh`).

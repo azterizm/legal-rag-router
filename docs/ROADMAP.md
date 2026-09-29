@@ -19,14 +19,39 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-29 |
-| Current stage | **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Current stage | **M10-UK: sealed run done** (`reports/sealed-run-uk.md`); x86 latency pending. Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`)** |
-| Next step | M10-UK: `eval/run.py` and `eval/metrics.py`, `bench/latency.py`, then the sealed run of the plan batteries |
-| Waiting on you | Optional: a go to apply `docs/vault-proposals-discovery.md` to the vault (⛔ vault) |
+| Next step | Your x86 latency run, then your call on the deviations the run found (stop log 15). Then M11 (Unit 1–2 comparison) |
+| Waiting on you | 🧑 `bash scripts/latency_x86.sh` on the rig. ⛔ The questions in stop log 15. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-09-29 (15): **M10-UK: the sealed run is done; x86 latency pending.** Reading: `reports/sealed-run-uk.md`.
+  - **Tooling:** `eval/run.py` refuses a changed battery byte or uncommitted code. `eval/metrics.py` gives the plan's metrics with exact one-sided 95 % Clopper-Pearson bounds. `eval/seal.py` gains `seal_results`. `bench/latency.py`.
+    - Before the run, the misroute headline was fixed to the plan's wording (bound, expected not met), split into wrong instrument and wrong provision.
+  - **One sealed run** at `5df82af`. The first attempt failed at the sealing step (a relative-path bug). Its files were deleted unread and the run repeated.
+  - **Results:**
+    - collision 0/40;
+    - **held-out real citations: 0 wrong bindings in 1,030 (upper bound 0.29 %)**;
+    - bound on invented 0/68; strict abstention 68/68;
+    - misroute 2/1,897 overall: both are my mislabelled Part/Chapter rows. The router follows UK-P-13;
+    - false abstention on sampled current provisions 2/773 (upper bound 0.81 %, **above the 0.5 % target**); on held-out citations 82/1,030, mostly historical provisions refused by design (decision 19);
+    - typo auto-correct precision 29/29.
+  - **Mac latency** over 306k calls: p50 138 µs, **p99 1.98 ms**. Bound results p99 0.70 ms; questions 5.9 ms and instrument refusals 4.9 ms at p99.
+  - **Questions for you (⛔):**
+    1. **The deviations the run found:**
+       - `c.18` is unresolved (should be ambiguous);
+       - **linking across a sentence end** (UK-L-02, safety-relevant);
+       - 25 repeated titles don't trip too-complex;
+       - "explanatory notes to X" binds;
+       - typo recall misses (Trafic, Saftey, Right);
+       - the two mislabelled Part/Chapter rows.
+
+       Fixing them changes code after the seal. The sealed figures stay as published. A fix is shown by a *new* battery version (v2, relabelled rows plus rows for each fix) with its own seal and run. Fix now (recommended: the cross-sentence link first), or record them and move on to M11?
+    2. **False abstention on current law:** the upper bound of 0.81 % misses the 0.5 % target. It comes from two unusual titles. Record as not met, or fix with the others in v2?
+    3. 🧑 **Run `bash scripts/latency_x86.sh` on the rig.** First copy over `data/index/` and `results/raw/replays-100k.txt`, then bring back `bench/results/latency-*-x86_64.json`.
 
 - 2026-09-29 (14): **D5 accepted; D6 done; stage D complete.**
   - **Your decisions on D5:**
@@ -733,17 +758,17 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 - [ ] `eval/seal.py`: canonical-JSON SHA-256 (ported from `jev-vs-sovereign-benchmark/src/engine/audit_seal.py`, without torch/transformers).
   - [x] `seal_battery` (29 Sept, also the typo thresholds): hashes the batteries, index files, alias TOMLs, harvest split manifest, package version and git commit → `seals/battery-YYYY-MM-DD.json`.
-  - `seal_results`: hashes the results and cites the battery-seal hash.
-- [ ] `eval/run.py`: refuses to start if the recomputed battery hash differs from the tagged seal. A negative test flips one byte to prove this.
-- [ ] `eval/metrics.py`, per domain:
+  - [x] `seal_results`: hashes the results and cites the battery-seal hash.
+- [x] `eval/run.py`: refuses to start if the recomputed battery hash differs from the tagged seal. A negative test flips one byte to prove this. (It also refuses uncommitted code.)
+- [x] `eval/metrics.py`, per domain:
   - collision, misroute, miss rate (on `heldout`), out-of-coverage precision, false abstention;
   - bound-on-invented and strict abstention;
   - auto-correct precision and recall, and clarify recall;
   - each with a Clopper–Pearson 95 % upper bound, implemented in stdlib and tested against known values.
-- [ ] `bench/latency.py`: p50/p99 per status, `perf_counter_ns`, warm-up, GC paused, platform recorded.
+- [x] `bench/latency.py`: p50/p99 per status, `perf_counter_ns`, warm-up, GC paused, platform recorded.
 - [x] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag. (You said go on 29 Sept: `battery-seal-2026-09-29`, local only.)
-- [ ] The run → `results/*.json`, a markdown table, and the sealed results.
-- [ ] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file.
+- [x] The run → `results/*.json`, a markdown table, and the sealed results. (29 Sept: `results/uk-run-2026-09-29.*`, `seals/results-2026-09-29.json`, reading in `reports/sealed-run-uk.md`.)
+- [ ] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file. (Script: `scripts/latency_x86.sh`.)
 - **Done when:** the per-domain table exists from one sealed run, collision is 0.0 %, bound-on-invented is 0.0 %, and both platforms' p50/p99 are recorded.
 
 ### M11 — Unit 1–2 comparison (plan step 10) · days 8–10 · `bench/`, outside the wheel
