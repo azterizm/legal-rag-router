@@ -316,7 +316,16 @@ INVENTED: Final = [
     h("Kite Flying (Airspace) Regulations 2002", I, absent_title=True),
     h("Model Railways (Noise) Act 1997", I, absent_title=True),
     h("Employment Rights Act 1995", I, forms=("UK-I-15",), notes="real title, wrong year: ERA 1996 suggested", absent_title=True),
-    h("SI 2011/9999", I, forms=("UK-I-09",), notes="absent: uk/uksi/2011/9999"),
+    h(
+        "SI 2011/9999",
+        I,
+        forms=("UK-I-09",),
+        notes=(
+            "absent: uk/uksi/2011/9999; the source answered HTTP 400 to verify_absence on "
+            "29 Sept; recorded from that run's log, since the fetch layer caches only 200, "
+            "404 and 410"
+        ),
+    ),
     h("section 999 of the Employment Rights Act 1996", P, notes="absent: uk/ukpga/1996/18/s999"),
     h("Employment Rights Act 1996 s. 999", P, notes="absent: uk/ukpga/1996/18/s999"),
     h("section 124(9) of the Employment Rights Act 1996", P, notes="absent: uk/ukpga/1996/18/s124/9"),

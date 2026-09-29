@@ -2,7 +2,7 @@
 
 The labelled queries the sealed run (M10) scores the router on (plan step 8). One JSON Lines file per battery under `batteries/uk/`, validated in CI by `tests/test_batteries.py` against `batteries/schema.py`.
 
-**Status (29 Sept 2026): sealed.** You approved the six review points below on 29 Sept, and every invented instrument is confirmed absent at the source. The seal is `seals/battery-2026-09-29.json`, tagged locally as `battery-seal-2026-09-29` (see Seal below).
+**Status (29 Sept 2026): sealed.** You approved the six review points below on 29 Sept, and every invented instrument is confirmed absent at the source. The seal is `seals/battery-2026-09-29.json`, tagged locally as `battery-seal-2026-09-29` (see Seal below). After the first sealed run, a second and final seal, `seals/battery-2026-09-29-v2.json` (tag `battery-seal-2026-09-29-v2`), covers the fixed router's index with two labels corrected (see Second seal below).
 
 The `misroute` queries quote source text from legislation.gov.uk: Crown copyright, used under the Open Government Licence v3.0.
 
@@ -95,3 +95,15 @@ These are the labels where the plan, grammar.md and the data could be read more 
 The seal needs a committed tree. It is committed, then tagged locally as `battery-seal-YYYY-MM-DD` (`git tag -a`; never pushed without your go).
 
 `uv run python -m eval.seal verify seals/battery-….json` recomputes all of it and names every file that differs. M10's `eval/run.py` refuses to start on any difference. `tests/test_seal.py` checks this with one changed byte in a battery, index or alias file, an added battery file, and an edited seal.
+
+### Second seal (v2)
+
+The first sealed run (`reports/sealed-run-uk.md`) found router deviations from grammar.md and two wrong labels. You approved fixing both and sealing once more (29 Sept). Only two labels change in v2:
+
+- `uk-false_abstention-0018` ("Part 2, Chapter 1 of the Data Protection Act 2018") and `-0019` ("Companies Act 2006 Pt 10 Ch 2") were labelled with the chapter coordinate (`…/pt2/ch1`). The grammar binds a Part or Chapter to its sections (UK-P-13, UK-P-14), so the builder now writes the chapter's sections from ingest's part → sections map (`build_uk.part_sections`).
+
+Every other row is byte-identical to v1: same queries, same ids, same held-out sample. No row was added for the fixes. The rows that exposed the deviations are already there, and rows written after seeing the router's behaviour would be tuned rather than blind. A rebuild keeps each invented row's `searched` date while its search is unchanged (`build_uk.keep_searched`).
+
+The v2 index differs from v1's: title keys drop editorial notes such as "(expired—not approved)". The typo thresholds also gained two fields (`rare_word_titles`, `rare_word_ratio`). So the v1 battery seal, and the concept seal, now fail `verify` against `data/index/`. They still verify at their own commits with an index built there.
+
+**v2 is not an unbiased estimate.** Its fixes answer failures the v1 run showed, so v2 rows that v1 failed can't count as held out. The v1 results stay published next to v2's. Where they differ, v1's numbers are the blind ones.

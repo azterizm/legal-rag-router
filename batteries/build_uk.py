@@ -126,9 +126,30 @@ def _absent_number(index: RouterIndex, row: Hand, catalogue_note: str) -> Absenc
     )
 
 
+def part_sections(index: RouterIndex, coordinates: tuple[str, ...]) -> tuple[str, ...]:
+    """A Part or Chapter label as the sections it binds to (grammar.md UK-P-13, UK-P-14).
+
+    The first sealed run found two rows labelled ``…/pt2/ch1`` where the grammar binds the
+    chapter's sections; ingest's part → sections map gives the label.
+    """
+    expanded: list[str] = []
+    for coordinate in coordinates:
+        parsed = Coordinate.parse(coordinate)
+        groups = index.info(parsed.instrument_id).groups if parsed.provision else {}
+        tail = "/".join(parsed.provision)
+        if tail in groups:
+            expanded += [f"{parsed.instrument_coordinate}/{s}" for s in groups[tail]]
+        else:
+            expanded.append(coordinate)
+    return tuple(expanded)
+
+
 def hand_rows(index: RouterIndex, battery: str, catalogue_note: str) -> Iterator[BatteryRow]:
     for row in HAND[battery]:
         check = _check_hand(index, battery, row, catalogue_note)
+        coordinates = row.coordinates
+        if row.status == hand_uk.B:
+            coordinates = part_sections(index, coordinates)
         yield BatteryRow(
             id="uk-x-0000",  # renumbered by _numbered
             query=row.query,
@@ -136,7 +157,7 @@ def hand_rows(index: RouterIndex, battery: str, catalogue_note: str) -> Iterator
             lang="en",
             domain="uk_legislation",
             expected_status=row.status,  # type: ignore[arg-type]
-            expected_coordinates=row.coordinates,
+            expected_coordinates=coordinates,
             source="hand",
             notes=row.notes,
             surface_form_ids=row.forms,
@@ -313,6 +334,32 @@ def _numbered(battery: str, rows: list[BatteryRow]) -> list[BatteryRow]:
     return out
 
 
+def keep_searched(rows: list[BatteryRow], path: Path) -> list[BatteryRow]:
+    """Carry each ``searched`` date over from ``path`` where the row and its check are unchanged.
+
+    A rebuild cannot re-run ``verify_absence``; the date stays only while the search it
+    records is still the one the row asks for.
+    """
+    if not path.exists():
+        return rows
+    before = {r.id: r for r in read_battery(path)}
+    kept = []
+    for row in rows:
+        old = before.get(row.id)
+        check, old_check = row.absence_verified_via, old and old.absence_verified_via
+        if (
+            old is not None
+            and check is not None
+            and old_check is not None
+            and old.query == row.query
+            and old_check.model_copy(update={"searched": None}) == check
+        ):
+            kept.append(row.model_copy(update={"absence_verified_via": old_check}))
+        else:
+            kept.append(row)
+    return kept
+
+
 def build(index_dir: Path, harvest: Path, catalogue: Path, out: Path) -> dict[str, Counter[str]]:
     router = Router.from_path(index_dir)
     index = router.index
@@ -330,7 +377,7 @@ def build(index_dir: Path, harvest: Path, catalogue: Path, out: Path) -> dict[st
         elif battery == "false_abstention":
             rows += false_abstention_rows(index)
         path = out / f"{battery}.jsonl"
-        write_battery(path, _numbered(battery, rows))
+        write_battery(path, keep_searched(_numbered(battery, rows), path))
         written = read_battery(path)
         summary[battery] = Counter(r.expected_status for r in written)
     return summary

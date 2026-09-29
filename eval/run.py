@@ -11,6 +11,8 @@ commit it records is the code that ran. It writes:
 - ``results/{jurisdiction}-run-{date}.md``: the per-domain table;
 - ``seals/results-{date}.json``: the SHA-256 of both, citing the battery seal.
 
+``--suffix v2`` adds ``-v2`` to each name. It never overwrites an earlier run's files.
+
 Metrics and scoring: :mod:`eval.metrics`. Only ``route`` runs here; discovery has its own
 sealed run (``eval.discovery``, roadmap D5).
 """
@@ -109,6 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seal", type=Path, required=True, help="the tagged battery seal")
     parser.add_argument("--index", type=Path, default=REPO / "data" / "index")
     parser.add_argument("--jurisdiction", default="uk")
+    parser.add_argument("--suffix", default="", help="added to the file names: -{suffix}")
     parser.add_argument("--repo", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     repo: Path = args.repo
@@ -124,10 +127,19 @@ def main(argv: list[str] | None = None) -> int:
         print("REFUSED: commit every tracked change first, so the recorded commit is what ran")
         return 1
     started = datetime.now(UTC)
+    date = started.date().isoformat()
+    name = f"{date}-{args.suffix}" if args.suffix else date
+    results = repo / "results"
+    json_path = results / f"{args.jurisdiction}-run-{name}.json"
+    md_path = results / f"{args.jurisdiction}-run-{name}.md"
+    seal_path = repo / "seals" / f"results-{name}.json"
+    existing = [p.name for p in (json_path, md_path, seal_path) if p.exists()]
+    if existing:
+        print(f"REFUSED: {', '.join(existing)} exist: a sealed run is never overwritten")
+        return 1
     router = Router.from_path(args.index)
     battery_dir = repo / "batteries" / args.jurisdiction
     outcomes = run(router, battery_dir)
-    date = started.date().isoformat()
     meta = {
         "jurisdiction": args.jurisdiction,
         "date": date,
@@ -146,15 +158,11 @@ def main(argv: list[str] | None = None) -> int:
     for outcome in outcomes:
         domains.setdefault(rows[outcome.row_id].domain, []).append(outcome)
     metrics = {domain: domain_metrics(rows_) for domain, rows_ in sorted(domains.items())}
-    results = repo / "results"
     results.mkdir(exist_ok=True)
-    json_path = results / f"{args.jurisdiction}-run-{date}.json"
-    md_path = results / f"{args.jurisdiction}-run-{date}.md"
     payload = {"run": meta, "metrics": metrics, "rows": [_row(o) for o in outcomes]}
     json_path.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     md_path.write_text(markdown(meta, metrics) + "\n", encoding="utf-8")
     sealed = seal_results(repo, [json_path, md_path], args.seal)
-    seal_path = repo / "seals" / f"results-{date}.json"
     seal_path.write_text(json.dumps(sealed, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(md_path.read_text(encoding="utf-8"))
     print(f"results sealed: {sealed['seal_sha256']} -> {seal_path}")

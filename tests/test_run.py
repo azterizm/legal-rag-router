@@ -135,3 +135,19 @@ def test_a_relative_seal_path_is_accepted(repo: Path, monkeypatch: pytest.Monkey
     assert main(["--repo", str(repo), "--seal", "seals/battery.json", "--index", "index"]) == 0
     [seal] = (repo / "seals").glob("results-*.json")
     assert json.loads(seal.read_text())["contents"]["battery_seal"]["file"] == "seals/battery.json"
+
+
+def test_a_second_run_never_overwrites_and_a_suffix_names_it(
+    repo: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert _run(repo) == 0
+    first = {p: p.read_bytes() for p in (repo / "results").iterdir()}
+    assert _run(repo) == 1
+    assert "a sealed run is never overwritten" in capsys.readouterr().out
+    assert {p: p.read_bytes() for p in (repo / "results").iterdir()} == first
+    seal = str(repo / "seals" / "battery.json")
+    assert main(["--repo", str(repo), "--seal", seal, "--index", str(repo / "index"),
+                 "--suffix", "v2"]) == 0  # fmt: skip
+    assert len(list((repo / "results").glob("uk-run-*-v2.*"))) == 2
+    [sealed] = (repo / "seals").glob("results-*-v2.json")
+    verify_results_seal(sealed, repo)

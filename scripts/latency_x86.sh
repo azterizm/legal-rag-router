@@ -17,7 +17,7 @@ esac
 
 uv sync --locked
 # The same batteries, index bytes, aliases and thresholds as the sealed Mac run:
-uv run python -m eval.seal verify seals/battery-2026-09-29.json
+uv run python -m eval.seal verify seals/battery-2026-09-29-v2.json
 system="$(uv run python -c 'import platform; print(platform.system().lower())')"
 uv run python -m bench.latency \
   --queries results/raw/replays-100k.txt --repeats 3 \
