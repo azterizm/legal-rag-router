@@ -58,6 +58,15 @@ class BuildError(ValueError):
 # ---------------------------------------------------------------------------- keys
 
 
+# The source's editorial status note after a title is not part of the name: "The Immigration
+# (Amendment) (EU Exit) Regulations 2019 (expired—not approved)", "… Act 1965 ( repealed
+# 1.11.1996)". "(No. 2)" and other distinguishing words are kept.
+_EDITORIAL_NOTE: Final = re.compile(
+    r"\s*\(\s*(?:expired|repealed|revoked|lapsed|annulled|not approved)[^()]*\)\s*$",
+    re.IGNORECASE,
+)
+
+
 def title_variants(title: str) -> tuple[str, ...]:
     """Every lookup key for a title (plan departure 1).
 
@@ -65,7 +74,7 @@ def title_variants(title: str) -> tuple[str, ...]:
     the core words alone: ``employment rights act|1996``, ``employment rights|1996``,
     ``employment rights act``, ``employment rights``.
     """
-    text, year = split_title_year(title)
+    text, year = split_title_year(_EDITORIAL_NOTE.sub("", title))
     words = title_words(text)
     if not words:
         return ()

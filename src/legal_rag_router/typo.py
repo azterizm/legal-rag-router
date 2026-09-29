@@ -48,6 +48,11 @@ class TypoPolicy:
     suggestion_min_shared: float = 0.5
     common_word_value_chars: int = 40_000
     """Skip words whose title list is huge ("act", "order"): they carry no signal."""
+    rare_word_titles: int = 3
+    """A known word in at most this many titles may itself be a typo in the source ("Road
+    Trafic Act" exists in no statute book, yet "trafic" occurs in a real SI title)."""
+    rare_word_ratio: int = 20
+    """…and is corrected only towards a word in at least this many times as many titles."""
 
 
 DEFAULT_POLICY: Final = TypoPolicy()
@@ -112,6 +117,11 @@ class _Vocabulary:
                 and word in self._index.ids("typo", word)
             )
         return self._known[word]
+
+    def title_count(self, word: str) -> int:
+        """In how many indexed titles ``word`` occurs (0 if never)."""
+        raw = self._index.tables["words"].get(word)
+        return 0 if not raw else raw.count(",") + 1
 
     def near(self, word: str, max_edits: int) -> list[tuple[int, str]]:
         """Vocabulary words within ``max_edits`` of ``word``: (distance, word), nearest first."""
@@ -238,9 +248,53 @@ def analyse_title(
         verdict = _typo_verdict(index, vocabulary, words, unknown, year=year, policy=policy)
         if verdict is not None:
             return verdict
+    if not unknown:
+        verdict = _known_word_typo(index, vocabulary, words, year=year, policy=policy)
+        if verdict is not None:
+            return verdict
 
     offered = suggestions(index, words, year, type_words=type_words, policy=policy)
     return TitleVerdict("not_found", suggestions=offered, reason="no_such_title")
+
+
+def _known_word_typo(
+    index: RouterIndex,
+    vocabulary: _Vocabulary,
+    words: list[str],
+    *,
+    year: int | None,
+    policy: TypoPolicy,
+) -> TitleVerdict | None:
+    """Every word is known, yet no title matches. Try one word at a time, and only two kinds
+    of change: a rare known word (itself a source typo) towards a far more common one within
+    one edit ("trafic" → "traffic"), and singular ↔ plural ("right" → "rights"). Bound only
+    when exactly one instrument fits; asked about when several do."""
+    hits: dict[str, tuple[tuple[str, str], ...]] = {}
+    for word in dict.fromkeys(words):
+        if word.isdigit() or len(word) < policy.min_correctable_length:
+            continue
+        candidates: list[str] = []
+        count = vocabulary.title_count(word)
+        if count <= policy.rare_word_titles:
+            floor = policy.rare_word_ratio * max(1, count)
+            candidates += [
+                w
+                for d, w in vocabulary.near(word, policy.auto_correct_edits)
+                if vocabulary.title_count(w) >= floor
+            ]
+        toggled = word[:-1] if word.endswith("s") else f"{word}s"
+        if vocabulary.known(toggled):
+            candidates.append(toggled)
+        for candidate in candidates[: policy.max_candidates_per_word]:
+            corrected = [candidate if w == word else w for w in words]
+            for iid in _title_ids(index, corrected, year):
+                hits.setdefault(iid, ((word, candidate),))
+    if not hits:
+        return None
+    ranked = sorted(hits)
+    if len(ranked) == 1:
+        return TitleVerdict("bound", (ranked[0],), hits[ranked[0]], reason="typo")
+    return TitleVerdict("ambiguous", tuple(ranked), hits[ranked[0]], reason="typo")
 
 
 def _year_of(index: RouterIndex, instrument_id: str) -> int:
@@ -270,14 +324,16 @@ def _typo_verdict(
             return None
         options.append(near)
     hits: dict[str, tuple[int, tuple[tuple[str, str], ...]]] = {}
+    reordered = False
     for combo in product(*options):
         replacement = dict(zip(unknown, (w for _, w in combo), strict=True))
         corrected = [replacement.get(w, w) for w in words]
         distance = sum(d for d, _ in combo)
         corrections = tuple((u, replacement[u]) for u in unknown)
-        ids = _title_ids(index, corrected, year) or tuple(
-            filter(None, [_wordset_id(index, corrected, year)])
-        )
+        exact = _title_ids(index, corrected, year)
+        ids = exact or tuple(filter(None, [_wordset_id(index, corrected, year)]))
+        if not exact and ids:
+            reordered = True
         for iid in ids:  # keep each instrument's nearest correction
             hits[iid] = min(hits.get(iid, (distance, corrections)), (distance, corrections))
     if not hits:
@@ -285,7 +341,12 @@ def _typo_verdict(
     ranked = sorted(hits, key=lambda i: hits[i][0])
     best = ranked[0]
     distance, corrections = hits[best]
-    single_small = len(unknown) == 1 and distance <= policy.auto_correct_edits and len(hits) == 1
+    single_small = (
+        len(unknown) == 1
+        and distance <= policy.auto_correct_edits
+        and len(hits) == 1
+        and not reordered  # a reordered title with a typo is asked about, never bound
+    )
     if single_small:
         return TitleVerdict("bound", (best,), corrections, reason="typo")
     return TitleVerdict("ambiguous", tuple(ranked), corrections, reason="typo")

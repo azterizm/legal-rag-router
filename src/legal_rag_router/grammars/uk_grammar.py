@@ -184,6 +184,15 @@ _CHAPTER_RE: Final = re.compile(
     rf"(?<![a-z0-9/]){_Y}\s*,?\s*(?:c|ch|chapter)\.?\s*(?P<n>\d{{1,3}})(?![\d/])"
     rf"|(?<![a-z0-9])(?:c|ch|chapter)\.?\s*(?P<n2>\d{{1,3}})\s+of\s+(?P<y2>{_YEAR_RX})(?!\d)"
 )
+# UK-U-03: explanatory notes, preambles and recitals are not provisions; the instrument named
+# after them is not bound ("the explanatory notes to the Equality Act 2010").
+_UNSUPPORTED_PART_RE: Final = re.compile(
+    r"(?<![a-z])(?:explanatory\s+notes?|preamble|recitals?(?:\s+\d{1,3})?)"
+    r"\s+(?:to|of|for|in)\s+(?:the\s+)?"
+)
+# A chapter number with no year and no title before it ("c.18"): chapter 18 of which year?
+# Never inside brackets: "(C. 5)" after an SI number is a series note (UK-I-29).
+_BARE_CHAPTER_RE: Final = re.compile(r"(?<![a-z0-9/(])(?<!\(\s)c\.\s?(?P<n>\d{1,3})(?![\d/.])")
 _REIGNS: Final = {
     "vict": "Vict", "victoria": "Vict", "geo": "Geo", "george": "Geo", "edw": "Edw",
     "edward": "Edw", "will": "Will", "william": "Will", "gul": "Will", "eliz": "Eliz",
@@ -753,6 +762,8 @@ class UKGrammar:
 
         scan(_NEGATION_RE, "negation", lambda _: None)
         scan(_CONTEXT_REF_RE, "context_ref", lambda m: m.group("y"))
+        scan(_BARE_CHAPTER_RE, "bare_chapter", lambda m: m.group("n"))
+        scan(_UNSUPPORTED_PART_RE, "unsupported_part", lambda _: None)
         scan(_TEMPORAL_RE, "temporal", lambda _: None)
         scan(_DATE_RE, "date", lambda _: None)
         for name, pattern in _OUT_OF_COVERAGE_RES:

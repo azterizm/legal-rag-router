@@ -66,7 +66,7 @@ __all__ = ["Router"]
 log = logging.getLogger("legal_rag_router")
 miss_log = logging.getLogger("legal_rag_router.misses")
 
-MAX_ANCHORS: Final = 16
+MAX_ANCHORS: Final = 48
 MAX_MENTIONS: Final = 24
 MAX_TITLE_WORDS: Final = 28
 MAX_CUES: Final = 64
@@ -172,7 +172,9 @@ class _Instrument:
 
     start: int
     end: int
-    kind: str  # identifier number title alias acronym anchor context_ref out_of_coverage
+    kind: (
+        str  # identifier number title alias acronym anchor context_ref out_of_coverage bare_chapter
+    )
     verdict: str  # resolved | ambiguous | not_found | out_of_coverage | context
     ids: tuple[str, ...] = ()
     coverage: tuple[str, ...] = ()
@@ -188,6 +190,8 @@ class _Instrument:
     jurisdiction: str | None = "uk"
     excluded: bool = False
     narrow_by_provision: bool = False
+    unsupported: bool = False
+    """Named after "the explanatory notes to" / "the preamble to" (UK-U-03): never bound."""
     note: str | None = None
     """A line for ``messages`` when the mention binds (e.g. cited by a former title)."""
     provisions: list[ProvisionMention] = field(default_factory=list)
@@ -220,6 +224,8 @@ class _Scan:
     cues: list[Cue]
     blocked: list[tuple[int, int]]
     lookups: int = 0
+    overflow: bool = False
+    """More title anchors than :data:`MAX_ANCHORS`: routed ``too_complex``, never read in part."""
     _blocked_starts: list[int] = field(default_factory=list)
     _blocked_ends: list[int] = field(default_factory=list)
     _token_starts: list[int] = field(default_factory=list)
@@ -406,12 +412,13 @@ class Router:
         if too_big is not None:
             return too_big
         instruments = self._instruments(scan)
-        if scan.lookups > MAX_TITLE_LOOKUPS:
+        if scan.lookups > MAX_TITLE_LOOKUPS or scan.overflow:
             return self._result(RouteStatus.UNRESOLVED, reason="too_complex", citation_signal=True)
         if len(instruments) + len(scan.provisions) > MAX_MENTIONS:
             return self._result(
                 RouteStatus.UNRESOLVED, reason="too_many_citations", citation_signal=True
             )
+        self._mark_unsupported(scan, instruments)
         excluded_provisions = self._apply_exclusions(scan, instruments)
         context_instrument = self._context_instrument(context)
         unlinked = self._link(scan, instruments)
@@ -486,7 +493,14 @@ class Router:
         found: list[_Instrument] = []
         found += [self._identifier_mention(m) for m in scan.identifiers]
         found += [self._number_mention(n) for n in scan.numbers]
-        found += self._title_mentions(scan)
+        titles = self._title_mentions(scan)
+        # A provision inside a matched title is part of its name ("… (Section 11 Exemption)
+        # Regulations 2001"), not a citation of its own.
+        spans = [(m.start, m.end) for m in titles]
+        scan.provisions = [
+            p for p in scan.provisions if not any(a <= p.start and p.end <= b for a, b in spans)
+        ]
+        found += titles
         found += self._cue_mentions(scan, found)
         found.sort(key=lambda m: m.start)
         # Drop overlaps: earlier-listed kinds win (identifier > number > title > cue).
@@ -657,7 +671,10 @@ class Router:
                 continue
             if not scan.is_blocked(token.start):
                 anchors.append((pos, kind))
-        for pos, kind in reversed(anchors[-MAX_ANCHORS:]):  # right to left: longest titles win
+        if len(anchors) > MAX_ANCHORS:  # UK-W-03: refuse rather than read part of the query
+            scan.overflow = True
+            return found
+        for pos, kind in reversed(anchors):  # right to left: longest titles win
             if pos in claimed:
                 continue
             mention = (
@@ -725,15 +742,28 @@ class Router:
                 return False
         return False
 
-    def _window(self, scan: _Scan, anchor: int, claimed: set[int], limit: int) -> list[int]:
-        """Word-token positions left of ``anchor`` a title may start at, nearest first."""
+    def _window(
+        self,
+        scan: _Scan,
+        anchor: int,
+        claimed: set[int],
+        limit: int,
+        *,
+        cross_blocked: bool = False,
+    ) -> list[int]:
+        """Word-token positions left of ``anchor`` a title may start at, nearest first.
+
+        With ``cross_blocked`` the window runs on through provision and number spans: a title
+        may contain them ("… (Amendment of paragraph 7 of Schedule 17 to the Coronavirus Act
+        2020) (Wales) Regulations 2020"). Such a window is only ever matched exactly.
+        """
         tokens = scan.tokens
         starts = [anchor]
         pos = anchor - 1
         words = 0
         while pos >= 0 and words < limit:
             token = tokens[pos]
-            if pos in claimed or scan.is_blocked(token.start):
+            if pos in claimed or (scan.is_blocked(token.start) and not cross_blocked):
                 break
             if token.kind == "punct":
                 if token.text in _STOP_PUNCT and token.text not in ",:":  # both occur in titles
@@ -757,10 +787,30 @@ class Router:
         return words, None, words
 
     def _match_title(self, scan: _Scan, anchor: int, claimed: set[int]) -> _Instrument | None:
+        window = self._window(scan, anchor, claimed, MAX_TITLE_WORDS)
+        found = self._title_at(scan, anchor, window, claimed, exact_only=False)
+        if found is not None:
+            return found
+        wider = self._window(scan, anchor, claimed, MAX_TITLE_WORDS, cross_blocked=True)
+        if len(wider) == len(window):
+            return None
+        # The plain window stopped at a provision or number span. A real title may run on
+        # through it; accept only an exact title match across it (never an alias or coverage).
+        return self._title_at(scan, anchor, wider[len(window) :], claimed, exact_only=True)
+
+    def _title_at(
+        self,
+        scan: _Scan,
+        anchor: int,
+        window: list[int],
+        claimed: set[int],
+        *,
+        exact_only: bool,
+    ) -> _Instrument | None:
         tokens = scan.tokens
         query = scan.query
         index = self._index
-        for start in reversed(self._window(scan, anchor, claimed, MAX_TITLE_WORDS)):
+        for start in reversed(window):
             if tokens[start].text in PARTICLES:
                 continue  # "and Equality Act 2010" must not swallow the "and" joining two citations
             text = query[tokens[start].start : tokens[anchor].end]
@@ -770,11 +820,11 @@ class Router:
             if scan.lookups > MAX_TITLE_LOOKUPS:
                 return None
             ids = index.ids("titles", key)
-            alias = index.aliases.get(" ".join(words))
+            alias = None if exact_only else index.aliases.get(" ".join(words))
             kind = "title"
             if not ids and alias is not None:
                 ids, kind = (str(alias["id"]),), "alias"
-            coverage = () if ids else index.ids("coverage_titles", key)
+            coverage = () if ids or exact_only else index.ids("coverage_titles", key)
             if not ids and not coverage:
                 continue
             claimed.update(range(start, anchor + 1))
@@ -1045,6 +1095,19 @@ class Router:
                     )
                 )
                 taken.append((start, cue.end))
+            elif cue.kind == "bare_chapter":  # UK-I-08: no year, so ask which
+                mentions.append(
+                    _Instrument(
+                        cue.start,
+                        cue.end,
+                        "bare_chapter",
+                        "ambiguous",
+                        title_as_cited=cue.text,
+                        number=cue.detail,
+                        reason="chapter_without_year",
+                        clear_claim=True,
+                    )
+                )
             elif cue.kind == "context_ref":
                 mentions.append(
                     _Instrument(
@@ -1063,6 +1126,18 @@ class Router:
         return scan.tokens[self._cited_start(scan, anchor, set())].start
 
     # ------------------------------------------------------------------ exclusion and linking
+
+    @staticmethod
+    def _mark_unsupported(scan: _Scan, instruments: list[_Instrument]) -> None:
+        """UK-U-03: the instrument right after "the explanatory notes to" is not bound."""
+        for cue in scan.cues:
+            if cue.kind != "unsupported_part":
+                continue
+            following = [m for m in instruments if m.start >= cue.end]
+            if following:
+                nearest = min(following, key=lambda m: m.start)
+                if not scan.gap_words(cue.end, nearest.start):
+                    nearest.unsupported = True
 
     @staticmethod
     def _gap_words(scan: _Scan, start: int, end: int) -> list[str]:
@@ -1146,12 +1221,13 @@ class Router:
     def _same_clause(self, scan: _Scan, provision: ProvisionMention, lone: _Instrument) -> bool:
         """Decision 15 applies within one clause, and not across an agentive "by"."""
         start, end = sorted(((provision.start, provision.end), (lone.start, lone.end)))
-        between = scan.query[start[1] : end[0]]
-        if any(
-            m.group("word") is None or m.group("word").casefold() not in _ABBREVIATIONS
-            for m in _CLAUSE_BREAK_RE.finditer(between)
-        ):
-            return False
+        # Search the whole query, not the slice between the two: a sentence break is a full
+        # stop *followed by a capital*, and that capital is often the provision itself.
+        for m in _CLAUSE_BREAK_RE.finditer(scan.query, start[1]):
+            if m.start() >= end[0]:
+                break
+            if m.group("word") is None or m.group("word").casefold() not in _ABBREVIATIONS:
+                return False
         return not self._agentive(scan, provision, lone)
 
     def _agentive(self, scan: _Scan, p: ProvisionMention, instrument: _Instrument) -> bool:
@@ -1473,7 +1549,18 @@ class Router:
         return outcome
 
     def _terminal(self, mention: _Instrument) -> _Outcome | None:
-        """The outcome for a mention that never reaches the index: invented, or uncovered."""
+        """The outcome for a mention that never reaches the index: invented, uncovered, or
+        a chapter number without a year, or a part that is not a provision (UK-U-03)."""
+        if mention.unsupported:
+            return _Outcome(RouteStatus.UNRESOLVED, reason="unsupported_pinpoint")
+        if mention.kind == "bare_chapter":
+            return _Outcome(
+                RouteStatus.AMBIGUOUS,
+                reason="chapter_without_year",
+                clarification=(
+                    f"“{mention.title_as_cited}”: chapter {mention.number} of which year?"
+                ),
+            )
         if mention.verdict == "not_found":
             return self._not_found(mention)
         if mention.verdict == "out_of_coverage":

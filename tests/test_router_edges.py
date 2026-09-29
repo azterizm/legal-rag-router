@@ -214,6 +214,24 @@ def test_an_internal_error_fails_safe(router: Router, monkeypatch: pytest.Monkey
         ("Employment Rights Act 1996 except s. 999", BOUND, None, ["uk/ukpga/1996/18"]),
         ("IA 1986 Sch. B1 para. 15(3)", AMBIGUOUS, "duplicated_in_source", []),  # decision 13
         ("TULRCA 1992 Sch. A1 para. 1", BOUND, None, ["uk/ukpga/1992/52/schA1/para1"]),
+        # fixes from the first sealed run (reports/sealed-run-uk.md)
+        (
+            "The Theft Act 1968 applies. Section 1 defines theft.",
+            AMBIGUOUS,
+            "provision_without_instrument",
+            [],
+        ),  # UK-L-02: a sentence end breaks the link
+        ("c.18", AMBIGUOUS, "chapter_without_year", []),  # UK-I-08
+        ("see c. 18 generally", AMBIGUOUS, "chapter_without_year", []),
+        (
+            "the explanatory notes to the Equality Act 2010",
+            RouteStatus.UNRESOLVED,
+            "unsupported_pinpoint",
+            [],
+        ),  # UK-U-03
+        ("recital 12 of the Equality Act 2010", RouteStatus.UNRESOLVED, "unsupported_pinpoint", []),
+        ("Theft Act 1968 and " * 24 + "Theft Act 1968", RouteStatus.UNRESOLVED, "too_complex", []),
+        ("Employment Right Act 1996", BOUND, None, ["uk/ukpga/1996/18"]),  # singular for plural
         # a negation cue too far from the citation excludes nothing
         ("not relevant here: section 124 of the Employment Rights Act 1996", BOUND, None, [S124]),
         # SI lists (UK-I-22), series notes (UK-I-29), years ending a provision list (UK-P-06)
