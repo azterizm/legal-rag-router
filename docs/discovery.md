@@ -1,6 +1,6 @@
 # Concept discovery (discover-then-bind), UK
 
-Status (29 Sept 2026): **D0–D4 done: `Router.discover()` is built and tuned on dev; D5 (the sealed run on test) next.** Roadmap stage D.
+Status (29 Sept 2026): **stage D complete.** The sealed test run is in `reports/discovery-uk.md` (hit@10 88 % against 51 % for headings only), and you accepted it. The contract (§5) and README are updated, and the proposed vault text is in `docs/vault-proposals-discovery.md`. Roadmap stage D.
 
 ## The gap
 
@@ -161,9 +161,9 @@ router.route(str(result.candidates[0].coordinate))  # bound only once the user c
 | **D1** | Decisions: API shape, index location, signals, evaluation method | ✅ 29 Sept |
 | **D2** | ✅ approved and sealed 29 Sept. **Evaluation first:** a concept battery of UK keyword queries in Mart's style, each with its acceptable gold provisions, verified against the index. Split `dev` / `test` (as D2); sealed before any ranking code is tuned | ⛔ review, then seal |
 | **D3** | ✅ 29 Sept. Ingest keeps long titles and cross-headings (re-ingest). A separate concept index (`data/concepts/`, its own hashed manifest) holds per-provision fields: heading, cross-heading, Part / Chapter, instrument and long title, definitions, text, citing descriptions | |
-| **D4** | ✅ 29 Sept. `discover()`: BM25F over those fields, stemming, a curated thesaurus (`aliases/uk_concepts.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
-| **D5** | Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results |
-| **D6** | Contract §5, README; proposed vault changes for 02 §5, 05 §4, 07 and 10 Phase 4 (vault edits need your go) | ⛔ vault |
+| **D4** | ✅ 29 Sept. `discover()`: BM25F over those fields, stemming, a curated thesaurus (`thesaurus/uk.toml`). Every candidate is re-validated through the router's exact lookup. It returns candidate coordinates with their headings and the evidence for each, never provision text, and never binds. Tuned on `dev` only | |
+| **D5** | ✅ 29 Sept (`reports/discovery-uk.md`). Sealed evaluation on `test`: recall@1/5/10 and MRR against the heading-only baseline (the vault's design); 0 non-existent candidates, 0 bindings; latency | ⛔ results: accepted 29 Sept |
+| **D6** | ✅ 29 Sept (`docs/vault-proposals-discovery.md`; vault not edited). Contract §5, README; proposed vault changes for 02 §5, 05 §4, 07 and 10 Phase 4 (vault edits need your go) | ⛔ vault |
 
 Then M10 as planned. D uses a separate index and a separate method, so the sealed router batteries and the router index are untouched (`eval.seal verify` still passes).
 

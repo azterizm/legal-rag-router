@@ -17,6 +17,25 @@ and returns exactly one decision:
 The routing path uses no model, no network and no disk I/O per query. The same input always
 gives the same output.
 
+## Queries that cite nothing: discover, then bind
+
+Most research queries cite no statute ("unfair dismissal compensatory award statutory cap").
+They route `ROUTE_UNRESOLVED`. `Router.discover` then offers candidate coordinates from a
+separate concept index for the user to confirm, and the confirmed coordinate is routed like
+any citation:
+
+```python
+router = Router.from_path("data/index", concepts="data/concepts")
+found = router.discover("unfair dismissal compensatory award statutory cap")
+found.candidates[0].label  # "Employment Rights Act 1996, s. 124: Limit of compensatory award etc."
+router.route(str(found.candidates[0].coordinate))  # only after the user confirms it
+```
+
+Discovery ranks section headings, cross-headings, Part and Chapter titles, long titles and
+provision text. It never returns text and never binds. On the sealed UK test set it puts the
+right provision in the top 10 for 88 % of queries, against 51 % for headings alone. See
+[`docs/discovery.md`](docs/discovery.md) and [`reports/discovery-uk.md`](reports/discovery-uk.md).
+
 > **Status:** under active development towards `0.1.0`. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Coordinates

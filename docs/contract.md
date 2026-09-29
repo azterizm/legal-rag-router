@@ -111,14 +111,50 @@ instantly:
 
 ## 5. Unresolved queries: discover, then bind
 
-`ROUTE_UNRESOLVED` means that no citation was found ("the unfair dismissal compensation
-cap"). It is **not** permission to search everything and generate. The next step, built in
-Phase 4, works like this:
+`ROUTE_UNRESOLVED` means that no citation was found ("unfair dismissal compensatory award
+statutory cap"). It is **not** permission to search everything and generate. Most research
+queries cite nothing, so this is the main path, not an edge case (roadmap stage D,
+`docs/discovery.md`).
 
-1. Search instrument titles and section headings. This returns candidate *coordinates*, not
-   text.
-2. Send the candidates back through the router's exact lookup.
-3. The user, or an orchestrating agent, confirms one before any bounded retrieval runs.
+```python
+router = Router.from_path("data/index", concepts="data/concepts")
+result = router.route(query)  # ROUTE_UNRESOLVED, next_action DISCOVER_THEN_BIND
+found = router.discover(query)  # DiscoveryResult: candidate coordinates, never text
+# show found.candidates; the user (or an orchestrating agent) confirms one
+bound = router.route(str(confirmed.coordinate))  # ROUTE_BOUNDED: retrieve through its filter
+```
+
+1. **`Router.discover(query)`** ranks the provisions of the concept index (`data/concepts/`, a
+   separate, SHA-256-verified index). It searches their headings, cross-headings, Part and
+   Chapter titles, instrument titles and long titles, and text. Each candidate is a
+   `Discovered`: a coordinate, a readable label, its heading, a score, and the query terms it
+   matched. It never returns provision text.
+2. **Every candidate has already been re-checked** against the router index: discovery
+   cannot offer a coordinate the router cannot bind.
+3. **`next_action` is `ASK_USER`.** The user, or an orchestrating agent, confirms one
+   candidate, and the caller routes that coordinate. Only the resulting `ROUTE_BOUNDED`
+   result may reach retrieval.
+
+| `DiscoveryResult` field | Meaning |
+|---|---|
+| `candidates` | Up to `limit` (default 10) `Discovered` candidates, best first |
+| `confident` | The top candidate matches at least half of the query's weight. **A weak signal:** on the sealed test, 30 % of US-law queries still got a "confident" UK candidate. Treat it as a hint about how to present the list, never as permission to skip confirmation |
+| `reason` | `None` when confident; otherwise `low_confidence`, `no_match`, `no_terms`, `query_too_long`, `not_a_string` or `no_concept_index` |
+| `index_snapshot` | The router index's snapshot date |
+
+A caller must not:
+- bind or retrieve from a candidate nobody confirmed;
+- retrieve from all candidates at once;
+- treat `confident` as an answer.
+
+Discovery changes nothing about routing. A query that cites nothing still routes
+`ROUTE_UNRESOLVED`, and a refused citation stays refused. For a refusal, the discovered
+candidates may help the user find the law the question was reaching for.
+
+Measured on the sealed concept battery (`reports/discovery-uk.md`, test slice):
+- the right provision is in the top 10 for 88 % of drafted queries, and ranked first for 51 %;
+- section headings alone put it in the top 10 for 51 %;
+- p99 latency is 318 ms: an interactive step, outside `route()`'s 2 ms path.
 
 ## 6. Follow-ups and context
 
@@ -139,5 +175,8 @@ Phase 4, works like this:
     (`no_jurisdiction_in_scope`).
 - An internal error is logged and fails safe to `ROUTE_UNRESOLVED`. It never falls back to
   a guess.
+- `discover` never raises for any input either. A router built without a concept index
+  answers `reason="no_concept_index"` with no candidates. Loading a concept index that
+  doesn't match its manifest raises `ConceptIndexError` at load time.
 - Loading an index whose tables don't match the SHA-256 hashes in its manifest raises
   `IndexLoadError` at load time, never at query time.
