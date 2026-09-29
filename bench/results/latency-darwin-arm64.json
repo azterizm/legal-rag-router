@@ -11,46 +11,46 @@
   "repeats": 3,
   "all": {
     "calls": 306336,
-    "p50_us": 137.5,
-    "p99_us": 1980.0,
-    "max_us": 31191.2
+    "p50_us": 140.5,
+    "p99_us": 2109.5,
+    "max_us": 31392.8
   },
   "per_status": {
     "EPISTEMIC_ABSTENTION_INSTRUMENT_NOT_FOUND": {
-      "calls": 1308,
-      "p50_us": 388.3,
-      "p99_us": 4856.2,
-      "max_us": 17777.6
+      "calls": 1272,
+      "p50_us": 408.2,
+      "p99_us": 5843.8,
+      "max_us": 18611.6
     },
     "EPISTEMIC_ABSTENTION_PROVISION_NOT_FOUND": {
-      "calls": 18246,
-      "p50_us": 190.9,
-      "p99_us": 1647.7,
-      "max_us": 12706.9
+      "calls": 18282,
+      "p50_us": 197.1,
+      "p99_us": 1998.9,
+      "max_us": 12809.8
     },
     "ROUTE_AMBIGUOUS": {
-      "calls": 13371,
-      "p50_us": 390.7,
-      "p99_us": 5947.6,
-      "max_us": 13644.2
+      "calls": 12804,
+      "p50_us": 393.3,
+      "p99_us": 6224.4,
+      "max_us": 14250.5
     },
     "ROUTE_BOUNDED": {
-      "calls": 245652,
-      "p50_us": 134.5,
-      "p99_us": 697.3,
-      "max_us": 31191.2
+      "calls": 246285,
+      "p50_us": 137.9,
+      "p99_us": 847.5,
+      "max_us": 31392.8
     },
     "ROUTE_OUT_OF_COVERAGE": {
-      "calls": 1905,
-      "p50_us": 134.9,
-      "p99_us": 1698.6,
-      "max_us": 4857.5
+      "calls": 1899,
+      "p50_us": 138.3,
+      "p99_us": 1715.2,
+      "max_us": 5164.8
     },
     "ROUTE_UNRESOLVED": {
-      "calls": 25854,
-      "p50_us": 35.2,
-      "p99_us": 3404.3,
-      "max_us": 10548.2
+      "calls": 25794,
+      "p50_us": 36.5,
+      "p99_us": 3562.8,
+      "max_us": 12768.6
     }
   }
 }

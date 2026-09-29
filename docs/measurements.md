@@ -218,4 +218,8 @@ This is outside `route()`'s < 2 ms path: discovery is an interactive step, follo
 | Out of coverage | 1,905 | 135 µs | 1.70 ms | 4.9 ms |
 | Instrument not found | 1,308 | 388 µs | 4.86 ms | 17.8 ms |
 
-It counts every call rather than the best of three per query, which is stricter than the earlier 1.88 ms figure. The x86-64 run is pending (`scripts/latency_x86.sh`).
+It counts every call rather than the best of three per query, which is stricter than the earlier 1.88 ms figure.
+
+### After the sealed-run fixes (v2, 29 Sept)
+
+The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise. The x86-64 run is pending (`scripts/latency_x86.sh`, on the v2 seal).
