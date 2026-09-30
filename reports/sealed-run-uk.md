@@ -63,7 +63,7 @@ A third, "Competition Act 1998 (Section 11 Exemption) Regulations 2001 …, reg.
 | Out of coverage | 1,905 | 135 µs | 1.70 ms |
 | Instrument not found | 1,308 | 388 µs | 4.86 ms |
 
-(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The x86-64 run was measured on the v2 seal; see below.
+(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The x86-64 figures, and a controlled Mac re-run, are pending (roadmap stop 18).
 
 ## Second sealed run (v2), 29 Sept 2026
 
@@ -125,22 +125,3 @@ Neither binds anything.
 | Instrument not found | 1,272 | 408 µs | 4.86 → 5.84 ms |
 
 **p99 over all calls now misses the < 2 ms target, by 0.11 ms.** This is the fixes' cost, not noise. Timed back to back on the same 30,000 queries and index, v1's code gives p99 1.98 / 1.97 ms and v2's 2.09 / 2.12 ms. The extra cost is spread out: about 10 µs per query from two more cue scans and the SI-number lookahead, with no single hotspot. It shows most on long SI lists. It has not been tuned, since that would change code after the seal.
-
-## Latency on x86-64 (Windows rig, v2)
-
-`bench/results/latency-windows-x86_64.json`. 306,336 calls (the 100,000 replayed real citations plus every battery row, 3 repeats each, garbage collection paused). Full UK index, verified byte-for-byte against the v2 seal (`024da21e…`). Machine: Intel64 Family 6 Model 58 Stepping 9, Python 3.11.16 on Windows 10 (AMD64), executed via Git Bash (`scripts/latency_x86.sh`).
-
-| Status | calls | p50 | p99 | max |
-|---|---|---|---|---|
-| All | 306,336 | 623 µs | **12.27 ms** | 229.3 ms |
-| `ROUTE_BOUNDED` | 246,285 | 618 µs | 5.50 ms | 229.3 ms |
-| `ROUTE_UNRESOLVED` | 25,794 | 180 µs | 19.38 ms | 93.9 ms |
-| Provision not found | 18,282 | 904 µs | 11.46 ms | 76.7 ms |
-| `ROUTE_AMBIGUOUS` | 12,804 | 1,955 µs | 36.01 ms | 97.2 ms |
-| Out of coverage | 1,899 | 643 µs | 8.23 ms | 31.5 ms |
-| Instrument not found | 1,272 | 2,250 µs | 44.70 ms | 95.7 ms |
-
-**p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms). Bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's, so the whole distribution is slower, not only the tail. The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence that the outcomes agree, but it compares counts, not individual rows.
-
-The run was native Windows CPython launched from PowerShell, High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). The slowdown is even across statuses (4.5–5.5× at p50, 4.8–7.6× at p99). You said on 30 Sept that Chrome was running heavily in the background during this run. Sustained background load slows every call, not only the tail, so an even slowdown does not rule it out. This run is superseded by the controlled re-run (stop 18) once that is in.
-

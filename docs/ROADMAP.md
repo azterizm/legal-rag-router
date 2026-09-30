@@ -19,50 +19,49 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-30 |
-| Current stage | **M10-UK done: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`), **x86-64 latency measured** (`bench/results/latency-windows-x86_64.json`; p99 12.27 ms, target not met). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | M11 (Unit 1–2 comparison) |
-| Waiting on you | 🧑 The controlled x86 re-run, `scripts/latency_rig.ps1` (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs on the rig and the Mac pending (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)** |
+| Next step | The controlled latency re-runs, then M11 (Unit 1–2 comparison) |
+| Waiting on you | 🧑 The controlled re-runs: `scripts/latency_rig.ps1` on the rig, `scripts/latency_mac.py` on the Mac (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
-- 2026-09-30 (18): **Stop 17's record corrected; the latency question widened.** Reading: `docs/measurements.md`, "sealed-run latency, x86-64".
-  - **Corrections to commit 0e78c83:**
-    - it had deleted the "After the sealed-run fixes (v2)" heading in `measurements.md`; restored;
-    - it claimed row-for-row agreement, but only per-status counts were compared; reworded;
-    - it gave no verdict on the target; now recorded as **not met on x86-64** (p99 12.27 ms, bound results 5.50 ms);
-    - it gave a speculative cause; replaced with the conditions you confirmed: native Windows from PowerShell, High performance plan, antivirus off, and (30 Sept) Chrome running heavily in the background. So this run is not a clean measurement.
-  - The M10 "done when" (both platforms' p50/p99 recorded) is met; the x86 box is ticked.
-  - ⛔ **Decision needed (replaces stop 16's question):** how to report the < 2 ms p99 target (decision 16):
-    1. record it as not met on both platforms and move on;
-    2. **a controlled re-run first (your choice, 30 Sept)**, then 1 or 3;
-    3. a performance-only pass, with identical outcomes on every battery row and the 100k sweep, re-measured on both platforms.
+- 2026-09-30 (18): **The first x86 run withdrawn; a controlled re-run on both machines.** Reading: `docs/measurements.md`, end of "sealed-run latency, Apple Silicon".
+  - **Withdrawn (your call, 30 Sept):** the 29 Sept x86 run (commit 0e78c83): Chrome was running heavily in the background. `bench/results/latency-windows-x86_64.json` and its sections in `measurements.md` and the report are removed; `scripts/latency_x86.sh` is removed too. Git history keeps them.
+  - **Rig identified** by the smoke check: Intel Core i5-3570 (Ivy Bridge, 4 cores, 3.4 GHz), 16 GB DDR3-1600, SATA SSD, Windows 11 Pro 24H2, Python 3.11.16 (MSVC).
+  - **Mac:** Apple M4 (4 performance and 6 efficiency cores), 16 GB, macOS 26.6.2, Python 3.11.15 (Clang).
+  - **Security software stays on, disclosed:** Defender real-time protection on the rig, Gatekeeper on the Mac, as in a deployment.
+  - ⛔ **Decision after the re-run:** how to report the < 2 ms p99 target (decision 16):
+    1. record it as met or not met per machine, from the controlled figures;
+    2. a performance-only pass, with identical outcomes on every battery row and the 100k sweep, re-measured on both machines.
   - **Re-run plan (fixed 30 Sept, before any result is seen):**
-    1. **Script:** `scripts/latency_rig.ps1`, a PowerShell driver on the rig. It refuses to start if a browser is running, verifies the v2 seal (`024da21e…`), then runs **3 passes** of the unchanged `bench.latency` (306,336 calls each, same queries and repeats as every earlier run), each in a fresh process. Output: `bench/results/x86-rerun-<date>/`; it refuses to overwrite.
+    1. **Scripts:**
+       - `scripts/latency_rig.ps1` (Windows) and `scripts/latency_mac.py` (macOS), each writing the same files to `bench/results/{x86,mac}-rerun-<date>/`;
+       - each refuses to start if a browser is running (the Mac also if it is on battery), verifies the v2 seal (`024da21e…`), and refuses to overwrite;
+       - each then runs **3 passes** of the unchanged `bench.latency`, each in a fresh process: 306,336 calls per pass, the same queries and repeats as every earlier run.
     2. **Quiet start:** before each pass it settles for 120 s, then samples CPU for 15 s. A pass starts only at ≤ 10 % average CPU busy (3 tries, otherwise marked `quiet: false`).
     3. **Disclosed with each run:**
        - OS build and uptime;
-       - CPU model, cores/threads, rated clock;
-       - memory size and speed;
-       - the repo's disk and bus;
-       - active power scheme, minimum/maximum processor state on AC, battery or mains;
-       - Defender real-time and on-access state, repo exclusion, registered antivirus products;
-       - Search, SysMain and Windows Update service state;
+       - CPU model and cores;
+       - memory;
+       - the repo's disk;
+       - power: the plan and processor states on Windows; low-power mode, the power source and the thermal state on the Mac;
+       - antivirus: Defender and registered products on Windows; Gatekeeper on the Mac;
+       - indexing and update services;
        - browsers running, and processes above 0.5 % CPU (names only);
-       - CPU busy and clock (% of base) before, during and after each pass;
+       - CPU busy before, during and after each pass, plus the clock on Windows;
        - Python build, `perf_counter` resolution, uv version, git commit and tracked changes;
-       - whether it was started over SSH or with elevation.
+       - whether it was started over SSH.
     4. **Reporting rule:**
-       - All three passes are published.
+       - All three passes are published per machine.
        - The headline is the median pass by overall p99, with its per-status table, and the min–max of p50/p99 across passes.
        - A pass that did not get a quiet start is reported but not used for the headline.
-       - The 29 Sept run stays committed, labelled as measured with Chrome running.
-    5. **Mac, for parity (proposed):** the same 3 passes with apps closed, disclosing `sw_vers`, `sysctl machdep.cpu.brand_string hw.memsize`, `pmset -g` (low power mode, AC) and `top -l 2 -o cpu`, since the Mac's 2.11 ms was not taken under these conditions either.
-  - **Resume:** your smoke check and re-run on the rig; then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
+       - The Mac's single-pass 2.11 ms (29 Sept) stays in the history, marked as superseded.
+  - **Resume:** your real runs on the rig and the Mac; then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
 
-- 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
+- 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
   - **Latency results (Intel64 / Windows AMD64):** 306,336 calls, p50 623 µs, p99 12.27 ms (bound queries: p50 618 µs, p99 5.50 ms). Per-status call counts are identical to Mac v2 (counts only, not a row-by-row comparison).
   - **Resume:** M11 (Unit 1–2 comparison).
@@ -830,7 +829,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 - [x] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag. (You said go on 29 Sept: `battery-seal-2026-09-29`, local only.)
 - [x] The run → `results/*.json`, a markdown table, and the sealed results. (29 Sept: `results/uk-run-2026-09-29.*`, `seals/results-2026-09-29.json`, reading in `reports/sealed-run-uk.md`.)
 - [x] v2 (your go, 29 Sept): the run's deviations fixed, two labels corrected, sealed once more (`battery-seal-2026-09-29-v2`, local) and run once (`results/uk-run-2026-09-29-v2.*`, `seals/results-2026-09-29-v2.json`). v1 stays published as the blind figures.
-- [x] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file. (Script: `scripts/latency_x86.sh`.) (29 Sept, v2 seal verified on the rig: p50 623 µs, **p99 12.27 ms, target not met**; Ivy Bridge, native Windows; `bench/results/latency-windows-x86_64.json`.)
+- [ ] 🧑 Controlled latency runs, 3 passes each, on the rig's x86-64 CPU (Intel i5-3570) and the Mac, with the machine's state recorded (`scripts/latency_rig.ps1`, `scripts/latency_mac.py`; stop 18). The first x86 run (29 Sept) was withdrawn: Chrome was running.
 - **Done when:** the per-domain table exists from one sealed run, collision is 0.0 %, bound-on-invented is 0.0 %, and both platforms' p50/p99 are recorded.
 
 ### M11 — Unit 1–2 comparison (plan step 10) · days 8–10 · `bench/`, outside the wheel

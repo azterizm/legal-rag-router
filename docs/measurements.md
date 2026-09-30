@@ -224,23 +224,4 @@ It counts every call rather than the best of three per query, which is stricter 
 
 The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise.
 
-## 2026-09-29: sealed-run latency, x86-64 (roadmap M10)
-
-`bench/results/latency-windows-x86_64.json`: the same 100,000 replayed citations plus every battery row, 3 repeats (306,336 calls), garbage collection paused. Full UK index, verified byte-for-byte against the v2 seal (`024da21e…`). Machine: Intel64 Family 6 Model 58, Windows 10 AMD64, Python 3.11.16 via Git Bash (`scripts/latency_x86.sh`).
-
-| Status | calls | p50 | p99 | max |
-|---|---|---|---|---|
-| All | 306,336 | 623 µs | **12.27 ms** | 229.3 ms |
-| `ROUTE_BOUNDED` | 246,285 | 618 µs | 5.50 ms | 229.3 ms |
-| `ROUTE_UNRESOLVED` | 25,794 | 180 µs | 19.38 ms | 93.9 ms |
-| Provision not found | 18,282 | 904 µs | 11.46 ms | 76.7 ms |
-| `ROUTE_AMBIGUOUS` | 12,804 | 1,955 µs | 36.01 ms | 97.2 ms |
-| Out of coverage | 1,899 | 643 µs | 8.23 ms | 31.5 ms |
-| Instrument not found | 1,272 | 2,250 µs | 44.70 ms | 95.7 ms |
-
-**p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms); bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's (623 vs 141 µs), so the whole distribution is slower, not only the tail.
-
-The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence the outcomes agree, but it compares counts, not individual rows.
-
-Conditions: native Windows CPython launched from PowerShell (through Git Bash), High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded. The slowdown against the Mac is even across statuses: 4.5–5.5× at p50 and 4.8–7.6× at p99. The single 229 ms maximum is the one outlier. You said on 30 Sept that Chrome was running heavily in the background during this run. Sustained background load slows every call, not only the tail, so an even slowdown does not rule it out. This run is superseded by the controlled re-run (stop 18) once that is in.
-
+The Apple Silicon and x86-64 figures under controlled conditions (three passes each, the machine's state recorded) replace these once they are in (roadmap stop 18). A first x86-64 run on 29 Sept was withdrawn: Chrome was running heavily in the background.

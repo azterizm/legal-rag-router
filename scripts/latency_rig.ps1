@@ -2,7 +2,7 @@
 Controlled x86-64 latency re-run on the rig (roadmap stop 18): three bench passes on the v2
 seal, with the machine's state recorded before, during and after each pass.
 
-Run it in a PowerShell window at the machine (not over SSH), from the repository root, after
+Run it in PowerShell (at the machine or over SSH; which is recorded) from the repository root, after
 closing every other application:
 
     powershell -ExecutionPolicy Bypass -File scripts\latency_rig.ps1 -Smoke    # ~1 minute check
@@ -34,6 +34,7 @@ if ($Smoke) {
 }
 
 function Probe([scriptblock]$Block) {
+    # Lists come back from the block as ,@(...): PowerShell unrolls a bare array on return.
     try { & $Block } catch { "unavailable: $($_.Exception.Message)" }
 }
 
@@ -95,7 +96,7 @@ function Active-Processes([int]$Seconds = 5) {
             }
         }
     }
-    @(@($rows) | Where-Object { $_ } | Sort-Object { $_.cpu_pct } -Descending | Select-Object -First 15)
+    , @(@($rows) | Where-Object { $_ } | Sort-Object { $_.cpu_pct } -Descending | Select-Object -First 15)
 }
 
 function Plan-Setting([string]$Alias) {
@@ -162,17 +163,17 @@ function Environment-Snapshot {
         }
         defender_repo_excluded = Probe {
             $root = (Get-Location).Path
-            @((Get-MpPreference).ExclusionPath | Where-Object {
+            , @((Get-MpPreference).ExclusionPath | Where-Object {
                 $_ -and $root.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) })
         }
         registered_antivirus = Probe {
-            @(Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct |
+            , @(Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct |
                 ForEach-Object {
                     [ordered]@{ name = $_.displayName; enabled = [bool]($_.productState -band 0x1000) }
                 })
         }
         services = Probe {
-            @(Get-Service WinDefend, WSearch, SysMain, wuauserv -ErrorAction SilentlyContinue |
+            , @(Get-Service WinDefend, WSearch, SysMain, wuauserv -ErrorAction SilentlyContinue |
                 ForEach-Object { [ordered]@{ name = $_.Name; status = "$($_.Status)" } })
         }
         browsers_running = @(Get-Process chrome, msedge, firefox, brave, opera -ErrorAction SilentlyContinue |
@@ -218,7 +219,7 @@ function Wait-Quiet([int]$Pass) {
 $machine = uv run python -c 'import platform; print(platform.machine().lower())'
 if ($machine -notin @("x86_64", "amd64")) { throw "This is $machine, not x86-64: run it on the rig." }
 if ($env:SSH_CONNECTION) {
-    Write-Warning "Started over SSH. Run it in a PowerShell window at the machine; this is recorded."
+    Write-Host "Started over SSH: recorded. It does not enter the in-process timings."
 }
 $browsers = @(Get-Process chrome, msedge, firefox, brave, opera -ErrorAction SilentlyContinue)
 if ($browsers.Count -gt 0 -and -not $Smoke) {
@@ -254,7 +255,8 @@ for ($i = 1; $i -le $Passes; $i++) {
             Start-Sleep -Seconds 4
         }
     }
-    Write-Host "pass ${i} of ${Passes}: measuring (306,336 calls; several minutes)"
+    $what = if ($Smoke) { "the battery rows only, 6,336 calls" } else { "306,336 calls; several minutes" }
+    Write-Host "pass ${i} of ${Passes}: measuring ($what)"
     $started = Get-Date
     uv run python -m bench.latency @queries --repeats 3 --json "$out/pass-$i.json" | Out-Null
     $failed = $LASTEXITCODE
