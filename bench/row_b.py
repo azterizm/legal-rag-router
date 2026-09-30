@@ -12,8 +12,9 @@ both sides share the network's conditions. Warm-up pairs are discarded.
 
 Per call it keeps the round trip, the time to first byte and, from ``/route``, the router's own
 in-process time. It checks every answer against the local router on the same index. p50 and
-p99 carry bootstrap 95 % intervals. The raw calls go to ``calls.jsonl`` next to
-``summary.json``; the directory is never overwritten.
+p99 carry bootstrap 95 % intervals. The raw calls are appended to ``calls.jsonl`` as they are
+made, so an interrupted run keeps what it measured (and is reported as interrupted, not as a
+run); ``summary.json`` is written at the end. The directory is never overwritten.
 """
 
 from __future__ import annotations
@@ -93,13 +94,15 @@ def run_pairs(
     client: httpx.Client,
     queries: Sequence[str],
     pairs: Sequence[tuple[int, tuple[str, str]]],
-    progress: Callable[[int], None] | None = None,
+    on_pair: Callable[[int, list[Call]], None] | None = None,
 ) -> list[Call]:
+    """Every pair in order; ``on_pair`` sees each pair's calls as soon as they are made."""
     calls: list[Call] = []
     for n, (query, order) in enumerate(pairs):
-        calls.extend(timed_call(client, n, endpoint, query, queries[query]) for endpoint in order)
-        if progress is not None:
-            progress(n + 1)
+        pair = [timed_call(client, n, endpoint, query, queries[query]) for endpoint in order]
+        calls.extend(pair)
+        if on_pair is not None:
+            on_pair(n + 1, pair)
     return calls
 
 
@@ -191,16 +194,28 @@ def main(argv: list[str] | None = None) -> int:
     warmup = plan_pairs(len(queries), 1, seed=SEED + 1)[: args.warmup]
     headers = {"Modal-Key": key, "Modal-Secret": secret}
     started = datetime.now(UTC).isoformat(timespec="seconds")
-    with httpx.Client(base_url=args.url, headers=headers, timeout=60.0) as client:
+    out.mkdir(parents=True)
+    with (
+        httpx.Client(base_url=args.url, headers=headers, timeout=60.0) as client,
+        (out / "calls.jsonl").open("w", encoding="utf-8") as log,
+    ):
         machine_before = client.get("/machine").raise_for_status().json()
         run_pairs(client, queries, warmup)
 
-        def progress(done: int) -> None:
+        def record(done: int, pair: list[Call]) -> None:
+            log.writelines(json.dumps(asdict(c)) + "\n" for c in pair)
             if done % 500 == 0 or done == len(pairs):
+                log.flush()
                 print(f"  {done} of {len(pairs)} pairs", flush=True)
 
         began = time.monotonic()
-        calls = run_pairs(client, queries, pairs, progress)
+        try:
+            calls = run_pairs(client, queries, pairs, record)
+        except httpx.HTTPError as exc:
+            log.flush()
+            print(f"INTERRUPTED: {exc!r}. The calls made so far are in {out / 'calls.jsonl'};")
+            print("this is not a complete run. Start a new one (a new directory).")
+            return 1
         elapsed = time.monotonic() - began
         machine_after = client.get("/machine").raise_for_status().json()
 
@@ -227,10 +242,6 @@ def main(argv: list[str] | None = None) -> int:
         **summarise(calls, args.resamples),
         "agreement": agreement(Router.from_path(args.index), queries, calls),
     }
-    out.mkdir(parents=True)
-    with (out / "calls.jsonl").open("w", encoding="utf-8") as fh:
-        for c in calls:
-            fh.write(json.dumps(asdict(c)) + "\n")
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     route, floor = summary["route_round_trip"], summary["floor_round_trip"]
     print(f"route: p50 {route['p50_ms']} ms, p99 {route['p99_ms']} ms")

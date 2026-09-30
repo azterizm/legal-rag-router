@@ -44,14 +44,24 @@ image = (
 app = modal.App("legal-rag-router", image=image)
 
 
-def _cpu_model() -> str:
+CPU_FIELDS = ("model name", "vendor_id", "cpu family", "model", "stepping", "cpu MHz")
+
+
+def _cpu() -> dict[str, Any]:
+    """The first processor's identifying fields, as far as the gVisor sandbox shows them."""
+    fields: dict[str, Any] = {}
     try:
         for line in Path("/proc/cpuinfo").read_text().splitlines():
-            if line.startswith("model name"):
-                return line.split(":", 1)[1].strip()
+            if not line.strip():
+                break
+            key, _, value = line.partition(":")
+            if key.strip() in CPU_FIELDS:
+                fields[key.strip()] = value.strip()
     except OSError:
         pass
-    return platform.processor() or "unknown"
+    fields["usable_cpus"] = len(os.sched_getaffinity(0))
+    fields["host_cpu_count"] = os.cpu_count()
+    return fields
 
 
 @app.cls(cpu=1.0, memory=1024, max_containers=1, scaledown_window=300, timeout=600)
@@ -89,8 +99,8 @@ class RouterService:
         @api.get("/machine")
         def machine() -> dict[str, Any]:
             return {
-                "cpu_model": _cpu_model(),
-                "cpu_count": os.cpu_count(),
+                "cpu": _cpu(),
+                "requested_cores": 1.0,
                 "python": platform.python_version(),
                 "platform": platform.platform(),
                 "index_snapshot": router.index.snapshot,
