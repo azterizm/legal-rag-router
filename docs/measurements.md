@@ -321,3 +321,25 @@ The maximum is the same query in every run. It is one of the replayed real citat
 **Recorded (your decision, 30 Sept):** the < 2 ms p99 target is **not met on either machine**, and the code is not changed after the seal.
 
 **The withdrawn 29 Sept run** (Chrome running) gave p99 12.27 ms: 33 % above this, and p50 24 % above.
+
+## 2026-09-30: Row B, the router as a network service (roadmap M11)
+
+`bench/results/row-b-router-2026-09-30/` (`summary.json` and every call in `calls.jsonl`), from `bench/row_b.py` against `deploy/modal_router.py`. This is the router's side of Row B; the interleaved run with Jev and Gemini comes later.
+
+**Setup:**
+- **Client:** the Mac (M4), in Pakistan; one keep-alive HTTPS connection (httpx 0.28.1).
+- **Service:** Modal, pinned to us-east (§4 decision 23); it ran on GCP, AMD Zen 3 (family 25, model 1) at 2.45 GHz, in the gVisor sandbox, with a 1-core quota and 1 GiB; Python 3.11.12. The same container ran from start to finish, with no reconnects.
+- **Calls:** every battery row (2,112) × 3. Each `/route` call is paired with a `/floor` call: the same request to the same host, with no routing. The pairs, and the order within each pair, are seeded random; 50 warm-up pairs are discarded. 59 minutes.
+
+| Measure (6,336 calls each) | p50 [95 % CI] | p99 [95 % CI] | max |
+|---|---|---|---|
+| `/route` round trip | **276.6 ms** [276.4–276.8] | 364.5 ms [352.7–374.9] | 1,336 ms |
+| `/floor` round trip (network only) | 275.7 ms [275.5–275.9] | 367.0 ms [358.6–377.1] | 1,389 ms |
+| The router's own time, in the container | 0.63 ms [0.62–0.63] | 3.65 ms [3.46–4.04] | 15.7 ms |
+| Paired difference, route − floor | 0.84 ms | 79 ms (two calls' network jitter) | |
+
+- **Correctness:** **0 of 6,336 answers differ** from the local router on the same index.
+- **Where the time goes:** the round trip is almost all network. The router is 0.3 % of it at p50.
+- **The container is slower than the Mac:** on the same battery rows × 3, in-process on the Mac, the router takes p50 0.12 ms and p99 1.23 ms. The container is 5.4× slower at p50 and 3× at p99, on a slower core under a sandbox and a CPU quota.
+- **Choosing the region:** the region was chosen by the lowest measured network floor (§4 decision 23). Pakistan has no Modal region, and every Modal web call enters through `*.modal.run` in AWS us-east. So the nearest regions were the slowest: the Middle East at 587 ms and Mumbai at 648–730 ms, against us-east at 249–276 ms.
+- **Cost:** about an hour of container time at 1.75× (the pinned region) for this run, plus nine short smoke runs. That is roughly $0.2 in all by the published rates. The Modal dashboard has the billed figure.

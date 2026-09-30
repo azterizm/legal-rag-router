@@ -1,0 +1,114 @@
+{
+  "started_utc": "2026-09-30T06:47:21+00:00",
+  "elapsed_s": 30,
+  "client": {
+    "region": "ap-southeast",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.11.15",
+    "httpx": "0.28.1"
+  },
+  "service": {
+    "url_host": "dpl015--legal-rag-router-routerservice-web.modal.run",
+    "before": {
+      "cpu_model": "unknown",
+      "cpu_count": 17,
+      "python": "3.11.12",
+      "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+      "index_snapshot": "2026-09-28",
+      "modal_region": "us-east",
+      "modal_cloud_provider": "CLOUD_PROVIDER_AWS",
+      "container_uptime_s": 1
+    },
+    "after": {
+      "cpu_model": "unknown",
+      "cpu_count": 17,
+      "python": "3.11.12",
+      "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+      "index_snapshot": "2026-09-28",
+      "modal_region": "us-east",
+      "modal_cloud_provider": "CLOUD_PROVIDER_AWS",
+      "container_uptime_s": 41
+    }
+  },
+  "container_restarted": false,
+  "queries": 20,
+  "repeats": 3,
+  "warmup_pairs_discarded": 20,
+  "seed": 20260930,
+  "route_round_trip": {
+    "calls": 60,
+    "p50_ms": 250.31,
+    "p50_ci95_ms": [
+      249.321,
+      252.449
+    ],
+    "p99_ms": 284.468,
+    "p99_ci95_ms": [
+      260.68,
+      284.468
+    ],
+    "max_ms": 284.468
+  },
+  "floor_round_trip": {
+    "calls": 60,
+    "p50_ms": 249.059,
+    "p50_ci95_ms": [
+      246.046,
+      249.625
+    ],
+    "p99_ms": 266.927,
+    "p99_ci95_ms": [
+      258.114,
+      266.927
+    ],
+    "max_ms": 266.927
+  },
+  "route_ttfb": {
+    "calls": 60,
+    "p50_ms": 249.124,
+    "p50_ci95_ms": [
+      248.102,
+      251.126
+    ],
+    "p99_ms": 283.106,
+    "p99_ci95_ms": [
+      259.387,
+      283.106
+    ],
+    "max_ms": 283.106
+  },
+  "floor_ttfb": {
+    "calls": 60,
+    "p50_ms": 247.788,
+    "p50_ci95_ms": [
+      244.591,
+      248.265
+    ],
+    "p99_ms": 265.6,
+    "p99_ci95_ms": [
+      257.395,
+      265.6
+    ],
+    "max_ms": 265.6
+  },
+  "router_compute_in_container": {
+    "calls": 60,
+    "p50_ms": 0.819,
+    "p50_ci95_ms": [
+      0.796,
+      1.122
+    ],
+    "p99_ms": 2.226,
+    "p99_ci95_ms": [
+      1.543,
+      2.226
+    ],
+    "max_ms": 2.226
+  },
+  "reconnects": 0,
+  "agreement": {
+    "route_calls": 60,
+    "differ_count": 0,
+    "differ": []
+  }
+}

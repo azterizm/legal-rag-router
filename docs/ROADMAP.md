@@ -21,7 +21,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-09-30 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
+| Next step | M11: Laya (speed and footprint), then Jev and Gemini. The router's Modal Row B run is done |
 | Waiting on you | ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
@@ -74,8 +74,9 @@ Newest first. One line per stop: what was finished, and where to resume.
   - **Your decision on the < 2 ms target (30 Sept): option 1.** It is recorded as **not met on either machine**: p99 Mac 2.10 ms, rig 9.21 ms.
     - The context stays with it: bound results p99 0.84 ms on the Mac. The tail is the questions and refusals, plus a fixed set of long real citations.
     - No code change after the seal; no re-scoping of the target.
+  - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** M11: Laya, then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -871,7 +872,15 @@ Each of these changes order or method but not what gets delivered. See §4.
       - Modal proxy auth, so an unauthenticated call gets 401 at the edge;
       - the index and package source are copied into the image.
     - `bench/row_b.py` is the client: `/route` paired with a no-routing `/floor` call on one warm connection, in seeded random order, warm-up discarded; p50/p99 with bootstrap 95 % intervals; every answer checked against the local router.
-    - Region not pinned: Gemini's and OpenRouter's endpoints are anycast, so there is no single provider region. The container reports its region.
+    - Region: pinned to us-east by measured network floor (§4 decision 23).
+    - [x] **The router's Row B run (30 Sept),** `bench/results/row-b-router-2026-09-30/`:
+      - client: the Mac, in Pakistan;
+      - container: us-east, GCP, AMD Zen 3 at 2.45 GHz, gVisor, 1-core quota;
+      - 2,112 battery rows × 3, each paired with a `/floor` call, 50 warm-up pairs discarded; one container throughout, no reconnects;
+      - round trip p50 **276.6 ms** [276.4–276.8], p99 364.5 ms; floor p50 275.7 ms, p99 367.0 ms;
+      - the router's own time in the container: p50 0.63 ms, p99 3.65 ms;
+      - **0 of 6,336 answers differ** from the local router.
+      - The app is stopped (`modal app stop legal-rag-router`); `modal deploy deploy/modal_router.py` brings it back for the interleaved run with Jev and Gemini.
   - **Row C:** as deployed.
 - [ ] Other axes:
   - accuracy on the sealed battery, or a stated sample of it;
@@ -974,6 +983,17 @@ M9 docs are written alongside and finished before M10.
     - Welsh SIs from 2026 get no `si/…` key: they have their own number series.
     - The out-of-coverage table drops a catalogue entry as "already indexed" only on an SI-number hit (the `wsi`/`nisi` canonical coordinates). A chapter hit doesn't count: 41 Geo. 3 c. 1 is both a Great Britain and a UK Act. Known limit: that citation binds the indexed UK Act.
     - Index format is unchanged; only the keys' content changed.
+23. **Row B placement (30 Sept):** the router runs in the Modal region with the lowest measured network floor from the client. The rule was fixed before the probes.
+    - **Why not "the provider's region":** the plan asks for the provider's region, but Gemini's and OpenRouter's endpoints are anycast. The client is in Pakistan, which has no Modal region.
+    - **The probes** (`/floor` p50, 20-row smoke runs; `bench/results/row-b-router-2026-09-30/region-probes/`):
+      - us-east (AWS) 249 ms;
+      - ap-southeast (AWS) 268 ms;
+      - us-central (GCP) 310–326 ms;
+      - me (Azure) 587 ms;
+      - ap-south (AWS) 648–730 ms.
+    - **Pinned to us-east** (Modal bills a pinned narrow region at 1.75×). Unpinned, Modal moved the container between clouds from one start to the next.
+    - **Why the nearest region is slowest:** every Modal web call enters at `*.modal.run`, which resolves to AWS us-east addresses (TCP connect 195–235 ms from the client). A container far from that entry point adds a further long leg.
+    - **A lesson for the next run:** a redeploy does not replace a warm container. Stop the app before changing regions.
 21. **Q-B-3 work limit (28 Sept):** an unknown-title check (typo tiers and suggestions) costs `UNKNOWN_TITLE_COST` = 32 of the 320 lookups (UK-W-03). Chosen as the largest power of two that changes no real query in the 100,000-citation sweep sample (40 would change 2).
 17. **Former titles (28 Sept):** a renamed Act cited by its former title binds to the current Act ("Supreme Court Act 1981" → Senior Courts Act 1981). The router adds a note saying the title is a former one.
     - **Source:** the `ukm:AffectedTitle` values in each Act's own effects list. It is the only place the CLML records old titles. The short-title section shows only the new words.

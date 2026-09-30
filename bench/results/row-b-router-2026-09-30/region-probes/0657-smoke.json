@@ -1,0 +1,134 @@
+{
+  "started_utc": "2026-09-30T06:57:54+00:00",
+  "elapsed_s": 72,
+  "client": {
+    "region": "Pakistan",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.11.15",
+    "httpx": "0.28.1"
+  },
+  "service": {
+    "url_host": "dpl015--legal-rag-router-routerservice-web.modal.run",
+    "before": {
+      "cpu": {
+        "vendor_id": "AuthenticAMD",
+        "cpu family": "23",
+        "model": "49",
+        "model name": "unknown",
+        "stepping": "unknown",
+        "cpu MHz": "3295.212",
+        "usable_cpus": 17,
+        "host_cpu_count": 17
+      },
+      "requested_cores": 1.0,
+      "python": "3.11.12",
+      "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+      "index_snapshot": "2026-09-28",
+      "pinned_region": "me",
+      "modal_region": "me",
+      "modal_cloud_provider": "CLOUD_PROVIDER_AZURE",
+      "container_uptime_s": 1
+    },
+    "after": {
+      "cpu": {
+        "vendor_id": "AuthenticAMD",
+        "cpu family": "23",
+        "model": "49",
+        "model name": "unknown",
+        "stepping": "unknown",
+        "cpu MHz": "3295.212",
+        "usable_cpus": 17,
+        "host_cpu_count": 17
+      },
+      "requested_cores": 1.0,
+      "python": "3.11.12",
+      "platform": "Linux-4.19.0-gvisor-x86_64-with-glibc2.36",
+      "index_snapshot": "2026-09-28",
+      "pinned_region": "me",
+      "modal_region": "me",
+      "modal_cloud_provider": "CLOUD_PROVIDER_AZURE",
+      "container_uptime_s": 98
+    }
+  },
+  "container_restarted": false,
+  "queries": 20,
+  "repeats": 3,
+  "warmup_pairs_discarded": 20,
+  "seed": 20260930,
+  "route_round_trip": {
+    "calls": 60,
+    "p50_ms": 585.252,
+    "p50_ci95_ms": [
+      582.034,
+      591.175
+    ],
+    "p99_ms": 692.013,
+    "p99_ci95_ms": [
+      669.054,
+      692.013
+    ],
+    "max_ms": 692.013
+  },
+  "floor_round_trip": {
+    "calls": 60,
+    "p50_ms": 587.011,
+    "p50_ci95_ms": [
+      582.897,
+      599.764
+    ],
+    "p99_ms": 843.408,
+    "p99_ci95_ms": [
+      675.075,
+      843.408
+    ],
+    "max_ms": 843.408
+  },
+  "route_ttfb": {
+    "calls": 60,
+    "p50_ms": 584.141,
+    "p50_ci95_ms": [
+      580.514,
+      589.884
+    ],
+    "p99_ms": 690.922,
+    "p99_ci95_ms": [
+      667.835,
+      690.922
+    ],
+    "max_ms": 690.922
+  },
+  "floor_ttfb": {
+    "calls": 60,
+    "p50_ms": 585.675,
+    "p50_ci95_ms": [
+      581.805,
+      598.74
+    ],
+    "p99_ms": 842.017,
+    "p99_ci95_ms": [
+      673.704,
+      842.017
+    ],
+    "max_ms": 842.017
+  },
+  "router_compute_in_container": {
+    "calls": 60,
+    "p50_ms": 1.054,
+    "p50_ci95_ms": [
+      1.018,
+      1.297
+    ],
+    "p99_ms": 2.058,
+    "p99_ci95_ms": [
+      1.816,
+      2.058
+    ],
+    "max_ms": 2.058
+  },
+  "reconnects": 0,
+  "agreement": {
+    "route_calls": 60,
+    "differ_count": 0,
+    "differ": []
+  }
+}

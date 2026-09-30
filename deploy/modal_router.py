@@ -64,7 +64,14 @@ def _cpu() -> dict[str, Any]:
     return fields
 
 
-@app.cls(cpu=1.0, memory=1024, max_containers=1, scaledown_window=300, timeout=600)
+REGION = "us-east"
+"""Pinned (Modal bills a pinned narrow region at 1.75x). Unpinned, Modal moved the container
+between AWS us-east and GCP us-central from one start to the next. The client is in Pakistan,
+which has no Modal region; the region is the candidate with the lowest measured network floor
+from the client (roadmap M11)."""
+
+
+@app.cls(cpu=1.0, memory=1024, max_containers=1, scaledown_window=300, timeout=600, region=REGION)
 class RouterService:
     @modal.enter()
     def load(self) -> None:
@@ -104,6 +111,7 @@ class RouterService:
                 "python": platform.python_version(),
                 "platform": platform.platform(),
                 "index_snapshot": router.index.snapshot,
+                "pinned_region": REGION,
                 "modal_region": os.environ.get("MODAL_REGION"),
                 "modal_cloud_provider": os.environ.get("MODAL_CLOUD_PROVIDER"),
                 "container_uptime_s": round(time.time() - self.started),
