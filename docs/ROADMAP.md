@@ -21,8 +21,8 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-09-30 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | ⛔ The < 2 ms decision; then M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
-| Waiting on you | ⛔ How to record the < 2 ms target, now that both machines are measured (stop log 18). ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Next step | M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
+| Waiting on you | ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
@@ -71,9 +71,11 @@ Newest first. One line per stop: what was finished, and where to resume.
     - **< 2 ms not met, by 4.6×**;
     - the rig is 3.6× the Mac at p50 and 4.4× at p99;
     - Defender stayed on and is disclosed.
-  - ⛔ **Now open:** the < 2 ms decision above, with both machines' controlled figures in.
+  - **Your decision on the < 2 ms target (30 Sept): option 1.** It is recorded as **not met on either machine**: p99 Mac 2.10 ms, rig 9.21 ms.
+    - The context stays with it: bound results p99 0.84 ms on the Mac. The tail is the questions and refusals, plus a fixed set of long real citations.
+    - No code change after the seal; no re-scoping of the target.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** the ⛔ above; then M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.

@@ -318,4 +318,6 @@ The maximum is the same query in every run. It is one of the replayed real citat
 - The rig is 3.6× slower at p50 and 4.4× slower at p99. The ratio is about the same for every status (3.5–4.1× at p50, 4.0–4.5× at p99), so the whole distribution scales with the machine.
 - Per-status call counts are identical to the Mac's in every pass.
 
+**Recorded (your decision, 30 Sept):** the < 2 ms p99 target is **not met on either machine**, and the code is not changed after the seal.
+
 **The withdrawn 29 Sept run** (Chrome running) gave p99 12.27 ms: 33 % above this, and p50 24 % above.
