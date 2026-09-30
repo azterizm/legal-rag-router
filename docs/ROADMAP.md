@@ -18,19 +18,32 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-09-29 |
-| Current stage | **M10-UK done: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`), **x86-64 latency measured** (`bench/results/latency-windows-x86_64.json`). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Last updated | 2026-09-30 |
+| Current stage | **M10-UK done: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`), **x86-64 latency measured** (`bench/results/latency-windows-x86_64.json`; p99 12.27 ms, target not met). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
 | Next step | M11 (Unit 1–2 comparison) |
-| Waiting on you | ⛔ The Mac p99 of 2.11 ms after the fixes (stop log 16). Optional: a go for the vault proposals |
+| Waiting on you | ⛔ How to record the latency target: Mac p99 2.11 ms, x86-64 p99 12.27 ms (stop log 18). ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-09-30 (18): **Stop 17's record corrected; the latency question widened.** Reading: `docs/measurements.md`, "sealed-run latency, x86-64".
+  - **Corrections to commit 0e78c83:**
+    - it had deleted the "After the sealed-run fixes (v2)" heading in `measurements.md`; restored;
+    - it claimed row-for-row agreement, but only per-status counts were compared; reworded;
+    - it gave no verdict on the target; now recorded as **not met on x86-64** (p99 12.27 ms, bound results 5.50 ms);
+    - it gave a speculative cause; replaced with the recorded conditions: native Windows over SSH, not WSL2, power plan and antivirus not recorded, max 229 ms.
+  - The M10 "done when" (both platforms' p50/p99 recorded) is met; the x86 box is ticked.
+  - ⛔ **Decision needed (replaces stop 16's question):** how to report the < 2 ms p99 target (decision 16):
+    1. record it as not met on both platforms and move on;
+    2. first re-run on the rig under controlled conditions (WSL2 or native with the High performance plan, Defender excluding the repo, run locally rather than over SSH) to separate the machine from the code, then decide;
+    3. a performance-only pass, with identical outcomes on every battery row and the 100k sweep, re-measured on both platforms.
+  - **Resume:** M11. Offline parts only (clients, harness, cost estimate) until the ⛔ cost confirmation.
+
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
-  - **Latency results (Intel64 / Windows AMD64):** 306,336 calls, p50 623 µs, p99 12.27 ms (bound queries: p50 618 µs, p99 5.50 ms). All 306,336 call outcomes match Mac v2 exactly.
+  - **Latency results (Intel64 / Windows AMD64):** 306,336 calls, p50 623 µs, p99 12.27 ms (bound queries: p50 618 µs, p99 5.50 ms). Per-status call counts are identical to Mac v2 (counts only, not a row-by-row comparison).
   - **Resume:** M11 (Unit 1–2 comparison).
 
 - 2026-09-29 (16): **M10-UK v2: the fixes, a second seal and one run; x86 latency pending.** Reading: `reports/sealed-run-uk.md`, "Second sealed run (v2)".
@@ -796,7 +809,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 - [x] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag. (You said go on 29 Sept: `battery-seal-2026-09-29`, local only.)
 - [x] The run → `results/*.json`, a markdown table, and the sealed results. (29 Sept: `results/uk-run-2026-09-29.*`, `seals/results-2026-09-29.json`, reading in `reports/sealed-run-uk.md`.)
 - [x] v2 (your go, 29 Sept): the run's deviations fixed, two labels corrected, sealed once more (`battery-seal-2026-09-29-v2`, local) and run once (`results/uk-run-2026-09-29-v2.*`, `seals/results-2026-09-29-v2.json`). v1 stays published as the blind figures.
-- [ ] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file. (Script: `scripts/latency_x86.sh`.)
+- [x] 🧑 An x86-64 latency run on the GTX 1650 rig's CPU. I provide a one-command script; you run it and bring back the results file. (Script: `scripts/latency_x86.sh`.) (29 Sept, v2 seal verified on the rig: p50 623 µs, **p99 12.27 ms, target not met**; Ivy Bridge, native Windows; `bench/results/latency-windows-x86_64.json`.)
 - **Done when:** the per-domain table exists from one sealed run, collision is 0.0 %, bound-on-invented is 0.0 %, and both platforms' p50/p99 are recorded.
 
 ### M11 — Unit 1–2 comparison (plan step 10) · days 8–10 · `bench/`, outside the wheel

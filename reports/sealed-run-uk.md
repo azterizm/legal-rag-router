@@ -140,5 +140,7 @@ Neither binds anything.
 | Out of coverage | 1,899 | 643 µs | 8.23 ms | 31.5 ms |
 | Instrument not found | 1,272 | 2,250 µs | 44.70 ms | 95.7 ms |
 
-Outcome counts match Mac v2 exactly across all 306,336 calls. On this x86-64 CPU, p50 across all queries is 623 µs (< 1 ms); bound queries run at p50 618 µs and p99 5.50 ms. Overall p99 is 12.27 ms, reflecting the single-thread performance of this processor compared to Apple Silicon on string parsing, mmap lookups, and typo-tier suggestion ranking.
+**p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms). Bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's, so the whole distribution is slower, not only the tail. The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence that the outcomes agree, but it compares counts, not individual rows.
+
+How much of the gap is the CPU and how much the setup is not known. The run was native Windows (Git Bash, not WSL2), started over SSH, with the power plan and antivirus scanning not recorded. The 229 ms maximum points to interference from the machine. Model 58 is an Ivy Bridge core (2012).
 

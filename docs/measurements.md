@@ -220,6 +220,8 @@ This is outside `route()`'s < 2 ms path: discovery is an interactive step, follo
 
 It counts every call rather than the best of three per query, which is stricter than the earlier 1.88 ms figure.
 
+### After the sealed-run fixes (v2, 29 Sept)
+
 The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise.
 
 ## 2026-09-29: sealed-run latency, x86-64 (roadmap M10)
@@ -236,5 +238,9 @@ The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 �
 | Out of coverage | 1,899 | 643 µs | 8.23 ms | 31.5 ms |
 | Instrument not found | 1,272 | 2,250 µs | 44.70 ms | 95.7 ms |
 
-Deterministic outcome counts match Mac v2 row for row. Across all calls, p50 is 623 µs; bound queries run at p50 618 µs and p99 5.50 ms.
+**p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms); bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's (623 vs 141 µs), so the whole distribution is slower, not only the tail.
+
+The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence the outcomes agree, but it compares counts, not individual rows.
+
+Conditions, which weigh on the tail: native Windows (Git Bash, not WSL2), started over an SSH session, with the power plan and antivirus scanning not recorded. The 229 ms maximum is far above anything the Mac shows (31 ms) and points to interference from the machine. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded.
 
