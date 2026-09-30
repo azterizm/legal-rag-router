@@ -918,7 +918,8 @@ Each of these changes order or method but not what gets delivered. See §4.
       - p50 1,165 / 1,987 / 1,927 ms at 3 / 10 / 30 options;
       - 2,300–4,000× the router's 0.50 ms on that machine;
       - transformers 5.18.0 there (unpinned), memory not measured on Windows (now fixed).
-    - **Rig GPU pending:** the GTX 1650, with a CUDA build of PyTorch and transformers pinned to 5.17.0.
+    - **Rig GPU dropped (your call, 1 Oct):** access to the rig is degrading, and a GTX 1650 is a weak stand-in for a deployment GPU.
+    - **Proposed instead:** Laya on Modal's NVIDIA T4, the GPU of the vendor's published 33–40 ms. Model time only, inside the container; the same seeded 900 calls; the pinned weights, SHA-256 verified; under $0.10. Waiting on your go.
     - **Setup:**
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;
