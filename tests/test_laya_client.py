@@ -5,7 +5,15 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from bench.clients.laya import plan_calls, question, report, time_calls, title_pool
+from bench.clients.laya import (
+    option_cut,
+    plan_calls,
+    question,
+    report,
+    time_calls,
+    title_cuts,
+    title_pool,
+)
 from legal_rag_router import Router
 from tests.conftest import FIXTURE_INDEX
 
@@ -47,4 +55,18 @@ def test_calls_that_do_not_fit_are_counted_not_timed() -> None:
         "collapsed_options": 0,
         "input_tokens_p50": None,
         "latency": None,
+    }
+
+
+def test_the_option_cut_follows_laya_0_3_22() -> None:
+    assert option_cut([10, 10, 10]) == (None, 1.0)  # 33 tokens: within the 192 budget
+    assert option_cut([60]) == (None, 48 / 60)  # the 48-token cap per option
+    per, kept = option_cut([20] * 30)  # 630 tokens: every option cut to 176 // 30 = 5
+    assert per == 5
+    assert kept == 4 / 20  # the marker takes one of the five
+    assert option_cut([20] * 60)[0] == 4  # never below four tokens
+    cuts = title_cuts(len, [(3, "s", ["abc", "de", "f"]), (30, "s", ["x" * 20] * 30)])
+    assert cuts == {
+        3: {"tokens_per_option": [None], "title_tokens_kept_p50": 1.0},
+        30: {"tokens_per_option": [5], "title_tokens_kept_p50": 0.2},
     }
