@@ -866,6 +866,12 @@ Each of these changes order or method but not what gets delivered. See §4.
 - [ ] Latency rows:
   - **Row A:** a measured network floor (a no-model request to the same host), with provider-reported timing shown beside it.
   - **Row B:** the router as a warm Modal CPU HTTP function in the provider's region.
+    - (30 Sept) `deploy/modal_router.py`, deployed to your workspace as `legal-rag-router`:
+      - one container at most, 1 physical core, 1 GiB, scales to zero 5 minutes after the last call;
+      - Modal proxy auth, so an unauthenticated call gets 401 at the edge;
+      - the index and package source are copied into the image.
+    - `bench/row_b.py` is the client: `/route` paired with a no-routing `/floor` call on one warm connection, in seeded random order, warm-up discarded; p50/p99 with bootstrap 95 % intervals; every answer checked against the local router.
+    - Region not pinned: Gemini's and OpenRouter's endpoints are anycast, so there is no single provider region. The container reports its region.
   - **Row C:** as deployed.
 - [ ] Other axes:
   - accuracy on the sealed battery, or a stated sample of it;
