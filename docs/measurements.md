@@ -394,3 +394,34 @@ The maximum is the same query in every run. It is one of the replayed real citat
 - **Load:** 9.8 s.
 - **Memory was not measured:** the client read peak memory only through `resource`, which Windows lacks. It now reads the peak working set on Windows too, for the GPU run.
 - **Against the router on the same machine** (p50 0.50 ms over all 306,336 calls, 29 Sept): Laya takes about **2,300–4,000×** as long per call.
+
+### NVIDIA Tesla T4 on Modal (30 Sept, UTC)
+
+`bench/results/laya-modal-t4-2026-09-30.json`, from `deploy/modal_laya.py`.
+- **Setup:** the same timing code (`bench.clients.laya.measure`) on the same seeded plan, written on the Mac. Weights fetched at the pinned revision in the image build and verified against the Mac's SHA-256s. Model time only, inside the container.
+- **Machine:** Tesla T4 on Modal, with 4 cores and 8 GiB (gVisor); torch 2.14.0+cu130, transformers 5.17.0, laya 0.3.22, Python 3.11.12.
+- **Why the T4:** it is the GPU of the vendor's published figure, 33–40 ms per call. It replaces the rig's GTX 1650, which was dropped on 1 Oct.
+
+| Options | p50 [95 % CI] | p99 | Share of each title seen |
+|---|---|---|---|
+| 3 | 34.2 ms [34.0–34.3] | 43.8 ms | 100 % |
+| 10 | 35.5 ms [35.4–35.7] | 44.6 ms | 100 % |
+| 30 | 36.9 ms [36.7–37.0] | 46.4 ms | 29 % (5 tokens per title) |
+
+- **The vendor's figure reproduced:** 34–37 ms at p50, against their 33–40 ms. Laya was run as intended, on its reference GPU.
+- **Every call fitted**, with no collapsed options, and the same title cut as on every other machine.
+- **Footprint:** installed 5.6 GB (Linux PyTorch bundles the CUDA libraries); weights 807 MB; load 10.2 s; 2.32 GB of GPU memory. The sandbox's peak-RSS figure (6.0 GB) already reads 3.1 GB before the model loads, so it is not comparable with the Mac's and is not used.
+- **Cost:** a few minutes of T4 time, a few US cents.
+
+**Laya across machines, p50 at 3 / 10 / 30 options, against the router:**
+
+| Where | Laya | The router, same machine |
+|---|---|---|
+| Tesla T4 (Modal, the vendor's GPU) | 34 / 36 / 37 ms | no GPU needed. On a Modal CPU container: 0.63 ms (Row B, battery rows) |
+| Apple M4 GPU (MPS) | 50 / 80 / 81 ms | 0.12 ms on the M4's CPU (battery rows) |
+| Apple M4 CPU | 89 / 139 / 139 ms | 0.12 ms |
+| Intel i5-3570 CPU (the rig) | 1,165 / 1,987 / 1,927 ms | 0.50 ms (all 306,336 calls) |
+
+- **Even on its reference GPU, Laya's p50 is about 55–60× the router's on a single cloud CPU core, and 280–310× the router's on the Mac.**
+- **Laya needs a GPU to get there.** On the same CPUs the router runs on, it is 740–4,000× slower.
+- **None of this depends on fine-tuning.** The title cut at 30 options is the same on every machine.

@@ -21,7 +21,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-09-30 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | M11: Laya (speed and footprint), then Jev and Gemini. The router's Modal Row B run is done |
+| Next step | M11: Jev and Gemini. The router's Row B run and Laya are done |
 | Waiting on you | ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
@@ -76,7 +76,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** M11: Laya on the rig (CPU and GTX 1650), then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** M11: Jev and Gemini (clients, the interleaved harness, then a cost estimate before any paid call). Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -889,7 +889,7 @@ Each of these changes order or method but not what gets delivered. See §4.
   - tokens and cost;
   - egress.
 - [ ] `bench/unit1_cardinality.py`: accuracy as the option set grows (3 / 10 / 30+ options), from 07 §2.
-- [ ] `bench/clients/laya.py` (decision 3 as amended): base Laya, speed and footprint only, at the same option counts; Mac CPU, rig CPU and rig GPU. After the Modal function, before Jev and Gemini.
+- [x] `bench/clients/laya.py` (decision 3 as amended): base Laya, speed and footprint only, at the same option counts. Measured on the Mac CPU and GPU, the rig CPU and a Modal T4; the rig GPU was dropped (1 Oct). Results in `docs/measurements.md`.
   - **Measurement plan (fixed 30 Sept, before any result):**
     - **Model:** `convaiinnovations/laya` loaded directly (`laya.load`), not through `laya.Router`, which may pick another checkpoint. The Hugging Face revision and every weight file's SHA-256 are recorded; the rig gets the same files, copied from the Mac.
     - **Inputs:** each state is a battery query (a seeded sample of 300 rows). One `choice` question with 3, 10 or 30 options, the options being real instrument titles from the index.
@@ -919,7 +919,11 @@ Each of these changes order or method but not what gets delivered. See §4.
       - 2,300–4,000× the router's 0.50 ms on that machine;
       - transformers 5.18.0 there (unpinned), memory not measured on Windows (now fixed).
     - **Rig GPU dropped (your call, 1 Oct):** access to the rig is degrading, and a GTX 1650 is a weak stand-in for a deployment GPU.
-    - **Proposed instead:** Laya on Modal's NVIDIA T4, the GPU of the vendor's published 33–40 ms. Model time only, inside the container; the same seeded 900 calls; the pinned weights, SHA-256 verified; under $0.10. Waiting on your go.
+    - **Instead, a Modal Tesla T4 (your go, 1 Oct):** `bench/results/laya-modal-t4-2026-09-30.json`, via `deploy/modal_laya.py`:
+      - p50 34 / 36 / 37 ms at 3 / 10 / 30 options, which reproduces the vendor's 33–40 ms;
+      - 2.3 GB of GPU memory, 5.6 GB installed;
+      - the same title cut.
+      - GPUs on Modal needed a payment method, which you added.
     - **Setup:**
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;
