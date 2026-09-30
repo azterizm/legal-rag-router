@@ -21,7 +21,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-09-30 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs: the Mac done (p99 2.10 ms, not met), the rig pending (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)** |
-| Next step | The controlled latency re-runs, then M11 (Unit 1–2 comparison) |
+| Next step | The rig's controlled latency run; then M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
 | Waiting on you | 🧑 The rig's controlled run, `scripts/latency_rig.ps1` (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
@@ -65,7 +65,8 @@ Newest first. One line per stop: what was finished, and where to resume.
     - **< 2 ms not met in any pass**;
     - disclosed: not rebooted (uptime 252 h), and an XProtect scan during pass 3 (its p99 is the middle one).
     - The tail is fixed: 1.09 % of queries take over 2 ms; the slowest is a 31 ms real citation, the same in every run.
-  - **Resume:** the rig's run (`scripts\latency_rig.ps1`); then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
+  - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
+  - **Resume:** the rig's run (`scripts\latency_rig.ps1`); then the ⛔ above; then M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -840,6 +841,11 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M11 — Unit 1–2 comparison (plan step 10) · days 8–10 · `bench/`, outside the wheel
 
+- **Order (your call, 30 Sept):**
+  1. the rig's controlled latency run (stop 18);
+  2. the router as a Modal function (Row B);
+  3. Laya;
+  4. Jev and Gemini.
 - [ ] `bench/clients/gemini.py`: Gemini Flash with structured output; model id pinned in the run manifest.
 - [ ] `bench/clients/jev.py`: ported from `jev_client.py`.
 - [ ] Harness:
@@ -859,6 +865,7 @@ Each of these changes order or method but not what gets delivered. See §4.
   - tokens and cost;
   - egress.
 - [ ] `bench/unit1_cardinality.py`: accuracy as the option set grows (3 / 10 / 30+ options), from 07 §2.
+- [ ] `bench/clients/laya.py` (decision 3 as amended): base Laya, speed and footprint only, at the same option counts; Mac CPU, rig CPU and rig GPU. After the Modal function, before Jev and Gemini.
 - [ ] Two runs: UK/EU business hours and off-peak. Results sealed against the same battery seal.
 - ⛔ 🧑 **A cost estimate is printed and needs your confirmation before any paid call.** Keys come from env vars only. Row B needs your Modal account.
 
@@ -914,6 +921,14 @@ M9 docs are written alongside and finished before M10.
 1. **D1, D2, D3** (§0): all approved.
 2. **Git and GitHub:** local commits only, one at the end of each milestone. You create the remote and push yourself. `gh` is not installed by me. The M0 GitHub/PyPI items and the M12 `gh attestation verify` step are yours.
 3. **Laya:** deferred. The Phase 1 comparison (M11) covers Gemini and Jev only.
+   - **Amended 30 Sept (your go, option 1):** Laya joins M11 for speed and footprint only.
+   - **What is used:** the base checkpoint `convaiinnovations/laya` (421M, ModernBERT-large, Apache 2.0), as shipped and pinned to a Hugging Face revision, with its SHA-256 recorded. No training by us, and no battery data leaves the machines.
+   - **What is measured:** time per decision at 3 / 10 / 30+ options (Mac CPU, rig CPU, rig GPU), memory, install size, the GPU need and the 512-token context limit. None of these depend on fine-tuning.
+   - **Accuracy is not reported.** The report says why: the vendor documents the base checkpoint as near chance zero-shot (0.362 on its typed-decisions benchmark, against Jev's 0.727). Its only fine-tuned checkpoint (`laya-typed-decisions`) is "a specialist" for four synthetic non-legal workflows, and its card says to expect base-like results or worse elsewhere. No ready-made legal-tuned Laya exists.
+   - **Out of scope:** a legal fine-tune is future work, and would need a training set disjoint from the sealed batteries.
+   - **Accuracy comparison:** the router against Jev and Gemini.
+   - **Why Laya at all:** it answers "the network is the problem, so run a decision model locally".
+   - **Setup:** removable. `uv run --with laya`, one `HF_HOME` folder, nothing in `pyproject.toml` or the lock. Downloaded once on the Mac and copied to the rig; deleted with `uv cache clean` afterwards.
 4. **Normalised-record shards:** Phase 1 releases **the index only**. Record shards go out with `legal-rag-retriever` in Phase 4 (01 §5).
 5. **Coverage:** **100 % line and branch coverage on `src/`** (vault 06 §5: "100% unit test coverage" for the router tier; corrected 28 Sept). The first version of this roadmap said 90 % → 95 %, taken from the plan's step 0 without checking it against 06. That was wrong. Reached 28 Sept and enforced in CI (`fail_under = 100`, branch coverage on). Four lines are excluded, each for a host we don't run on: the big-endian table paths (3) and the bare-source-tree version fallback (1). Unreachable defensive branches were removed rather than excluded. Index lookups by an id taken from the index's own tables now go through `RouterIndex.info()`, which raises on an inconsistent index, and `route()` fails safe to `ROUTE_UNRESOLVED`.
 6. **UK first, Spain after UK is complete** (§U). Pre-1963 Acts use regnal coordinates (U1). The other-series listing harvest is written in the repo (U4). Porting the fetch code waits until the data is downloaded (U3).
