@@ -343,3 +343,37 @@ The maximum is the same query in every run. It is one of the replayed real citat
 - **The container is slower than the Mac:** on the same battery rows × 3, in-process on the Mac, the router takes p50 0.12 ms and p99 1.23 ms. The container is 5.4× slower at p50 and 3× at p99, on a slower core under a sandbox and a CPU quota.
 - **Choosing the region:** the region was chosen by the lowest measured network floor (§4 decision 23). Pakistan has no Modal region, and every Modal web call enters through `*.modal.run` in AWS us-east. So the nearest regions were the slowest: the Middle East at 587 ms and Mumbai at 648–730 ms, against us-east at 249–276 ms.
 - **Cost:** about an hour of container time at 1.75× (the pinned region) for this run, plus nine short smoke runs. That is roughly $0.2 in all by the published rates. The Modal dashboard has the billed figure.
+
+## 2026-09-30: Laya, speed and footprint, Apple M4 (roadmap M11, §4 decision 3 as amended)
+
+`bench/results/laya-darwin-{cpu,mps}-2026-09-30.json`, from `bench/clients/laya.py`. Speed and footprint only: the answers are never read, because the vendor documents the base checkpoint as near chance without fine-tuning.
+
+**Setup:**
+- **Model:** `convaiinnovations/laya` (421M, base English checkpoint) at revision `55cf4c4e…`, every weight file verified against its recorded SHA-256; loaded directly with `laya.load`.
+- **Software:** laya 0.3.22, torch 2.14.0, transformers 5.17.0, Python 3.11.15.
+- **Where it ran:** the Mac (M4, macOS 26.6.2), plugged in, browsers closed; weights offline (`HF_HUB_OFFLINE=1`). On the CPU, PyTorch used 4 threads; the router uses one.
+- **Calls:** 300 battery queries (seeded sample), each asked one `choice` question ("Which instrument does this text cite?"). The options are 3, 10 or 30 titles drawn from the 1,562 real instruments the batteries cite. 20 warm-up calls discarded. p50/p99 with bootstrap 95 % intervals.
+
+| Options | CPU p50 [95 % CI] | CPU p99 | GPU (MPS) p50 [95 % CI] | GPU p99 | Tokens per option | Share of each title seen (median) |
+|---|---|---|---|---|---|---|
+| 3 | 89.3 ms [88.8–90.3] | 137.0 ms | 50.2 ms [50.1–50.4] | 88.0 ms | whole title | 100 % |
+| 10 | 139.1 ms [138.3–139.6] | 170.1 ms | 80.2 ms [80.0–80.5] | 106.0 ms | up to 17 | 100 % |
+| 30 | 138.5 ms [138.3–138.7] | 169.7 ms | 81.0 ms [80.7–82.3] | 116.5 ms | **5** | **29 %** |
+
+- **Every call fitted** (0 of 300 at each count), and no options collapsed into identical tokens.
+- **But at 30 options Laya cuts every title to 5 tokens, marker included.** That is its 192-token option budget, `max(4, 176 // n)` per option, in laya 0.3.22's `common.build_sequence`. It raises nothing and flags nothing. The model sees a median 29 % of each title. The longest title in the pool, "The Welfare Reform Act 2012 (Commencement No. 9, 21 and 23 (Amendment), … ) Order 2018", reaches the model as **"The Welfare Reform Act"**, which is the same for every Welfare Reform Act commencement order.
+- **Why 30 options cost no more than 10:** the input is capped by that budget. 30 options use 180 input tokens at p50, 10 options 188.
+- **Laya's own warning at load:** "this checkpoint ships invalid temperatures … Treat confidence from the affected entries as uncalibrated." It does not affect speed.
+
+**Footprint, against the router on the same Mac:**
+
+| | Laya (CPU) | Laya (MPS) | The router |
+|---|---|---|---|
+| Install | 693 MB (PyTorch, transformers, laya) | same | 0.6 MB of source, no dependencies |
+| Model or index on disk | 807 MB of weights | same | 362 MB index |
+| Load | 1.8 s | 1.6 s | 0.14 s |
+| Peak memory | 2.81 GB | 2.82 GB, plus 2.07 GB of GPU memory | 0.32 GB after 20,000 real queries (mostly the memory-mapped index) |
+| Time per call, p50 | 89–139 ms | 50–81 ms | 0.12 ms (battery rows) / 0.14 ms (all 306,336 calls) |
+
+- **Laya is about 740–1,200× the router's p50 on the CPU, and 420–690× on the Mac's GPU.**
+- **None of this depends on fine-tuning:** a tuned checkpoint has the same size, the same context and the same cut.

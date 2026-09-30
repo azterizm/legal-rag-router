@@ -76,7 +76,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** M11: Laya (plan fixed; your install and download first), then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** M11: Laya on the rig (CPU and GTX 1650), then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -908,6 +908,13 @@ Each of these changes order or method but not what gets delivered. See §4.
       - Recorded per option count: tokens per option, the median share of title tokens kept, and the longest title as the model sees it at 30 options.
       - This is Laya's design and does not depend on fine-tuning. On the 25-query smoke: 30 options keep 29 % of each title; the longest title is seen as "The Welfare Reform Act".
     - **Client:** `bench/clients/laya.py`. It refuses any weights but the pinned revision and SHA-256s, and refuses to measure if Laya falls back to another device.
+    - **Mac done (30 Sept),** `bench/results/laya-darwin-{cpu,mps}-2026-09-30.json`:
+      - p50 on the CPU: 89 / 139 / 139 ms at 3 / 10 / 30 options;
+      - p50 on the GPU (MPS): 50 / 80 / 81 ms;
+      - peak memory 2.8 GB (plus 2.1 GB of GPU memory on MPS);
+      - every call fitted, but at 30 options each title is cut to 5 tokens (29 % seen);
+      - against the router's 0.12–0.14 ms and 0.32 GB (`docs/measurements.md`).
+    - **Rig pending:** its CPU and its GTX 1650.
     - **Setup:**
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;

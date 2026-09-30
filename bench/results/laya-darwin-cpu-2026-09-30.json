@@ -1,0 +1,118 @@
+{
+  "measured_utc": "2026-09-30T09:33:57+00:00",
+  "model": {
+    "repo": "convaiinnovations/laya",
+    "revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+    "sha256_verified": true
+  },
+  "versions": {
+    "laya": "0.3.22",
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "python": "3.11.15"
+  },
+  "machine": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "processor": "arm",
+    "device": "cpu",
+    "gpu": null,
+    "torch_threads": 4
+  },
+  "footprint": {
+    "install_mb": 693,
+    "weights_mb": 807,
+    "load_s": 1.77,
+    "peak_rss_mb_before_load": 236.7,
+    "peak_rss_mb_after_load": 2813.4,
+    "peak_rss_mb_after_run": 2813.4,
+    "gpu_memory_mb": null
+  },
+  "load_warnings": [
+    "laya: this checkpoint ships invalid temperatures or values outside [0.5, 5]; using choice:11+=0.10058280825614929 -> 0.5. Treat confidence from the affected entries as uncalibrated."
+  ],
+  "states": 300,
+  "title_pool": 1562,
+  "warmup_calls_discarded": 20,
+  "seed": 20260930,
+  "answers_recorded": false,
+  "option_cut_rule": "laya 0.3.22 common.build_sequence: 48-token cap per option; over the 192-token head budget, each option is cut to max(4, 176 // n) tokens, marker included",
+  "example_at_30_options": {
+    "title": "The Welfare Reform Act 2012 (Commencement No. 9, 21 and 23 (Amendment), Commencement No. 11, 13, 17, 19, 22, 23 and 24 (Modification), Transitional and Transitory Provisions) Order 2018",
+    "as_seen": "The Welfare Reform Act"
+  },
+  "by_option_count": {
+    "3": {
+      "calls": 300,
+      "not_fitting": 0,
+      "collapsed_options": 0,
+      "input_tokens_p50": 87,
+      "tokens_per_option": [
+        null
+      ],
+      "title_tokens_kept_p50": 1.0,
+      "latency": {
+        "calls": 300,
+        "p50_ms": 89.292,
+        "p50_ci95_ms": [
+          88.771,
+          90.263
+        ],
+        "p99_ms": 137.045,
+        "p99_ci95_ms": [
+          117.722,
+          166.614
+        ],
+        "max_ms": 166.614
+      }
+    },
+    "10": {
+      "calls": 300,
+      "not_fitting": 0,
+      "collapsed_options": 0,
+      "input_tokens_p50": 188,
+      "tokens_per_option": [
+        null,
+        17
+      ],
+      "title_tokens_kept_p50": 1.0,
+      "latency": {
+        "calls": 300,
+        "p50_ms": 139.12,
+        "p50_ci95_ms": [
+          138.334,
+          139.644
+        ],
+        "p99_ms": 170.095,
+        "p99_ci95_ms": [
+          168.276,
+          213.732
+        ],
+        "max_ms": 213.732
+      }
+    },
+    "30": {
+      "calls": 300,
+      "not_fitting": 0,
+      "collapsed_options": 0,
+      "input_tokens_p50": 180,
+      "tokens_per_option": [
+        5
+      ],
+      "title_tokens_kept_p50": 0.286,
+      "latency": {
+        "calls": 300,
+        "p50_ms": 138.501,
+        "p50_ci95_ms": [
+          138.269,
+          138.663
+        ],
+        "p99_ms": 169.702,
+        "p99_ci95_ms": [
+          167.28,
+          209.623
+        ],
+        "max_ms": 209.623
+      }
+    }
+  }
+}
