@@ -7,6 +7,7 @@
 # Then, from the repository root (Linux, WSL or Git Bash):
 #   bash scripts/latency_x86.sh
 # and bring back bench/results/latency-*-x86_64.json.
+# The controlled re-run (three passes, machine state recorded) is scripts/latency_rig.ps1.
 set -euo pipefail
 
 machine="$(uv run python -c 'import platform; print(platform.machine().lower())')"

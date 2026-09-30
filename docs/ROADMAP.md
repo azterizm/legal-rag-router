@@ -22,7 +22,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Current stage | **M10-UK done: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`), **x86-64 latency measured** (`bench/results/latency-windows-x86_64.json`; p99 12.27 ms, target not met). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
 | Next step | M11 (Unit 1–2 comparison) |
-| Waiting on you | ⛔ How to record the latency target: Mac p99 2.11 ms, x86-64 p99 12.27 ms (stop log 18). ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Waiting on you | 🧑 The controlled x86 re-run, `scripts/latency_rig.ps1` (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
@@ -33,13 +33,34 @@ Newest first. One line per stop: what was finished, and where to resume.
     - it had deleted the "After the sealed-run fixes (v2)" heading in `measurements.md`; restored;
     - it claimed row-for-row agreement, but only per-status counts were compared; reworded;
     - it gave no verdict on the target; now recorded as **not met on x86-64** (p99 12.27 ms, bound results 5.50 ms);
-    - it gave a speculative cause; replaced with the conditions you confirmed: native Windows from PowerShell, High performance plan, antivirus off. The slowdown is even across statuses (4.5–5.5× at p50), so it is the machine, not interference.
+    - it gave a speculative cause; replaced with the conditions you confirmed: native Windows from PowerShell, High performance plan, antivirus off, and (30 Sept) Chrome running heavily in the background. So this run is not a clean measurement.
   - The M10 "done when" (both platforms' p50/p99 recorded) is met; the x86 box is ticked.
   - ⛔ **Decision needed (replaces stop 16's question):** how to report the < 2 ms p99 target (decision 16):
     1. record it as not met on both platforms and move on;
-    2. (dropped 30 Sept: you confirmed the power plan and antivirus, and SSH does not enter in-process timings) a controlled re-run;
+    2. **a controlled re-run first (your choice, 30 Sept)**, then 1 or 3;
     3. a performance-only pass, with identical outcomes on every battery row and the 100k sweep, re-measured on both platforms.
-  - **Resume:** M11. Offline parts only (clients, harness, cost estimate) until the ⛔ cost confirmation.
+  - **Re-run plan (fixed 30 Sept, before any result is seen):**
+    1. **Script:** `scripts/latency_rig.ps1`, a PowerShell driver on the rig. It refuses to start if a browser is running, verifies the v2 seal (`024da21e…`), then runs **3 passes** of the unchanged `bench.latency` (306,336 calls each, same queries and repeats as every earlier run), each in a fresh process. Output: `bench/results/x86-rerun-<date>/`; it refuses to overwrite.
+    2. **Quiet start:** before each pass it settles for 120 s, then samples CPU for 15 s. A pass starts only at ≤ 10 % average CPU busy (3 tries, otherwise marked `quiet: false`).
+    3. **Disclosed with each run:**
+       - OS build and uptime;
+       - CPU model, cores/threads, rated clock;
+       - memory size and speed;
+       - the repo's disk and bus;
+       - active power scheme, minimum/maximum processor state on AC, battery or mains;
+       - Defender real-time and on-access state, repo exclusion, registered antivirus products;
+       - Search, SysMain and Windows Update service state;
+       - browsers running, and processes above 0.5 % CPU (names only);
+       - CPU busy and clock (% of base) before, during and after each pass;
+       - Python build, `perf_counter` resolution, uv version, git commit and tracked changes;
+       - whether it was started over SSH or with elevation.
+    4. **Reporting rule:**
+       - All three passes are published.
+       - The headline is the median pass by overall p99, with its per-status table, and the min–max of p50/p99 across passes.
+       - A pass that did not get a quiet start is reported but not used for the headline.
+       - The 29 Sept run stays committed, labelled as measured with Chrome running.
+    5. **Mac, for parity (proposed):** the same 3 passes with apps closed, disclosing `sw_vers`, `sysctl machdep.cpu.brand_string hw.memsize`, `pmset -g` (low power mode, AC) and `top -l 2 -o cpu`, since the Mac's 2.11 ms was not taken under these conditions either.
+  - **Resume:** your smoke check and re-run on the rig; then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.

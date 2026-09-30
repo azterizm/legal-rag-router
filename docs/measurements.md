@@ -242,5 +242,5 @@ The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 �
 
 The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence the outcomes agree, but it compares counts, not individual rows.
 
-Conditions: native Windows CPython launched from PowerShell (through Git Bash), High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded. The slowdown against the Mac is even across statuses: 4.5–5.5× at p50 and 4.8–7.6× at p99. That pattern points to the machine as a whole (CPU, memory, Windows CPython), not to occasional interference. The single 229 ms maximum is the one outlier.
+Conditions: native Windows CPython launched from PowerShell (through Git Bash), High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded. The slowdown against the Mac is even across statuses: 4.5–5.5× at p50 and 4.8–7.6× at p99. The single 229 ms maximum is the one outlier. You said on 30 Sept that Chrome was running heavily in the background during this run. Sustained background load slows every call, not only the tail, so an even slowdown does not rule it out. This run is superseded by the controlled re-run (stop 18) once that is in.
 

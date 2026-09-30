@@ -142,5 +142,5 @@ Neither binds anything.
 
 **p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms). Bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's, so the whole distribution is slower, not only the tail. The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence that the outcomes agree, but it compares counts, not individual rows.
 
-The run was native Windows CPython launched from PowerShell, High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). The slowdown is even across statuses (4.5–5.5× at p50, 4.8–7.6× at p99). That points to the machine, not to interference, apart from the single 229 ms maximum.
+The run was native Windows CPython launched from PowerShell, High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). The slowdown is even across statuses (4.5–5.5× at p50, 4.8–7.6× at p99). You said on 30 Sept that Chrome was running heavily in the background during this run. Sustained background load slows every call, not only the tail, so an even slowdown does not rule it out. This run is superseded by the controlled re-run (stop 18) once that is in.
 
