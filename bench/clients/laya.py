@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import random
 import sys
@@ -234,36 +235,43 @@ def _cuts_and_example(
     return title_cuts(lambda text: len(ids(text)), calls), {"title": longest, "as_seen": seen}
 
 
-def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya and torch
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
-    parser.add_argument("--device", required=True, choices=["cpu", "mps", "cuda"])
-    parser.add_argument("--sample", type=int, default=SAMPLE)
-    parser.add_argument("--resamples", type=int, default=1000)
-    parser.add_argument("--index", type=Path, default=Path("data/index"))
-    parser.add_argument("--out", type=Path, default=Path("bench/results"))
-    args = parser.parse_args(argv)
+class DeviceMismatchError(RuntimeError):
+    """Laya did not load on the device asked for; nothing is measured."""
 
+
+def build_plan(index: Path, sample: int = SAMPLE) -> dict[str, Any]:
+    """The seeded inputs every machine measures: states, the title pool, warm-up and calls."""
+    router = Router.from_path(index)
+    rows = battery_rows()
+    titles = title_pool(router, [c for _, coords in rows for c in coords])
+    states = [q for q, _ in random.Random(SEED).sample(rows, sample)]
+    return {
+        "states": states,
+        "titles": titles,
+        "warmup": plan_calls(states[:WARMUP], titles, (OPTION_COUNTS[0],), seed=SEED + 1),
+        "calls": plan_calls(states, titles, OPTION_COUNTS),
+    }
+
+
+def measure(  # pragma: no cover - needs laya and torch
+    device_asked: str, plan: Mapping[str, Any], resamples: int, host: str | None = None
+) -> dict[str, Any]:
+    """Load the pinned checkpoint on ``device_asked``, time the plan's calls, and describe the
+    run: versions, machine, footprint, the option cut. Runs wherever Laya runs (the Mac, the
+    rig, a Modal GPU container)."""
     import laya  # type: ignore[import-not-found]  # noqa: PLC0415 - uv run --with laya
     import torch  # type: ignore[import-not-found]  # noqa: PLC0415
 
-    router = Router.from_path(args.index)
-    rows = battery_rows()
-    titles = title_pool(router, [c for _, coords in rows for c in coords])
-    states = [q for q, _ in random.Random(SEED).sample(rows, args.sample)]
-    warmup = plan_calls(states[:WARMUP], titles, (OPTION_COUNTS[0],), seed=SEED + 1)
-    calls = plan_calls(states, titles, OPTION_COUNTS)
-
+    titles, warmup, calls = plan["titles"], plan["warmup"], plan["calls"]
     rss_before = _peak_rss_mb()
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         started = time.perf_counter()
-        agent = laya.load(REPO, device=args.device, revision=REVISION, expected_sha256=SHA256)
+        agent = laya.load(REPO, device=device_asked, revision=REVISION, expected_sha256=SHA256)
         load_s = time.perf_counter() - started
     device = str(agent.device)
-    kind = device.partition(":")[0]
-    if kind != args.device:
-        print(f"Asked for {args.device}, but Laya is on {device}; nothing was measured.")
-        return 1
+    if device.partition(":")[0] != device_asked:
+        raise DeviceMismatchError(f"asked for {device_asked}, but Laya is on {device}")
     rss_loaded = _peak_rss_mb()
     from huggingface_hub import constants  # type: ignore[import-not-found]  # noqa: PLC0415
 
@@ -280,7 +288,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya
     elif device == "mps":
         gpu_mb = round(torch.mps.driver_allocated_memory() / 2**20, 1)
     site = Path(laya.__file__).resolve().parents[1]
-    result: dict[str, Any] = {
+    return {
         "measured_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "model": {"repo": REPO, "revision": REVISION, "sha256_verified": True},
         "versions": {
@@ -290,8 +298,11 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya
             "python": sys.version.split()[0],
         },
         "machine": {
+            "host": host,
+            "system": platform.system().lower(),
             "platform": platform.platform(),
             "processor": platform.processor(),
+            "cpu_count": os.cpu_count(),
             "device": device,
             "gpu": torch.cuda.get_device_name(0) if device.startswith("cuda") else None,
             "torch_threads": torch.get_num_threads(),
@@ -306,7 +317,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya
             "gpu_memory_mb": gpu_mb,
         },
         "load_warnings": sorted({str(w.message) for w in caught}),
-        "states": len(states),
+        "states": len(plan["states"]),
         "title_pool": len(titles),
         "warmup_calls_discarded": len(warmup),
         "seed": SEED,
@@ -314,19 +325,55 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya
         "option_cut_rule": "laya 0.3.22 common.build_sequence: 48-token cap per option; over "
         "the 192-token head budget, each option is cut to max(4, 176 // n) tokens, marker included",
         "example_at_30_options": example,
-        "by_option_count": report(timed, args.resamples, cuts),
+        "by_option_count": report(timed, resamples, cuts),
     }
-    name = f"laya-{platform.system().lower()}-{kind}-{result['measured_utc'][:10]}"
-    path = args.out / f"{name}.json"
+
+
+def write_result(result: Mapping[str, Any], out: Path) -> Path | None:
+    """``laya-<system>-<device>-<date>.json`` in ``out``; ``None`` if it exists already."""
+    kind = str(result["machine"]["device"]).partition(":")[0]
+    path = out / f"laya-{result['machine']['system']}-{kind}-{result['measured_utc'][:10]}.json"
     if path.exists():
-        print(f"{path} exists: a measurement is never overwritten.")
-        return 1
+        return None
     path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def print_summary(result: Mapping[str, Any], path: Path) -> None:
     for n, row in result["by_option_count"].items():
         lat = row["latency"] or {}
         print(f"{n:>2} options: p50 {lat.get('p50_ms')} ms, p99 {lat.get('p99_ms')} ms, "
               f"not fitting {row['not_fitting']}/{row['calls']}")  # fmt: skip
     print(f"-> {path}")
+
+
+def main(argv: list[str] | None = None) -> int:  # pragma: no cover - needs laya and torch
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
+    parser.add_argument("--device", choices=["cpu", "mps", "cuda"])
+    parser.add_argument("--sample", type=int, default=SAMPLE)
+    parser.add_argument("--resamples", type=int, default=1000)
+    parser.add_argument("--index", type=Path, default=Path("data/index"))
+    parser.add_argument("--out", type=Path, default=Path("bench/results"))
+    parser.add_argument("--plan-out", type=Path, help="write the call plan as JSON and stop")
+    args = parser.parse_args(argv)
+    plan = build_plan(args.index, args.sample)
+    if args.plan_out:
+        args.plan_out.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        print(f"wrote {len(plan['calls'])} calls and {len(plan['warmup'])} warm-up calls "
+              f"-> {args.plan_out}")  # fmt: skip
+        return 0
+    if args.device is None:
+        parser.error("--device is required unless --plan-out is given")
+    try:
+        result = measure(args.device, plan, args.resamples)
+    except DeviceMismatchError as exc:
+        print(f"{exc}; nothing was measured.")
+        return 1
+    path = write_result(result, args.out)
+    if path is None:
+        print("The result file exists: a measurement is never overwritten.")
+        return 1
+    print_summary(result, path)
     return 0
 
 

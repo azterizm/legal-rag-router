@@ -95,6 +95,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "PLR2004", "FBT", "S311"]
 "scripts/**" = ["T20"]
+"deploy/**" = ["T20"]
 "ingest/**" = ["T20"]
 "bench/**" = ["T20", "S311"]
 "eval/**" = ["T20"]
