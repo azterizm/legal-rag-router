@@ -242,5 +242,5 @@ The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 �
 
 The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence the outcomes agree, but it compares counts, not individual rows.
 
-Conditions, which weigh on the tail: native Windows (Git Bash, not WSL2), started over an SSH session, with the power plan and antivirus scanning not recorded. The 229 ms maximum is far above anything the Mac shows (31 ms) and points to interference from the machine. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded.
+Conditions: native Windows CPython launched from PowerShell (through Git Bash), High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). Whether this is the GTX 1650 rig the plan names is not recorded. The slowdown against the Mac is even across statuses: 4.5–5.5× at p50 and 4.8–7.6× at p99. That pattern points to the machine as a whole (CPU, memory, Windows CPython), not to occasional interference. The single 229 ms maximum is the one outlier.
 

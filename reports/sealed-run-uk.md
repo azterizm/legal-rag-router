@@ -142,5 +142,5 @@ Neither binds anything.
 
 **p99 over all calls misses the < 2 ms target by a factor of six (12.27 ms). Bound results miss it too (5.50 ms).** p50 is 4.4× the Mac's, so the whole distribution is slower, not only the tail. The per-status call counts are identical to the Mac v2 run for all six statuses. That is strong evidence that the outcomes agree, but it compares counts, not individual rows.
 
-How much of the gap is the CPU and how much the setup is not known. The run was native Windows (Git Bash, not WSL2), started over SSH, with the power plan and antivirus scanning not recorded. The 229 ms maximum points to interference from the machine. Model 58 is an Ivy Bridge core (2012).
+The run was native Windows CPython launched from PowerShell, High performance power plan, antivirus off. Model 58 is an Ivy Bridge core (2012). The slowdown is even across statuses (4.5–5.5× at p50, 4.8–7.6× at p99). That points to the machine, not to interference, apart from the single 229 ms maximum.
 

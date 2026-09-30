@@ -33,11 +33,11 @@ Newest first. One line per stop: what was finished, and where to resume.
     - it had deleted the "After the sealed-run fixes (v2)" heading in `measurements.md`; restored;
     - it claimed row-for-row agreement, but only per-status counts were compared; reworded;
     - it gave no verdict on the target; now recorded as **not met on x86-64** (p99 12.27 ms, bound results 5.50 ms);
-    - it gave a speculative cause; replaced with the recorded conditions: native Windows over SSH, not WSL2, power plan and antivirus not recorded, max 229 ms.
+    - it gave a speculative cause; replaced with the conditions you confirmed: native Windows from PowerShell, High performance plan, antivirus off. The slowdown is even across statuses (4.5–5.5× at p50), so it is the machine, not interference.
   - The M10 "done when" (both platforms' p50/p99 recorded) is met; the x86 box is ticked.
   - ⛔ **Decision needed (replaces stop 16's question):** how to report the < 2 ms p99 target (decision 16):
     1. record it as not met on both platforms and move on;
-    2. first re-run on the rig under controlled conditions (WSL2 or native with the High performance plan, Defender excluding the repo, run locally rather than over SSH) to separate the machine from the code, then decide;
+    2. (dropped 30 Sept: you confirmed the power plan and antivirus, and SSH does not enter in-process timings) a controlled re-run;
     3. a performance-only pass, with identical outcomes on every battery row and the 100k sweep, re-measured on both platforms.
   - **Resume:** M11. Offline parts only (clients, harness, cost estimate) until the ⛔ cost confirmation.
 
