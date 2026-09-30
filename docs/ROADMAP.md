@@ -76,7 +76,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** M11: Laya, then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** M11: Laya (plan fixed; your install and download first), then Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -890,6 +890,23 @@ Each of these changes order or method but not what gets delivered. See §4.
   - egress.
 - [ ] `bench/unit1_cardinality.py`: accuracy as the option set grows (3 / 10 / 30+ options), from 07 §2.
 - [ ] `bench/clients/laya.py` (decision 3 as amended): base Laya, speed and footprint only, at the same option counts; Mac CPU, rig CPU and rig GPU. After the Modal function, before Jev and Gemini.
+  - **Measurement plan (fixed 30 Sept, before any result):**
+    - **Model:** `convaiinnovations/laya` loaded directly (`laya.load`), not through `laya.Router`, which may pick another checkpoint. The Hugging Face revision and every weight file's SHA-256 are recorded; the rig gets the same files, copied from the Mac.
+    - **Inputs:** each state is a battery query (a seeded sample of 300 rows). One `choice` question with 3, 10 or 30 options, the options being real instrument titles from the index.
+    - **Context limits:** 512 tokens in all, 192 for the options. Any option count that does not fit is reported as not fitting, not trimmed.
+    - **Timing:** 20 warm-up calls discarded, then each call timed with `perf_counter_ns`. p50/p99 with bootstrap 95 % intervals, per option count and per device.
+    - **Devices:** Mac CPU, Mac GPU (MPS) if the package supports it, rig CPU, rig GPU (GTX 1650, CUDA).
+    - **Footprint:**
+      - install size (the package and PyTorch);
+      - weights on disk;
+      - cold load time;
+      - resident memory after loading and at peak;
+      - GPU memory where there is a GPU.
+    - **Not recorded:** answers are not recorded or scored (decision 3, amended).
+    - **Setup:**
+      - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
+      - **you run the downloads**;
+      - removal is `rm -rf ~/.cache/lrr-laya` and `uv cache clean`, on each machine.
 - [ ] Two runs: UK/EU business hours and off-peak. Results sealed against the same battery seal.
 - ⛔ 🧑 **A cost estimate is printed and needs your confirmation before any paid call.** Keys come from env vars only. Row B needs your Modal account.
 
