@@ -1,0 +1,49 @@
+{
+  "pass": 3,
+  "start": {
+    "attempts": 1,
+    "quiet": true,
+    "load": {
+      "cpu_busy_pct": {
+        "avg": 7.4,
+        "min": 0.7,
+        "max": 20.7,
+        "samples": 15
+      },
+      "memory_free_pct": 84
+    }
+  },
+  "duration_s": 87,
+  "during": {
+    "note": "sampled every ~5 s; busy % includes the bench itself (one core)",
+    "cpu_busy_pct": {
+      "avg": 21.6,
+      "min": 10.3,
+      "max": 32.1,
+      "samples": 17
+    }
+  },
+  "after": {
+    "load": {
+      "cpu_busy_pct": {
+        "avg": 10.3,
+        "min": 8.3,
+        "max": 12.9,
+        "samples": 15
+      },
+      "memory_free_pct": 83
+    },
+    "active_processes": [
+      {
+        "name": "XProtectRemediatorPirrit",
+        "cpu_pct": 9.1,
+        "resident_mb": 226
+      }
+    ],
+    "thermal": [
+      "Note: No thermal warning level has been recorded",
+      "Note: No performance warning level has been recorded",
+      "Note: No CPU power status has been recorded"
+    ]
+  }
+}

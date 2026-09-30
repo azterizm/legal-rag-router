@@ -1,0 +1,43 @@
+{
+  "pass": 2,
+  "start": {
+    "attempts": 1,
+    "quiet": true,
+    "load": {
+      "cpu_busy_pct": {
+        "avg": 1.7,
+        "min": 0.6,
+        "max": 6.2,
+        "samples": 15
+      },
+      "memory_free_pct": 83
+    }
+  },
+  "duration_s": 86,
+  "during": {
+    "note": "sampled every ~5 s; busy % includes the bench itself (one core)",
+    "cpu_busy_pct": {
+      "avg": 11.1,
+      "min": 10.4,
+      "max": 13.4,
+      "samples": 17
+    }
+  },
+  "after": {
+    "load": {
+      "cpu_busy_pct": {
+        "avg": 1.8,
+        "min": 0.3,
+        "max": 6.6,
+        "samples": 15
+      },
+      "memory_free_pct": 83
+    },
+    "active_processes": [],
+    "thermal": [
+      "Note: No thermal warning level has been recorded",
+      "Note: No performance warning level has been recorded",
+      "Note: No CPU power status has been recorded"
+    ]
+  }
+}

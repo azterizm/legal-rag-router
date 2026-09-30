@@ -224,4 +224,49 @@ It counts every call rather than the best of three per query, which is stricter 
 
 The same bench at `0b25a14` (the v2 battery seal) on the same machine: p50 141 µs, **p99 2.11 ms** over all 306,336 calls. Bound results p99 0.85 ms. That misses the < 2 ms target by 0.11 ms. The per-status table and the v1 → v2 comparison are in `reports/sealed-run-uk.md`. A back-to-back A/B on 30,000 queries confirms it is the fixes' cost (1.98 → 2.1 ms), not noise.
 
-The Apple Silicon and x86-64 figures under controlled conditions (three passes each, the machine's state recorded) replace these once they are in (roadmap stop 18). A first x86-64 run on 29 Sept was withdrawn: Chrome was running heavily in the background.
+The controlled three-pass figures below supersede this single pass. A first x86-64 run on 29 Sept was withdrawn: Chrome was running heavily in the background.
+
+## 2026-09-30: controlled latency, Apple Silicon (roadmap stop 18)
+
+`bench/results/mac-rerun-2026-09-30/`, from `scripts/latency_mac.py` at `7221a1b`. It ran 3 passes of the unchanged bench, each in a fresh process: 306,336 calls per pass (the 100,000 replayed citations plus every battery row, 3 repeats), with garbage collection paused. It used the full UK index, verified against the v2 seal (`024da21e…`).
+
+**Machine and conditions** (`env-before.json`, `env-after.json`):
+- **Hardware:** Apple M4 MacBook Air (Mac16,12), 4 performance and 6 efficiency cores, 16 GB; internal SSD.
+- **Software:** macOS 26.6.2 (25G83); Python 3.11.15 (Clang); `perf_counter` resolution 42 ns.
+- **Power:** on mains power; low-power mode off; no thermal or performance warning recorded before or after.
+- **Background:** no browser running. Spotlight indexing is off on `/`, Time Machine idle, Gatekeeper on.
+- **Uptime:** 251.6 hours, so the Mac was not rebooted first.
+- **Launch:** from a Terminal window at the machine, not over SSH; no tracked changes in the tree.
+
+**Each pass:**
+
+| Pass | CPU busy before | CPU busy during | p50 | p99 | max |
+|---|---|---|---|---|---|
+| 1 | 1.3 % | 10.9 % | 139.8 µs | 2.10 ms | 31.3 ms |
+| 2 | 1.7 % | 11.1 % | 138.4 µs | 2.08 ms | 31.5 ms |
+| **3 (median by p99)** | 7.4 % | 21.6 % | 140.0 µs | **2.10 ms** | 31.3 ms |
+
+- **Quiet start:** all three passes started quiet on the first try (≤ 10 % average CPU busy).
+- **The bench's own load:** the bench keeps one of ten cores busy, about 10 %.
+- **Pass 3 background:** macOS's XProtect remediator scanned during pass 3 (listed after it, about one more core). Pass 3's p99 is the middle of the three, so the scan did not visibly move it.
+- **Before the run:** Safari's SafeBrowsing service and `mobileassetd` were busy when the machine's state was recorded. They had settled by the first quiet check.
+
+**Headline, pass 3 (median by p99):**
+
+| Status | calls | p50 | p99 | max |
+|---|---|---|---|---|
+| All | 306,336 | 140 µs | **2.10 ms** | 31.3 ms |
+| `ROUTE_BOUNDED` | 246,285 | 137 µs | 0.84 ms | 31.3 ms |
+| `ROUTE_UNRESOLVED` | 25,794 | 37 µs | 3.58 ms | 10.4 ms |
+| Provision not found | 18,282 | 197 µs | 1.99 ms | 12.7 ms |
+| `ROUTE_AMBIGUOUS` | 12,804 | 393 µs | 6.22 ms | 14.2 ms |
+| Out of coverage | 1,899 | 139 µs | 1.73 ms | 4.9 ms |
+| Instrument not found | 1,272 | 405 µs | 5.87 ms | 18.5 ms |
+
+- **Across passes:** p50 138–140 µs, p99 2.08–2.10 ms. **p99 misses the < 2 ms target in every pass, by 0.08–0.10 ms.**
+- **Agreement with 29 Sept:** the single-pass 2.11 ms of 29 Sept (`bench/results/latency-darwin-arm64.json`, now superseded) agrees.
+- **Outcomes:** every pass has the same per-status call counts, which also match 29 Sept's.
+
+**The tail is a fixed set of slow queries, not noise.** Timed once each, 1,109 of the 102,112 queries (1.09 %) take over 2 ms. A tail slightly heavier than 1 % is exactly what puts p99 just past 2 ms.
+
+The maximum is the same query in every run. It is one of the replayed real citations, a 232-character bound query that lists several SI numbers ("These Regulations amend the Parliamentary Pensions (Consolidation and Amendment) Regulations 1993 (S.I. 1993/3…"), and it takes 31 ms. The next slowest (14–19 ms) are also long, real citations with many instruments or provisions.

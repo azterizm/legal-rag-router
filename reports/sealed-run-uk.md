@@ -63,7 +63,7 @@ A third, "Competition Act 1998 (Section 11 Exemption) Regulations 2001 …, reg.
 | Out of coverage | 1,905 | 135 µs | 1.70 ms |
 | Instrument not found | 1,308 | 388 µs | 4.86 ms |
 
-(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The x86-64 figures, and a controlled Mac re-run, are pending (roadmap stop 18).
+(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The x86-64 figures are pending; the controlled Mac re-run is in the v2 section below (roadmap stop 18).
 
 ## Second sealed run (v2), 29 Sept 2026
 
@@ -125,3 +125,12 @@ Neither binds anything.
 | Instrument not found | 1,272 | 408 µs | 4.86 → 5.84 ms |
 
 **p99 over all calls now misses the < 2 ms target, by 0.11 ms.** This is the fixes' cost, not noise. Timed back to back on the same 30,000 queries and index, v1's code gives p99 1.98 / 1.97 ms and v2's 2.09 / 2.12 ms. The extra cost is spread out: about 10 µs per query from two more cue scans and the SI-number lookahead, with no single hotspot. It shows most on long SI lists. It has not been tuned, since that would change code after the seal.
+
+### Controlled re-run (30 Sept)
+
+Three passes under recorded conditions confirm it (`docs/measurements.md`, "controlled latency, Apple Silicon"; `bench/results/mac-rerun-2026-09-30/`):
+- p99 2.08–2.10 ms and p50 138–140 µs across the passes;
+- the median pass: p99 **2.10 ms**, bound results 0.84 ms;
+- per-status call counts identical in every pass.
+
+The tail is a fixed set of long real citations: 1.09 % of queries take over 2 ms. The slowest (31 ms, in every run) is a bound 232-character sentence citing several SIs. The x86-64 figures are pending.

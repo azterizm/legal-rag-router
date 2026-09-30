@@ -19,10 +19,10 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-30 |
-| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs on the rig and the Mac pending (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs: the Mac done (p99 2.10 ms, not met), the rig pending (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)** |
 | Next step | The controlled latency re-runs, then M11 (Unit 1–2 comparison) |
-| Waiting on you | 🧑 The controlled re-runs: `scripts/latency_rig.ps1` on the rig, `scripts/latency_mac.py` on the Mac (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Waiting on you | 🧑 The rig's controlled run, `scripts/latency_rig.ps1` (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
@@ -59,7 +59,13 @@ Newest first. One line per stop: what was finished, and where to resume.
        - The headline is the median pass by overall p99, with its per-status table, and the min–max of p50/p99 across passes.
        - A pass that did not get a quiet start is reported but not used for the headline.
        - The Mac's single-pass 2.11 ms (29 Sept) stays in the history, marked as superseded.
-  - **Resume:** your real runs on the rig and the Mac; then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
+  - **Mac run done (30 Sept),** `bench/results/mac-rerun-2026-09-30/`:
+    - all 3 passes started quiet;
+    - p50 138–140 µs, **p99 2.08–2.10 ms** (median pass 2.10 ms), bound results 0.84 ms;
+    - **< 2 ms not met in any pass**;
+    - disclosed: not rebooted (uptime 252 h), and an XProtect scan during pass 3 (its p99 is the middle one).
+    - The tail is fixed: 1.09 % of queries take over 2 ms; the slowest is a 31 ms real citation, the same in every run.
+  - **Resume:** the rig's run (`scripts\latency_rig.ps1`); then the ⛔ above; then M11 (offline parts only until the ⛔ cost confirmation).
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.

@@ -1,0 +1,105 @@
+{
+  "captured_at_utc": "2026-09-30T04:34:50+00:00",
+  "launched_over_ssh": false,
+  "os": {
+    "version": "26.6.2",
+    "build": "25G83",
+    "uptime_hours": 251.6
+  },
+  "cpu": {
+    "name": "Apple M4",
+    "model": "Mac16,12",
+    "cores": 10,
+    "performance_cores": 4,
+    "efficiency_cores": 6
+  },
+  "memory_gb": 16,
+  "repo_disk": {
+    "Protocol": "Apple Fabric",
+    "Solid State": "Yes"
+  },
+  "power": {
+    "low_power_mode": "0",
+    "power_mode": "not listed",
+    "source": "AC Power",
+    "thermal": [
+      "Note: No thermal warning level has been recorded",
+      "Note: No performance warning level has been recorded",
+      "Note: No CPU power status has been recorded"
+    ]
+  },
+  "gatekeeper": "assessments enabled",
+  "spotlight": "/: Indexing disabled.",
+  "time_machine_running": false,
+  "browsers_running": [],
+  "process_count": 727,
+  "active_processes": [
+    {
+      "name": "com.apple.Safari.SafeBrowsing.Service",
+      "cpu_pct": 8.7,
+      "resident_mb": 42
+    },
+    {
+      "name": "mobileassetd",
+      "cpu_pct": 7.1,
+      "resident_mb": 58
+    },
+    {
+      "name": "opendirectoryd",
+      "cpu_pct": 1.6,
+      "resident_mb": 15
+    },
+    {
+      "name": "mdworker_shared",
+      "cpu_pct": 1.5,
+      "resident_mb": 18
+    },
+    {
+      "name": "assetsubscriptiond",
+      "cpu_pct": 1.1,
+      "resident_mb": 14
+    },
+    {
+      "name": "MTLAssetUpgraderD",
+      "cpu_pct": 1.1,
+      "resident_mb": 7
+    },
+    {
+      "name": "Finder",
+      "cpu_pct": 0.9,
+      "resident_mb": 77
+    },
+    {
+      "name": "trustd",
+      "cpu_pct": 0.8,
+      "resident_mb": 17
+    },
+    {
+      "name": "cloudd",
+      "cpu_pct": 0.7,
+      "resident_mb": 31
+    }
+  ],
+  "load": {
+    "cpu_busy_pct": {
+      "avg": 43.5,
+      "min": 29.6,
+      "max": 55.1,
+      "samples": 15
+    },
+    "memory_free_pct": 82
+  },
+  "python": "3.11.15 Clang 22.1.3",
+  "perf_counter": {
+    "implementation": "mach_absolute_time()",
+    "monotonic": true,
+    "adjustable": false,
+    "resolution": 4.166666666666667e-08
+  },
+  "uv": "uv 0.8.14 (af856fb88 2025-08-28)",
+  "repo": {
+    "commit": "7221a1b373de176ee9ac6e3ec02fb209855b740d",
+    "tracked_changes": false
+  },
+  "seal": "seals/battery-2026-09-29-v2.json"
+}

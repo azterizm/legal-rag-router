@@ -1,0 +1,56 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "processor": "arm",
+  "python": "3.11.15",
+  "index_snapshot": "2026-09-28",
+  "queries": {
+    "batteries": 2112,
+    "replays-100k.txt": 100000
+  },
+  "repeats": 3,
+  "all": {
+    "calls": 306336,
+    "p50_us": 139.8,
+    "p99_us": 2099.8,
+    "max_us": 31260.2
+  },
+  "per_status": {
+    "EPISTEMIC_ABSTENTION_INSTRUMENT_NOT_FOUND": {
+      "calls": 1272,
+      "p50_us": 404.2,
+      "p99_us": 5795.7,
+      "max_us": 18463.7
+    },
+    "EPISTEMIC_ABSTENTION_PROVISION_NOT_FOUND": {
+      "calls": 18282,
+      "p50_us": 196.6,
+      "p99_us": 2002.2,
+      "max_us": 12659.7
+    },
+    "ROUTE_AMBIGUOUS": {
+      "calls": 12804,
+      "p50_us": 392.7,
+      "p99_us": 6216.4,
+      "max_us": 14198.3
+    },
+    "ROUTE_BOUNDED": {
+      "calls": 246285,
+      "p50_us": 137.2,
+      "p99_us": 835.4,
+      "max_us": 31260.2
+    },
+    "ROUTE_OUT_OF_COVERAGE": {
+      "calls": 1899,
+      "p50_us": 139.0,
+      "p99_us": 1694.3,
+      "max_us": 4934.0
+    },
+    "ROUTE_UNRESOLVED": {
+      "calls": 25794,
+      "p50_us": 36.6,
+      "p99_us": 3621.0,
+      "max_us": 10797.8
+    }
+  }
+}
