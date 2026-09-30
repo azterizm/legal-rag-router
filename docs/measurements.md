@@ -270,3 +270,52 @@ The controlled three-pass figures below supersede this single pass. A first x86-
 **The tail is a fixed set of slow queries, not noise.** Timed once each, 1,109 of the 102,112 queries (1.09 %) take over 2 ms. A tail slightly heavier than 1 % is exactly what puts p99 just past 2 ms.
 
 The maximum is the same query in every run. It is one of the replayed real citations, a 232-character bound query that lists several SI numbers ("These Regulations amend the Parliamentary Pensions (Consolidation and Amendment) Regulations 1993 (S.I. 1993/3…"), and it takes 31 ms. The next slowest (14–19 ms) are also long, real citations with many instruments or provisions.
+
+## 2026-09-30: controlled latency, x86-64 (roadmap stop 18)
+
+`bench/results/x86-rerun-2026-09-30/`, from `scripts/latency_rig.ps1` at `7221a1b`. The same 3 passes of the unchanged bench as the Mac: 306,336 calls each, full UK index, v2 seal verified on the rig. The files are the rig's originals (Windows line endings).
+
+**Machine and conditions** (`env-before.json`, `env-after.json`):
+- **Hardware:** Intel Core i5-3570 (Ivy Bridge, 2012), 4 cores / 4 threads, 3.4 GHz base; 16 GB DDR3-1600 (2 modules); PNY CS900 SATA SSD.
+- **Software:** Windows 11 Pro 24H2 (build 26100); Python 3.11.16 (MSVC); `perf_counter` via QueryPerformanceCounter, 100 ns resolution.
+- **Power:** "Ultimate" power plan, minimum and maximum processor state 100 % on mains; desktop, no battery. During the passes the clock ran at 110–111 % of base (turbo, about 3.8 GHz).
+- **Security, left on as in a deployment:** Defender real-time, on-access and behaviour monitoring on, tamper-protected; the repo is not excluded.
+- **Services:** SysMain and Windows Search running; Windows Update stopped.
+- **Background:** no browser running.
+- **Uptime:** 15.3 hours.
+- **Launch:** at the machine (not over SSH), elevated; no tracked changes.
+
+**Each pass:**
+
+| Pass | Quiet start (tries) | CPU busy during (avg / max) | p50 | p99 | max |
+|---|---|---|---|---|---|
+| 1 | yes (1) | 38 % / 100 % | 510.4 µs | 9.25 ms | 136.8 ms |
+| 2 | yes (3) | 29 % / 66 % | 501.2 µs | 9.14 ms | 130.4 ms |
+| **3 (median by p99)** | yes (1) | 27 % / 47 % | 501.0 µs | **9.21 ms** | 130.1 ms |
+
+- **The bench's own load:** the bench keeps one of four threads busy, 25 %.
+- **Defender during pass 1:** Defender's engine (`MsMpEng`) scanned during pass 1. It was at 47 % CPU just after it, and busy peaked at 100 %. That pass has the highest p99 and max.
+- **Pass 2's start:** the quiet check turned pass 2 away twice (26 % and 19.5 % busy) before it started quiet on the third try.
+- **The headline pass:** pass 3 is the cleanest of the three.
+
+**Headline, pass 3 (median by p99):**
+
+| Status | calls | p50 | p99 | max |
+|---|---|---|---|---|
+| All | 306,336 | 501 µs | **9.21 ms** | 130.1 ms |
+| `ROUTE_BOUNDED` | 246,285 | 494 µs | 3.56 ms | 130.1 ms |
+| `ROUTE_UNRESOLVED` | 25,794 | 130 µs | 15.21 ms | 47.8 ms |
+| Provision not found | 18,282 | 698 µs | 8.62 ms | 58.6 ms |
+| `ROUTE_AMBIGUOUS` | 12,804 | 1,508 µs | 28.23 ms | 68.3 ms |
+| Out of coverage | 1,899 | 492 µs | 6.92 ms | 21.6 ms |
+| Instrument not found | 1,272 | 1,677 µs | 24.71 ms | 79.4 ms |
+
+**Range across passes:** p50 501–510 µs, p99 9.14–9.25 ms.
+
+**p99 misses the < 2 ms target by a factor of 4.6 in every pass. Bound results miss it too (3.49–3.60 ms).**
+
+**Against the Mac's headline pass:**
+- The rig is 3.6× slower at p50 and 4.4× slower at p99. The ratio is about the same for every status (3.5–4.1× at p50, 4.0–4.5× at p99), so the whole distribution scales with the machine.
+- Per-status call counts are identical to the Mac's in every pass.
+
+**The withdrawn 29 Sept run** (Chrome running) gave p99 12.27 ms: 33 % above this, and p50 24 % above.

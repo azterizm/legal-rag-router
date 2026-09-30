@@ -19,10 +19,10 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-09-30 |
-| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs: the Mac done (p99 2.10 ms, not met), the rig pending (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)** |
-| Next step | The rig's controlled latency run; then M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
-| Waiting on you | 🧑 The rig's controlled run, `scripts/latency_rig.ps1` (stop log 18); then ⛔ how to record the latency target. ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
+| Next step | ⛔ The < 2 ms decision; then M11 in order: the router as a Modal function, Laya (speed and footprint), Jev and Gemini |
+| Waiting on you | ⛔ How to record the < 2 ms target, now that both machines are measured (stop log 18). ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
 | Blocked | Nothing |
 
 ### Stop log
@@ -65,8 +65,15 @@ Newest first. One line per stop: what was finished, and where to resume.
     - **< 2 ms not met in any pass**;
     - disclosed: not rebooted (uptime 252 h), and an XProtect scan during pass 3 (its p99 is the middle one).
     - The tail is fixed: 1.09 % of queries take over 2 ms; the slowest is a 31 ms real citation, the same in every run.
+  - **Rig run done (30 Sept),** `bench/results/x86-rerun-2026-09-30/`:
+    - all 3 passes started quiet (pass 2 on its third try, after Defender's scan following pass 1);
+    - p50 501–510 µs, **p99 9.14–9.25 ms** (median pass 9.21 ms), bound results 3.56 ms;
+    - **< 2 ms not met, by 4.6×**;
+    - the rig is 3.6× the Mac at p50 and 4.4× at p99;
+    - Defender stayed on and is disclosed.
+  - ⛔ **Now open:** the < 2 ms decision above, with both machines' controlled figures in.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** the rig's run (`scripts\latency_rig.ps1`); then the ⛔ above; then M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** the ⛔ above; then M11 in your order: Modal function, Laya, Jev and Gemini. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -836,7 +843,7 @@ Each of these changes order or method but not what gets delivered. See §4.
 - [x] ⛔ **Halt:** commit the battery seal and tag it (`battery-seal-YYYY-MM-DD`) **before** the run. I ask before creating the tag. (You said go on 29 Sept: `battery-seal-2026-09-29`, local only.)
 - [x] The run → `results/*.json`, a markdown table, and the sealed results. (29 Sept: `results/uk-run-2026-09-29.*`, `seals/results-2026-09-29.json`, reading in `reports/sealed-run-uk.md`.)
 - [x] v2 (your go, 29 Sept): the run's deviations fixed, two labels corrected, sealed once more (`battery-seal-2026-09-29-v2`, local) and run once (`results/uk-run-2026-09-29-v2.*`, `seals/results-2026-09-29-v2.json`). v1 stays published as the blind figures.
-- [ ] 🧑 Controlled latency runs, 3 passes each, on the rig's x86-64 CPU (Intel i5-3570) and the Mac, with the machine's state recorded (`scripts/latency_rig.ps1`, `scripts/latency_mac.py`; stop 18). The first x86 run (29 Sept) was withdrawn: Chrome was running.
+- [x] 🧑 Controlled latency runs, 3 passes each, on the rig's x86-64 CPU (Intel i5-3570) and the Mac, with the machine's state recorded (`scripts/latency_rig.ps1`, `scripts/latency_mac.py`; stop 18). The first x86 run (29 Sept) was withdrawn: Chrome was running. (30 Sept: Mac p99 2.10 ms, rig 9.21 ms; both miss < 2 ms.)
 - **Done when:** the per-domain table exists from one sealed run, collision is 0.0 %, bound-on-invented is 0.0 %, and both platforms' p50/p99 are recorded.
 
 ### M11 — Unit 1–2 comparison (plan step 10) · days 8–10 · `bench/`, outside the wheel

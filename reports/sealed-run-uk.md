@@ -63,7 +63,7 @@ A third, "Competition Act 1998 (Section 11 Exemption) Regulations 2001 …, reg.
 | Out of coverage | 1,905 | 135 µs | 1.70 ms |
 | Instrument not found | 1,308 | 388 µs | 4.86 ms |
 
-(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The x86-64 figures are pending; the controlled Mac re-run is in the v2 section below (roadmap stop 18).
+(These are v1's figures, measured at `f96ef94`. That file now holds v2's measurement; see the v2 section below.) p99 over all calls meets the < 2 ms target, just. It counts every repeat, not the best of three. Questions and refusals take longer at the tail, because they run the typo tiers and suggestion ranking. The controlled re-runs on both machines are in the v2 section below (roadmap stop 18).
 
 ## Second sealed run (v2), 29 Sept 2026
 
@@ -133,4 +133,12 @@ Three passes under recorded conditions confirm it (`docs/measurements.md`, "cont
 - the median pass: p99 **2.10 ms**, bound results 0.84 ms;
 - per-status call counts identical in every pass.
 
-The tail is a fixed set of long real citations: 1.09 % of queries take over 2 ms. The slowest (31 ms, in every run) is a bound 232-character sentence citing several SIs. The x86-64 figures are pending.
+The tail is a fixed set of long real citations: 1.09 % of queries take over 2 ms. The slowest (31 ms, in every run) is a bound 232-character sentence citing several SIs.
+
+### x86-64 (30 Sept)
+
+The same three passes on the rig, an Intel i5-3570 from 2012 (`bench/results/x86-rerun-2026-09-30/`; conditions in `docs/measurements.md`):
+- p50 501–510 µs, **p99 9.14–9.25 ms**; the median pass is 9.21 ms, bound results 3.56 ms;
+- the target is missed by a factor of 4.6;
+- the rig is 3.6× the Mac at p50 and 4.4× at p99, about evenly across statuses;
+- per-status call counts are identical to the Mac's.

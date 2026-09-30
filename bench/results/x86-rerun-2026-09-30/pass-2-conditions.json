@@ -1,0 +1,68 @@
+{
+    "pass":  2,
+    "start":  {
+                  "attempts":  3,
+                  "quiet":  true,
+                  "load":  {
+                               "cpu_busy_pct":  {
+                                                    "avg":  1.3,
+                                                    "min":  0,
+                                                    "max":  2.9,
+                                                    "samples":  15
+                                                },
+                               "cpu_clock_pct_of_base":  {
+                                                             "avg":  88.3,
+                                                             "min":  83.2,
+                                                             "max":  104,
+                                                             "samples":  15
+                                                         },
+                               "available_mb":  {
+                                                    "avg":  11736.1,
+                                                    "min":  11731,
+                                                    "max":  11741,
+                                                    "samples":  15
+                                                }
+                           }
+              },
+    "duration_s":  340,
+    "during":  {
+                   "note":  "sampled every ~5 s; busy % includes the bench itself (one thread)",
+                   "cpu_busy_pct":  {
+                                        "avg":  29.4,
+                                        "min":  24.4,
+                                        "max":  66.3,
+                                        "samples":  68
+                                    },
+                   "cpu_clock_pct_of_base":  {
+                                                 "avg":  111.1,
+                                                 "min":  107.5,
+                                                 "max":  111.6,
+                                                 "samples":  68
+                                             }
+               },
+    "after":  {
+                  "load":  {
+                               "cpu_busy_pct":  {
+                                                    "avg":  1.6,
+                                                    "min":  0,
+                                                    "max":  7.3,
+                                                    "samples":  15
+                                                },
+                               "cpu_clock_pct_of_base":  {
+                                                             "avg":  91.2,
+                                                             "min":  82.8,
+                                                             "max":  109.3,
+                                                             "samples":  15
+                                                         },
+                               "available_mb":  {
+                                                    "avg":  11785.4,
+                                                    "min":  11753,
+                                                    "max":  11796,
+                                                    "samples":  15
+                                                }
+                           },
+                  "active_processes":  [
+
+                                       ]
+              }
+}

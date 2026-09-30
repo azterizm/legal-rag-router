@@ -1,0 +1,77 @@
+{
+    "pass":  1,
+    "start":  {
+                  "attempts":  1,
+                  "quiet":  true,
+                  "load":  {
+                               "cpu_busy_pct":  {
+                                                    "avg":  0.9,
+                                                    "min":  0,
+                                                    "max":  2.4,
+                                                    "samples":  15
+                                                },
+                               "cpu_clock_pct_of_base":  {
+                                                             "avg":  92,
+                                                             "min":  85.7,
+                                                             "max":  96.1,
+                                                             "samples":  15
+                                                         },
+                               "available_mb":  {
+                                                    "avg":  12200,
+                                                    "min":  12200,
+                                                    "max":  12200,
+                                                    "samples":  15
+                                                }
+                           }
+              },
+    "duration_s":  344,
+    "during":  {
+                   "note":  "sampled every ~5 s; busy % includes the bench itself (one thread)",
+                   "cpu_busy_pct":  {
+                                        "avg":  38,
+                                        "min":  24.4,
+                                        "max":  100,
+                                        "samples":  69
+                                    },
+                   "cpu_clock_pct_of_base":  {
+                                                 "avg":  110.4,
+                                                 "min":  105.9,
+                                                 "max":  111.6,
+                                                 "samples":  69
+                                             }
+               },
+    "after":  {
+                  "load":  {
+                               "cpu_busy_pct":  {
+                                                    "avg":  69.9,
+                                                    "min":  53.8,
+                                                    "max":  96.9,
+                                                    "samples":  15
+                                                },
+                               "cpu_clock_pct_of_base":  {
+                                                             "avg":  106.8,
+                                                             "min":  105.9,
+                                                             "max":  109,
+                                                             "samples":  15
+                                                         },
+                               "available_mb":  {
+                                                    "avg":  11724.1,
+                                                    "min":  11685,
+                                                    "max":  11746,
+                                                    "samples":  15
+                                                }
+                           },
+                  "active_processes":  [
+                                           {
+                                               "name":  "MsMpEng",
+                                               "cpu_pct":  47,
+                                               "working_set_mb":  420
+                                           },
+                                           {
+                                               "name":  "System",
+                                               "cpu_pct":  0.9,
+                                               "working_set_mb":  5
+                                           }
+                                       ]
+              }
+}

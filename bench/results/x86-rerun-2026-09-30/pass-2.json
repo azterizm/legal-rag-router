@@ -1,0 +1,56 @@
+{
+  "platform": "Windows-10-10.0.26100-SP0",
+  "machine": "AMD64",
+  "processor": "Intel64 Family 6 Model 58 Stepping 9, GenuineIntel",
+  "python": "3.11.16",
+  "index_snapshot": "2026-09-28",
+  "queries": {
+    "batteries": 2112,
+    "replays-100k.txt": 100000
+  },
+  "repeats": 3,
+  "all": {
+    "calls": 306336,
+    "p50_us": 501.2,
+    "p99_us": 9136.0,
+    "max_us": 130427.8
+  },
+  "per_status": {
+    "EPISTEMIC_ABSTENTION_INSTRUMENT_NOT_FOUND": {
+      "calls": 1272,
+      "p50_us": 1674.3,
+      "p99_us": 25630.3,
+      "max_us": 82080.6
+    },
+    "EPISTEMIC_ABSTENTION_PROVISION_NOT_FOUND": {
+      "calls": 18282,
+      "p50_us": 695.3,
+      "p99_us": 8338.3,
+      "max_us": 59280.1
+    },
+    "ROUTE_AMBIGUOUS": {
+      "calls": 12804,
+      "p50_us": 1442.5,
+      "p99_us": 27748.4,
+      "max_us": 66905.7
+    },
+    "ROUTE_BOUNDED": {
+      "calls": 246285,
+      "p50_us": 494.1,
+      "p99_us": 3492.5,
+      "max_us": 130427.8
+    },
+    "ROUTE_OUT_OF_COVERAGE": {
+      "calls": 1899,
+      "p50_us": 492.2,
+      "p99_us": 5831.1,
+      "max_us": 21433.8
+    },
+    "ROUTE_UNRESOLVED": {
+      "calls": 25794,
+      "p50_us": 132.3,
+      "p99_us": 15318.8,
+      "max_us": 49720.5
+    }
+  }
+}

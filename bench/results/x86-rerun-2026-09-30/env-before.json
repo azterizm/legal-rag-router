@@ -1,0 +1,113 @@
+{
+    "captured_at_utc":  "2026-09-30T05:32:00.0741610Z",
+    "launched_over_ssh":  false,
+    "elevated":  true,
+    "os":  {
+               "caption":  "Microsoft Windows 11 Pro",
+               "version":  "10.0.26100",
+               "build":  "26100",
+               "uptime_hours":  15.3
+           },
+    "cpu":  {
+                "name":  "Intel(R) Core(TM) i5-3570 CPU @ 3.40GHz",
+                "cores":  4,
+                "threads":  4,
+                "max_mhz":  3401,
+                "current_mhz":  3401
+            },
+    "memory":  {
+                   "total_gb":  16,
+                   "modules":  2,
+                   "speed_mhz":  [
+                                     1600
+                                 ],
+                   "configured_mhz":  [
+                                          1600
+                                      ]
+               },
+    "repo_disk":  {
+                      "model":  "PNY CS900 240GB SSD",
+                      "bus":  "SATA",
+                      "media":  "SSD"
+                  },
+    "power":  {
+                  "active_scheme":  "Power Scheme GUID: f67fd52c-4f29-4bf9-93bd-ed83ebd6b4fa  (ChrisTitus - Ultimate Power Plan)",
+                  "processor_min_state_ac_pct":  100,
+                  "processor_max_state_ac_pct":  100,
+                  "battery":  "none (mains only)"
+              },
+    "defender":  {
+                     "antivirus_enabled":  true,
+                     "real_time_protection":  true,
+                     "on_access_protection":  true,
+                     "behavior_monitor":  true,
+                     "tamper_protected":  true
+                 },
+    "defender_repo_excluded":  [
+
+                               ],
+    "registered_antivirus":  [
+                                 {
+                                     "name":  "Windows Defender",
+                                     "enabled":  true
+                                 }
+                             ],
+    "services":  [
+                     {
+                         "name":  "SysMain",
+                         "status":  "Running"
+                     },
+                     {
+                         "name":  "WinDefend",
+                         "status":  "Running"
+                     },
+                     {
+                         "name":  "WSearch",
+                         "status":  "Running"
+                     },
+                     {
+                         "name":  "wuauserv",
+                         "status":  "Stopped"
+                     }
+                 ],
+    "browsers_running":  [
+
+                         ],
+    "process_count":  115,
+    "active_processes":  [
+
+                         ],
+    "load":  {
+                 "cpu_busy_pct":  {
+                                      "avg":  1.7,
+                                      "min":  0.1,
+                                      "max":  3.7,
+                                      "samples":  15
+                                  },
+                 "cpu_clock_pct_of_base":  {
+                                               "avg":  96.5,
+                                               "min":  93.3,
+                                               "max":  104.9,
+                                               "samples":  15
+                                           },
+                 "available_mb":  {
+                                      "avg":  12137.8,
+                                      "min":  12126,
+                                      "max":  12170,
+                                      "samples":  15
+                                  }
+             },
+    "python":  "3.11.16 MSC v.1944 64 bit (AMD64)",
+    "perf_counter":  {
+                         "implementation":  "QueryPerformanceCounter()",
+                         "monotonic":  true,
+                         "adjustable":  false,
+                         "resolution":  1E-07
+                     },
+    "uv":  "uv 0.12.20 (2274b80d6 2026-09-28 x86_64-pc-windows-msvc)",
+    "repo":  {
+                 "commit":  "7221a1b373de176ee9ac6e3ec02fb209855b740d",
+                 "tracked_changes":  false
+             },
+    "seal":  "seals/battery-2026-09-29-v2.json"
+}
