@@ -914,7 +914,11 @@ Each of these changes order or method but not what gets delivered. See §4.
       - peak memory 2.8 GB (plus 2.1 GB of GPU memory on MPS);
       - every call fitted, but at 30 options each title is cut to 5 tokens (29 % seen);
       - against the router's 0.12–0.14 ms and 0.32 GB (`docs/measurements.md`).
-    - **Rig pending:** its CPU and its GTX 1650.
+    - **Rig CPU done (30 Sept):**
+      - p50 1,165 / 1,987 / 1,927 ms at 3 / 10 / 30 options;
+      - 2,300–4,000× the router's 0.50 ms on that machine;
+      - transformers 5.18.0 there (unpinned), memory not measured on Windows (now fixed).
+    - **Rig GPU pending:** the GTX 1650, with a CUDA build of PyTorch and transformers pinned to 5.17.0.
     - **Setup:**
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;

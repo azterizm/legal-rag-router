@@ -5,6 +5,8 @@
     uv run --with laya==0.3.22 python -m bench.clients.laya --device mps    # Apple GPU
     uv run --with laya==0.3.22 python -m bench.clients.laya --device cuda   # the rig's GPU
 
+Pin ``--with transformers==5.17.0`` too, so every machine runs the same library versions.
+
 It loads the base checkpoint directly, at a pinned revision, and refuses any other bytes. Each
 state is a battery query; each call asks one ``choice`` question whose options are 3, 10 or 30
 real instrument titles from the index. Every call is timed; the answers are never read or
@@ -184,10 +186,36 @@ def _dir_bytes(path: Path) -> int:
 
 
 def _peak_rss_mb() -> float | None:
-    try:
-        import resource  # noqa: PLC0415 - not on Windows
-    except ImportError:
-        return None
+    """The process's peak resident memory: ``getrusage`` on macOS and Linux, the peak working
+    set (``GetProcessMemoryInfo``) on Windows."""
+    if sys.platform == "win32":  # pragma: no cover - the rig
+        import ctypes  # noqa: PLC0415
+        from ctypes import wintypes  # noqa: PLC0415
+
+        class Counters(ctypes.Structure):
+            _fields_ = [  # the PROCESS_MEMORY_COUNTERS layout
+                ("cb", wintypes.DWORD),
+                ("PageFaultCount", wintypes.DWORD),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+
+        counters = Counters()
+        counters.cb = ctypes.sizeof(counters)
+        process = ctypes.windll.kernel32.GetCurrentProcess()
+        if not ctypes.windll.psapi.GetProcessMemoryInfo(
+            process, ctypes.byref(counters), counters.cb
+        ):
+            return None
+        return round(counters.PeakWorkingSetSize / 2**20, 1)
+    import resource  # noqa: PLC0415 - not on Windows
+
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return round(peak / (1024 * 1024 if sys.platform == "darwin" else 1024), 1)
 

@@ -377,3 +377,20 @@ The maximum is the same query in every run. It is one of the replayed real citat
 
 - **Laya is about 740–1,200× the router's p50 on the CPU, and 420–690× on the Mac's GPU.**
 - **None of this depends on fine-tuning:** a tuned checkpoint has the same size, the same context and the same cut.
+
+### The rig, CPU (30 Sept)
+
+`bench/results/laya-windows-cpu-2026-09-30.json`: the same client, pinned weights (copied from the Mac, SHA-256 verified on the rig), 300 queries at each option count, 20 warm-up calls discarded.
+- **Machine:** Intel i5-3570, Windows 11; torch 2.14.0+cpu with 4 threads. PyTorch runs on this CPU although it lacks AVX2.
+- **Version difference:** the rig resolved transformers **5.18.0** (the Mac 5.17.0), because the command did not pin it. The GPU run pins 5.17.0.
+
+| Options | p50 [95 % CI] | p99 | Share of each title seen |
+|---|---|---|---|
+| 3 | 1,165 ms [1,128–1,209] | 2,336 ms | 100 % |
+| 10 | 1,987 ms [1,969–2,021] | 2,706 ms | 100 % |
+| 30 | 1,927 ms [1,906–1,951] | 2,670 ms | 29 % (5 tokens per title) |
+
+- **Every call fitted** and no options collapsed; the same cut as on the Mac.
+- **Load:** 9.8 s.
+- **Memory was not measured:** the client read peak memory only through `resource`, which Windows lacks. It now reads the peak working set on Windows too, for the GPU run.
+- **Against the router on the same machine** (p50 0.50 ms over all 306,336 calls, 29 Sept): Laya takes about **2,300–4,000×** as long per call.
