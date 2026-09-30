@@ -903,6 +903,11 @@ Each of these changes order or method but not what gets delivered. See §4.
       - resident memory after loading and at peak;
       - GPU memory where there is a GPU.
     - **Not recorded:** answers are not recorded or scored (decision 3, amended).
+    - **Added 30 Sept, after the smoke run and before the real runs:** how much of each title the model sees.
+      - Laya 0.3.22 silently cuts options that overrun its 192-token option budget, to `max(4, 176 // n)` tokens each; it raises or flags only when two options become identical.
+      - Recorded per option count: tokens per option, the median share of title tokens kept, and the longest title as the model sees it at 30 options.
+      - This is Laya's design and does not depend on fine-tuning. On the 25-query smoke: 30 options keep 29 % of each title; the longest title is seen as "The Welfare Reform Act".
+    - **Client:** `bench/clients/laya.py`. It refuses any weights but the pinned revision and SHA-256s, and refuses to measure if Laya falls back to another device.
     - **Setup:**
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;
