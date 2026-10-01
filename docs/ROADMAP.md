@@ -76,7 +76,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** M11: Jev and Gemini (clients, the interleaved harness, then a cost estimate before any paid call). Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** fetch the Jev results; your decision on Gemini access; then the Gemini passes and the interleaved latency pass on the VM. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -950,6 +950,15 @@ Each of these changes order or method but not what gets delivered. See §4.
       - the latency pass describes a Southeast-Asian client: interleaved, so still a fair same-client comparison, but not UK-representative in absolute terms;
       - the router on Modal pays the trip to Modal's US entry point.
     - **Later improvement:** re-run the latency pass alone from a UK/EU VM when capacity allows (about an hour, same harness).
+  - **1 Oct: the VM is set up** (`azureuser@85.211.253.22`): the v2 battery seal verifies on it, and there is a 2 GB swap file.
+  - **Smoke run** (20 rows):
+    - **Jev:** 33/33 calls succeeded, resolving to `typesafe/jev-1.13-20260917`; 968 input tokens and $0.0000406 per call.
+    - **Gemini is blocked:** the key is on the **free tier**, `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit **20 a day** for `gemini-3.8-flash`. The Google AI Pro subscription does not lift it.
+    - **Measured Gemini cost per call:** end to end, 1,060 input + 52 output + 2,879 thinking tokens, about $0.012; choice about $0.00075. The Gemini part comes to about $45 at the promotional price ($90 regular).
+    - ⛔ **Open, your call:** billing on the Google Cloud project, or Gemini via OpenRouter.
+  - **Jev-only run started (your call, 1 Oct):** accuracy (6,150) and determinism (985), in tmux session `jev` on the VM, into `results/raw/compare/`.
+    - The latency pass waits for Gemini, because it interleaves all systems.
+    - The VM stays up until the Gemini decision.
     - The harness resumes after any interruption and never redoes or overwrites a finished call.
     - Keys go in a locked file on the VM, piped from your shell and never printed. Dedicated, capped keys are suggested, revoked afterwards.
     - The router's Row B region is re-probed from the VM by the same lowest-floor rule (decision 23).
