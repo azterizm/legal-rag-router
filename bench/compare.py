@@ -651,7 +651,9 @@ def _status(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live
     planned = {
         "accuracy": select(accuracy_jobs(rows, neighbours), args.systems),
         "determinism": select(determinism_jobs(rows, neighbours), args.systems),
-        "latency": select(latency_jobs(rows, neighbours, with_service=True), args.systems),
+        "latency": select(
+            latency_jobs(rows, neighbours, with_service=not args.no_service), args.systems
+        ),
     }
     logs = {stage: read_log(args.dir / f"{stage}.jsonl") for stage in planned}
     print("\n".join(progress_table(planned, logs)))
@@ -752,6 +754,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - live calls
     status.add_argument("--dir", type=Path, required=True)
     status.add_argument("--index", type=Path, default=Path("data/index"))
     status.add_argument("--systems", nargs="+")
+    status.add_argument("--no-service", action="store_true", help="as the run was started")
     for name in ("estimate", "score"):
         p = sub.add_parser(name)
         p.add_argument("--dir", type=Path, required=True)

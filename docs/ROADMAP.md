@@ -76,7 +76,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** fetch the Jev results; your decision on Gemini access; then the Gemini passes and the interleaved latency pass on the VM. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** your local run of `scripts/compare_local.sh` (after confirming the estimate); then the score, the results seal and `reports/comparison-uk.md`. Offline parts only until the ⛔ cost confirmation.
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -960,6 +960,14 @@ Each of these changes order or method but not what gets delivered. See §4.
     1. **As a parser** (the vault's Unit 1): the extracted citations are resolved by the router's index; Gemini's own coordinates are unused. A perfect extraction resolves to the gold in 1,915 of 1,918 single-citation bound rows, so this reading can cost Gemini at most about 0.16 % through no fault of its own (one shared title, one 1837 regnal Act, one very long SI title).
     2. **As an LLM-only router:** its own outcome and coordinates, as before.
     3. **On existence** (Unit 2): reading 2's outcome on invented and on real law.
+  - **Gemini through the author's proxy (your call, 1 Oct).** The VM was dropped, and Gemini runs on your Mac.
+    - **The endpoint:** your engineer's OpenAI-compatible proxy at `localhost:8317`, the only Gemini endpoint used; model `gemini-3.8-flash-high`, which the proxy reports as `gemini-3.8-flash-n`.
+    - **Disclosed:** it is not Google's public API. Token counts are the proxy's; costs are at Google's list price; Gemini's latency is the proxy's path. The proxy also serves non-Google models.
+    - **The latency pass runs without the router on Modal** (`--no-service`). The router's Row B from 30 Sept stands.
+    - **Smoke** (20 rows): 77/77 calls, 0 unusable. End to end $0.0086 per call (median 8.4 s; thinking mean 1,856 tokens); choice $0.0010 per call (3.2 s).
+    - **Estimate for the rest** (⛔ for your confirmation): Gemini end to end 3,390 calls ≈ $29.03; Gemini choice 6,093 ≈ $6.35; Jev latency 287 ≈ $0.01. **Total ≈ $35.4 at the promotional price ($70.8 regular).**
+    - **The command:** `scripts/compare_local.sh`. Resumable, and safe to stop at any time.
+    - **Jev's results** were copied from the VM, checksums verified, to `results/raw/compare/` (git-ignored).
   - **Jev-only run started (your call, 1 Oct):** accuracy (6,150) and determinism (985), in tmux session `jev` on the VM, into `results/raw/compare/`.
     - The latency pass waits for Gemini, because it interleaves all systems.
     - The VM stays up until the Gemini decision.

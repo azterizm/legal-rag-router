@@ -13,7 +13,7 @@
 #
 # Before running:  export LRR_GEMINI_PROXY_KEY=...   (OPENROUTER_API_KEY is in your zsh profile)
 # Run:             caffeinate -dims bash scripts/compare_local.sh
-# Progress:        uv run python -m bench.compare status --dir results/raw/compare
+# Progress:        uv run python -m bench.compare status --dir results/raw/compare --no-service
 #
 # Safe to stop at any time (Ctrl-C, closing the terminal, sleep, a crash): every finished call
 # is already on disk. Run the same command again and it carries on with the calls still missing.
@@ -21,7 +21,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${LRR_GEMINI_PROXY_KEY:?export LRR_GEMINI_PROXY_KEY first}"
 : "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY is not set}"
-export LRR_CLIENT_REGION="${LRR_CLIENT_REGION:-the author's Mac, Pakistan}"
+default_region="the author's Mac, Pakistan"
+export LRR_CLIENT_REGION="${LRR_CLIENT_REGION:-$default_region}"
 dir=results/raw/compare
 workers="${LRR_WORKERS:-4}"
 
