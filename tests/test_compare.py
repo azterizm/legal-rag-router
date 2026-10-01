@@ -293,12 +293,31 @@ def test_determinism_and_latency_are_summarised() -> None:
     assert lat["jev_choice_minus_floor"] is None
 
 
-def test_the_log_survives_a_partial_line(tmp_path: Path) -> None:
+def test_the_log_survives_a_line_cut_off_by_a_hard_stop(tmp_path: Path) -> None:
     path = tmp_path / "accuracy.jsonl"
-    path.write_text(json.dumps({"key": "a"}) + "\n\n", encoding="utf-8")
+    path.write_text(json.dumps({"key": "a"}) + "\n\n" + '{"key": "b", "ok', encoding="utf-8")
     log = Log(path)
-    assert log.done == {"a"}
+    assert log.done == {"a"}  # b's cut-off line is skipped, so b runs again
+    log.write({"key": "b", "ok": True})
     log.close()
+    assert [r["key"] for r in read_log(path)] == ["a", "b"]
+
+
+def test_stopping_a_concurrent_run_drops_the_queued_calls(tmp_path: Path) -> None:
+    ran: list[str] = []
+
+    def call(job: Job) -> dict[str, Any]:
+        if job.key == "k0":
+            raise KeyboardInterrupt
+        ran.append(job.key)
+        return {}
+
+    jobs = [Job(f"k{i}", "router_in_process", ERA, "misroute") for i in range(200)]
+    log = Log(tmp_path / "accuracy.jsonl")
+    with pytest.raises(KeyboardInterrupt):
+        run_jobs(call, jobs, log, workers=2)
+    log.close()
+    assert len(ran) < 199
 
 
 def test_retryable_api_messages() -> None:

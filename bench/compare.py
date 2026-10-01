@@ -35,7 +35,7 @@ import sys
 import threading
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -298,12 +298,11 @@ class Log:
     def __init__(self, path: Path) -> None:
         self.path = path
         self.done: set[str] = set()
-        if path.exists():
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if line.strip():
-                    self.done.add(json.loads(line)["key"])
+        self.done = {str(r["key"]) for r in read_log(path)}
         self._lock = threading.Lock()
         self._fh = path.open("a", encoding="utf-8")
+        if path.stat().st_size and not path.read_bytes().endswith(b"\n"):
+            self._fh.write("\n")  # a line cut off by a hard stop stays apart, and is skipped
 
     def write(self, record: Mapping[str, Any]) -> None:
         with self._lock:
@@ -376,9 +375,16 @@ def run_jobs(
     if workers <= 1:
         for job in todo:
             one(job)
-    else:
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            list(pool.map(one, todo))
+        return len(todo)
+    pool = ThreadPoolExecutor(max_workers=workers)
+    try:
+        for future in as_completed([pool.submit(one, job) for job in todo]):
+            future.result()
+    except BaseException:
+        # Ctrl-C or a crash: drop the queued calls; the ones in flight finish and are kept.
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+    pool.shutdown()
     return len(todo)
 
 
@@ -386,11 +392,18 @@ def run_jobs(
 
 
 def read_log(path: Path) -> list[dict[str, Any]]:
+    """Every complete record; a line cut off by a hard stop is skipped (its call runs again)."""
     if not path.exists():
         return []
-    return [
-        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
+    records = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            record = json.loads(line) if line.strip() else None
+        except json.JSONDecodeError:
+            continue
+        if isinstance(record, dict) and "key" in record:
+            records.append(record)
+    return records
 
 
 def gemini_cost(records: Iterable[Mapping[str, Any]], prices: Mapping[str, float]) -> float:
