@@ -928,7 +928,25 @@ Each of these changes order or method but not what gets delivered. See §4.
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;
       - removal is `rm -rf ~/.cache/lrr-laya` and `uv cache clean`, on each machine.
-- [ ] Two runs: UK/EU business hours and off-peak. Results sealed against the same battery seal.
+- [ ] ~~Two runs: UK/EU business hours and off-peak.~~ **One run (your call, 1 Oct):** the second time-of-day run is left as a later improvement, to protect the launch date. Results sealed against the same battery seal.
+- **Comparison design (your approval, 1 Oct), Jev and Gemini:**
+  1. **Gemini end to end, all 2,112 rows:**
+     - Gemini returns the router's kind of answer (an outcome and legislation.gov.uk coordinates), as JSON enforced by a response schema, from memory, with no index;
+     - it is given the full contract in its instructions (coordinate format, status meanings, examples);
+     - it is scored with the router's metrics and Clopper–Pearson bounds;
+     - rows whose labels depend on our index's conventions (out of coverage, snapshot-dependent, regnal coordinates) are scored separately from the knowable rows.
+  2. **Jev on all 2,112 rows as `choice` questions at 3 / 10 / 30 options:**
+     - the options are the correct instrument(s), seeded plausible distractors (same type, nearby years) and "none of these";
+     - scored at instrument level;
+     - labelled as a best case, since the right answer is always offered.
+  3. *(Pending your answer)* Gemini on Jev's identical choice questions, as a perfect-retriever ceiling.
+  4. **Determinism:** a seeded 200 rows × 5 repeats, both systems.
+  5. **Row B interleaving:** with the router's Modal service, about $0.2.
+  6. **Models:** `gemini-3.8-flash` with Google's default thinking and temperature, `modelVersion` recorded; Jev `typesafe/jev-1.13`.
+  - **Prices:**
+    - Jev: $0.042 / $0 per 1M tokens, plus the per-call cost the API reports;
+    - Gemini: $0.75 / $3.75 per 1M (a promotional 50 % discount "through December 31, 2026"); also reported at the regular $1.50 / $7.50.
+    - Gemini calls are made under your Google AI Pro subscription credits; costs are reported at list price.
 - ⛔ 🧑 **A cost estimate is printed and needs your confirmation before any paid call.** Keys come from env vars only. Row B needs your Modal account.
 
 ### M12 — Release (plan step 11)
