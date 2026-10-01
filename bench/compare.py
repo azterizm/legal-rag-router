@@ -645,37 +645,61 @@ def _status(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live
     return 0
 
 
-def _estimate(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live smoke run
-    records = read_log(args.dir / "accuracy.jsonl")
-    if not records:
-        print("No accuracy calls yet: run a smoke pass first (--limit 20).")
-        return 1
-    smoke_rows = len({r["row_id"] for r in records})
-    full = len(battery_rows())
-    scale = full / smoke_rows
-    extra = {  # determinism and latency calls, as a share of one accuracy pass
-        "gemini_route": (DETERMINISM_ROWS * DETERMINISM_REPEATS + LATENCY_ROWS) / full,
-        "jev_choice": (DETERMINISM_ROWS * DETERMINISM_REPEATS + LATENCY_ROWS) / full / 3,
-        "gemini_choice": 0.0,
+def call_cost(record: Mapping[str, Any]) -> tuple[float, float]:
+    """One call's cost at list price: (promotional or Jev's price, regular price)."""
+    if record["system"].startswith("gemini"):
+        promo = gemini_cost([record], PRICES["gemini_promotional_per_m"])
+        return promo, gemini_cost([record], PRICES["gemini_regular_per_m"])
+    tokens = (record.get("result") or {}).get("input_tokens", 0)
+    cost = tokens * PRICES["jev_per_m"]["input"] / 1e6
+    return cost, cost
+
+
+def estimate_remaining(
+    planned: Mapping[str, Sequence[Job]], logs: Mapping[str, Sequence[Mapping[str, Any]]]
+) -> dict[str, dict[str, float]]:
+    """Per system: the calls still to make in every pass, at the mean cost per call measured so
+    far for that system (in any pass), promotional and regular."""
+    measured: dict[str, list[tuple[float, float]]] = {}
+    done: set[str] = set()
+    for records in logs.values():
+        for r in records:
+            done.add(str(r["key"]))
+            if r["ok"] and r["system"] in {"gemini_route", "gemini_choice", "jev_choice"}:
+                measured.setdefault(r["system"], []).append(call_cost(r))
+    out: dict[str, dict[str, float]] = {}
+    for jobs in planned.values():
+        for job in jobs:
+            costs = measured.get(job.system)
+            if job.key in done or not costs:
+                continue
+            row = out.setdefault(job.system, {"calls_left": 0, "usd": 0.0, "usd_regular": 0.0})
+            row["calls_left"] += 1
+            row["usd"] += sum(c[0] for c in costs) / len(costs)
+            row["usd_regular"] += sum(c[1] for c in costs) / len(costs)
+    return out
+
+
+def _estimate(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live run
+    router = Router.from_path(args.index)
+    neighbours = Neighbours.from_index(router.index)
+    rows = battery_rows()
+    planned = {
+        "accuracy": accuracy_jobs(rows, neighbours),
+        "determinism": determinism_jobs(rows, neighbours),
+        "latency": latency_jobs(rows, neighbours, with_service=False),
     }
-    print(f"From {smoke_rows} smoke rows, scaled to {full} rows, with determinism and latency:")
-    totals = {"promotional": 0.0, "regular": 0.0, "jev": 0.0}
-    for system, more in extra.items():
-        u = usage(records, system)
-        if not u.get("calls"):
-            continue
-        factor = scale * (1 + more)
-        if system.startswith("gemini"):
-            promo, regular = u["cost_usd_promotional"] * factor, u["cost_usd_regular"] * factor
-            totals["promotional"] += promo
-            totals["regular"] += regular
-            print(f"  {system:14} ${promo:7.2f} at the promotional price (${regular:.2f} regular)")
-        else:
-            cost = max(u["cost_usd_reported"], u["cost_usd_list"]) * factor
-            totals["jev"] += cost
-            print(f"  {system:14} ${cost:7.3f} (OpenRouter credits)")
-    print(f"Gemini ${totals['promotional']:.2f} (${totals['regular']:.2f} at the regular price); "
-          f"Jev ${totals['jev']:.3f}.")  # fmt: skip
+    logs = {stage: read_log(args.dir / f"{stage}.jsonl") for stage in planned}
+    measured = [r for records in logs.values() for r in records if r["ok"]]
+    for system in ("gemini_route", "gemini_choice", "jev_choice"):
+        mine = [r for r in measured if r["system"] == system]
+        if mine:
+            promo = sum(call_cost(r)[0] for r in mine) / len(mine)
+            print(f"{system:14} measured on {len(mine)} calls: ${promo:.5f} per call")
+    print("Still to run, at those means:")
+    for system, row in estimate_remaining(planned, logs).items():
+        print(f"  {system:14} {row['calls_left']:6} calls  ${row['usd']:8.2f} "
+              f"(${row['usd_regular']:.2f} at the regular price)")  # fmt: skip
     return 0
 
 

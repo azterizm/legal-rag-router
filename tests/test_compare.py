@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import pytest
 
 from batteries.schema import BatteryRow, Status
 from bench.clients.gemini import GeminiError
@@ -369,3 +370,18 @@ def test_all_three_readings_are_scored_when_a_router_is_given() -> None:
         "strict_abstention",
         "false_abstention",
     }
+
+
+def test_the_estimate_prices_only_the_calls_left_at_measured_means() -> None:
+    from bench.compare import estimate_remaining  # noqa: PLC0415
+
+    rows = [("misroute", ERA), ("invented", FAKE)]
+    planned = {"accuracy": accuracy_jobs(rows, _neighbours())}
+    route = next(j for j in planned["accuracy"] if j.system == "gemini_route")
+    done = [{**_rec("gemini_route", ERA, _gemini(BOUND, [])), "key": route.key}]
+    left = estimate_remaining(planned, {"accuracy": done})
+    one = (1000 * 0.75 + 100 * 3.75) / 1e6
+    assert left["gemini_route"]["calls_left"] == 1  # the other row
+    assert left["gemini_route"]["usd"] == pytest.approx(one)
+    assert left["gemini_route"]["usd_regular"] == pytest.approx(2 * one)
+    assert "jev_choice" not in left  # nothing measured for it yet
