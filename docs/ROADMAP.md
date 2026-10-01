@@ -944,7 +944,7 @@ Each of these changes order or method but not what gets delivered. See §4.
     - **Accuracy:** every row, run concurrently with back-off.
     - **Latency:** a seeded 300-row pass, sequential, interleaved with the floors and the router's Row B.
   - **Where it runs (your call, 1 Oct):** an Azure VM, not your Mac.
-    - Budget size (B2s proposed), UK South proposed. The client region is recorded.
+    - **Azure Standard_B2ts_v2** (2 vCPU, 1 GiB, burstable) in **West Europe (Netherlands)**: UK South and UK West had no capacity (1 Oct). A 2 GB swap file is added. The router's in-process timing there is labelled as a burstable cloud vCPU.
     - The harness resumes after any interruption and never redoes or overwrites a finished call.
     - Keys go in a locked file on the VM, piped from your shell and never printed. Dedicated, capped keys are suggested, revoked afterwards.
     - The router's Row B region is re-probed from the VM by the same lowest-floor rule (decision 23).

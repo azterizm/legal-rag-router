@@ -6,6 +6,14 @@
 # The API keys are not handled here: they go in ~/.lrr-keys (mode 600), written from the Mac.
 set -euo pipefail
 cd "$HOME"
+# A 1 GiB VM (B2ts_v2) gets a 2 GB swap file, so a memory peak slows the run instead of
+# stopping it.
+if ! swapon --show | grep -q /swapfile; then
+  sudo fallocate -l 2G /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap -q /swapfile
+  sudo swapon /swapfile
+fi
 sudo apt-get update -qq
 sudo apt-get install -y -qq git tmux
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
