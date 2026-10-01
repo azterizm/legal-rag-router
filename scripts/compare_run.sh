@@ -7,8 +7,14 @@
 # calls still missing. It assumes the cost estimate is confirmed (the M11 halt point).
 set -euo pipefail
 dir="${1:?usage: compare_run.sh <results dir>}"
-# shellcheck disable=SC1090
-source "$HOME/.lrr-keys"
+# Keys come from the environment (start this from an interactive shell, e.g. inside tmux, so
+# ~/.bashrc has set them), or from ~/.lrr-keys if that file exists.
+if [ -f "$HOME/.lrr-keys" ]; then
+  # shellcheck disable=SC1091
+  source "$HOME/.lrr-keys"
+fi
+: "${GEMINI_API_KEY:?GEMINI_API_KEY is not set}"
+: "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY is not set}"
 export PATH="$HOME/.local/bin:$PATH"
 for stage in accuracy determinism latency; do
   uv run python -m bench.compare run --dir "$dir" --pass "$stage" --confirmed

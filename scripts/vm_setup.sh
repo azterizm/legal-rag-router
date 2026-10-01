@@ -3,7 +3,7 @@
 #
 # Copy lrr.bundle (git bundle of main) and lrr-data.tgz (data/index) to the VM's home
 # directory first, then run this there: bash setup.sh
-# The API keys are not handled here: they go in ~/.lrr-keys (mode 600), written from the Mac.
+# The API keys are not handled here: they live in the VM's ~/.bashrc (or ~/.lrr-keys).
 set -euo pipefail
 cd "$HOME"
 # A 2 GB swap file as a backstop, so a memory peak slows the run instead of stopping it.
