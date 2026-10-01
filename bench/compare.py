@@ -59,11 +59,13 @@ from bench.unit1 import (
     build_choice,
     choice_from_gemini,
     choice_from_jev,
+    citations_of,
     gemini_choice_prompt,
     gemini_choice_schema,
     jev_question,
     outcome,
     read_route,
+    resolve_extraction,
     route_prompt,
     score_choices,
 )
@@ -207,6 +209,7 @@ class Systems:
                 "status": routed.status,
                 "coordinates": list(routed.coordinates),
                 "malformed": list(routed.malformed),
+                "citations": citations_of(g.output),
                 "text": g.text if g.output is None else None,
                 **_gemini_meta(g),
             }
@@ -432,30 +435,52 @@ def usage(records: Sequence[Mapping[str, Any]], system: str) -> dict[str, Any]:
     return out
 
 
+def _existence(metrics: Mapping[str, Any]) -> dict[str, Any]:
+    """Reading 3, Unit 2: the outcome on invented law, and real law refused."""
+    return {k: metrics[k] for k in ("bound_on_invented", "strict_abstention", "false_abstention")}
+
+
 def score_accuracy(
     records: Sequence[Mapping[str, Any]],
     rows: Mapping[str, tuple[str, BatteryRow]],
+    router: Router | None = None,
 ) -> dict[str, Any]:
+    """Gemini end to end, read three ways (``router`` resolves reading 1), and the choices."""
     out: dict[str, Any] = {}
     route = [r for r in records if r["system"] == "gemini_route" and r["ok"]]
-    outcomes = []
+    llm_only, parsed = [], []
     for r in route:
         battery, row = rows[r["row_id"]]
         res = r["result"]
-        outcomes.append(
-            outcome(
-                battery,
-                row,
-                Routed(res["status"], tuple(res["coordinates"]), tuple(res["malformed"])),
-            )
-        )
-    if outcomes:
-        knowable = [o for o in outcomes if o.expected_status not in INDEX_DEPENDENT]
+        own = Routed(res["status"], tuple(res["coordinates"]), tuple(res["malformed"]))
+        llm_only.append(outcome(battery, row, own))
+        if router is not None:
+            if res["status"] is None:
+                parsed.append(outcome(battery, row, Routed(None, ())))
+            else:
+                extracted = resolve_extraction(router, res.get("citations") or [])
+                parsed.append(outcome(battery, row, extracted))
+    if llm_only:
+        knowable = [o for o in llm_only if o.expected_status not in INDEX_DEPENDENT]
+        whole = domain_metrics(llm_only)
         out["gemini_route"] = {
-            "all_rows": domain_metrics(outcomes),
+            "reading": "2: Gemini as an LLM-only router (its own outcome and coordinates)",
+            "all_rows": whole,
             "knowable_rows": domain_metrics(knowable),
             "unusable_answers": sum(1 for r in route if r["result"]["status"] is None),
             "malformed_coordinates": sum(len(r["result"]["malformed"]) for r in route),
+        }
+        out["gemini_existence"] = {
+            "reading": "3: Gemini on existence (Unit 2), from reading 2's outcomes",
+            **_existence(whole),
+        }
+    if parsed:
+        knowable = [o for o in parsed if o.expected_status not in INDEX_DEPENDENT]
+        out["gemini_parser"] = {
+            "reading": "1: Gemini as a parser (Unit 1); its extracted citations resolved by the "
+            "router's index, its own coordinates unused",
+            "all_rows": domain_metrics(parsed),
+            "knowable_rows": domain_metrics(knowable),
         }
     for system in ("jev_choice", "gemini_choice"):
         answered = []
@@ -656,7 +681,7 @@ def _score(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live 
     summary = {
         "scored_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "index_snapshot": router.index.snapshot,
-        "accuracy": score_accuracy(accuracy, rows_by_id),
+        "accuracy": score_accuracy(accuracy, rows_by_id, router),
         "determinism": score_determinism(read_log(args.dir / "determinism.jsonl")),
         "latency": score_latency(read_log(args.dir / "latency.jsonl"), args.resamples),
         "usage": {s: usage(accuracy, s) for s in ("gemini_route", "gemini_choice", "jev_choice")},

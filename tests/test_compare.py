@@ -66,8 +66,19 @@ def _neighbours() -> Neighbours:
     return Neighbours(items)
 
 
+def _cite(
+    coordinate: str = "", title: str = "", provision: str = "", **more: Any
+) -> dict[str, Any]:
+    return {"title": title, "year": 0, "number": "", "provision": provision,
+            "coordinate": coordinate, **more}  # fmt: skip
+
+
 def test_answers_are_read_into_router_outcomes() -> None:
-    routed = read_route({"outcome": "BOUND", "coordinates": ["uk/ukpga/1996/18/s124", "s.124 ERA"]})
+    answer = {
+        "outcome": "BOUND",
+        "citations": [_cite("uk/ukpga/1996/18/s124"), _cite("s.124 ERA"), _cite("")],
+    }
+    routed = read_route(answer)
     assert routed == Routed(BOUND, ("uk/ukpga/1996/18/s124",), ("s.124 ERA",))
     assert read_route({"outcome": "MAYBE"}).status is None
     assert read_route("not json").status is None
@@ -75,10 +86,41 @@ def test_answers_are_read_into_router_outcomes() -> None:
     assert met.met
     assert not met.wrong_instrument
     asked = outcome(
-        "misroute", ERA, read_route({"outcome": "AMBIGUOUS", "coordinates": ["uk/ukpga/1996/18"]})
+        "misroute",
+        ERA,
+        read_route({"outcome": "AMBIGUOUS", "citations": [_cite("uk/ukpga/1996/18")]}),
     )
     assert (asked.bound, asked.top_candidate) == ((), "uk/ukpga/1996/18")
-    assert outcome("invented", FAKE, Routed(None, (), ())).status == "ROUTE_UNRESOLVED"
+    assert outcome("invented", FAKE, Routed(None, ())).status == "ROUTE_UNRESOLVED"
+
+
+def test_extracted_citations_are_written_out_and_resolved_by_the_index() -> None:
+    from bench.unit1 import citation_text, citations_of, resolve_extraction  # noqa: PLC0415
+    from legal_rag_router import Router  # noqa: PLC0415
+    from tests.conftest import FIXTURE_INDEX  # noqa: PLC0415
+
+    era = {"title": "Employment Rights Act", "year": 1996, "number": "", "provision": "section 124"}
+    assert citation_text(era) == "Employment Rights Act 1996 section 124"
+    assert citation_text(
+        {**era, "title": "Employment Rights Act 1996", "number": "1996 c. 18"}
+    ) == ("Employment Rights Act 1996 (1996 c. 18) section 124")
+    assert (
+        citation_text({"title": "", "year": 0, "number": "SI 2011/3006", "provision": ""})
+        == "SI 2011/3006"
+    )
+    assert citations_of({"citations": [{"title": " ERA ", "year": "1996"}, "junk"]}) == [
+        {"title": "ERA", "year": 0, "number": "", "provision": "", "coordinate": ""}
+    ]
+    router = Router.from_path(FIXTURE_INDEX)
+    bound = resolve_extraction(router, [era])
+    assert bound == Routed(BOUND, ("uk/ukpga/1996/18/s124",))
+    fake = {"title": "Marchwood Order 2022", "year": 2022, "number": "", "provision": ""}
+    refused = resolve_extraction(router, [era, fake])
+    assert refused.status == NOT_FOUND  # the most cautious citation decides
+    assert resolve_extraction(router, []) == Routed("ROUTE_UNRESOLVED", ())
+    assert resolve_extraction(
+        router, [{"title": "", "year": 0, "number": "", "provision": ""}]
+    ).status == ("ROUTE_UNRESOLVED")
 
 
 def test_choices_offer_the_right_instrument_or_none_and_leave_out_the_rest() -> None:
@@ -186,6 +228,7 @@ def _rec(system: str, row: BatteryRow, result: dict[str, Any], **extra: Any) -> 
 
 def _gemini(status: str | None, coords: list[str], ns: int = 5_000_000) -> dict[str, Any]:
     return {
+        "citations": [_cite(c) for c in coords],
         "status": status,
         "coordinates": coords,
         "malformed": [],
@@ -301,3 +344,28 @@ def test_google_retry_delay_is_honoured() -> None:
     slept: list[float] = []
     attempt(limited, Job("k", "gemini_route", ERA, "misroute"), sleep=slept.append)
     assert slept == [51.0]
+
+
+def test_all_three_readings_are_scored_when_a_router_is_given() -> None:
+    from legal_rag_router import Router  # noqa: PLC0415
+    from tests.conftest import FIXTURE_INDEX  # noqa: PLC0415
+
+    rows = {ERA.id: ("misroute", ERA), FAKE.id: ("invented", FAKE)}
+    era = _cite("", "Employment Rights Act 1996", "section 124")
+    fake = _cite("", "Pennine Ferry Order 2019")
+    records = [
+        _rec("gemini_route", ERA, {**_gemini(BOUND, []), "citations": [era]}),
+        _rec("gemini_route", FAKE, {**_gemini(BOUND, ["uk/uksi/2019/1"]), "citations": [fake]}),
+        _rec("gemini_route", ERA, {**_gemini(None, []), "citations": []}, rep=1),
+    ]
+    scored = score_accuracy(records, rows, Router.from_path(FIXTURE_INDEX))
+    parser = scored["gemini_parser"]["all_rows"]
+    assert parser["bound_on_invented"]["count"] == 0  # the index refuses what Gemini bound
+    assert parser["batteries"]["misroute"]["met"]["count"] == 1
+    assert scored["gemini_route"]["all_rows"]["bound_on_invented"]["count"] == 1
+    assert set(scored["gemini_existence"]) == {
+        "reading",
+        "bound_on_invented",
+        "strict_abstention",
+        "false_abstention",
+    }

@@ -956,6 +956,10 @@ Each of these changes order or method but not what gets delivered. See §4.
     - **Gemini is blocked:** the key is on the **free tier**, `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit **20 a day** for `gemini-3.8-flash`. The Google AI Pro subscription does not lift it.
     - **Measured Gemini cost per call:** end to end, 1,060 input + 52 output + 2,879 thinking tokens, about $0.012; choice about $0.00075. The Gemini part comes to about $45 at the promotional price ($90 regular).
     - ⛔ **Open, your call:** billing on the Google Cloud project, or Gemini via OpenRouter.
+  - **Gemini's answer read three ways (your go, 1 Oct).** Same calls, same cost. Each answer lists every citation (title, year, number, provision as cited, and Gemini's coordinate) plus an outcome:
+    1. **As a parser** (the vault's Unit 1): the extracted citations are resolved by the router's index; Gemini's own coordinates are unused. A perfect extraction resolves to the gold in 1,915 of 1,918 single-citation bound rows, so this reading can cost Gemini at most about 0.16 % through no fault of its own (one shared title, one 1837 regnal Act, one very long SI title).
+    2. **As an LLM-only router:** its own outcome and coordinates, as before.
+    3. **On existence** (Unit 2): reading 2's outcome on invented and on real law.
   - **Jev-only run started (your call, 1 Oct):** accuracy (6,150) and determinism (985), in tmux session `jev` on the VM, into `results/raw/compare/`.
     - The latency pass waits for Gemini, because it interleaves all systems.
     - The VM stays up until the Gemini decision.
