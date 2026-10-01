@@ -939,7 +939,15 @@ Each of these changes order or method but not what gets delivered. See §4.
      - the options are the correct instrument(s), seeded plausible distractors (same type, nearby years) and "none of these";
      - scored at instrument level;
      - labelled as a best case, since the right answer is always offered.
-  3. *(Pending your answer)* Gemini on Jev's identical choice questions, as a perfect-retriever ceiling.
+  3. **Gemini on Jev's identical choice questions** (approved 1 Oct), at 3 / 10 / 30 options. Labelled as a perfect-retriever ceiling: the retrieval-augmented pattern with a retriever that never misses.
+  - **Accuracy and latency split (approved 1 Oct):**
+    - **Accuracy:** every row, run concurrently with back-off.
+    - **Latency:** a seeded 300-row pass, sequential, interleaved with the floors and the router's Row B.
+  - **Where it runs (your call, 1 Oct):** an Azure VM, not your Mac.
+    - Budget size (B2s proposed), UK South proposed. The client region is recorded.
+    - The harness resumes after any interruption and never redoes or overwrites a finished call.
+    - Keys go in a locked file on the VM, piped from your shell and never printed. Dedicated, capped keys are suggested, revoked afterwards.
+    - The router's Row B region is re-probed from the VM by the same lowest-floor rule (decision 23).
   4. **Determinism:** a seeded 200 rows × 5 repeats, both systems.
   5. **Row B interleaving:** with the router's Modal service, about $0.2.
   6. **Models:** `gemini-3.8-flash` with Google's default thinking and temperature, `modelVersion` recorded; Jev `typesafe/jev-1.13`.
