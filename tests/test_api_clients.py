@@ -150,3 +150,87 @@ def test_gemini_keeps_bad_json_as_text_and_reports_errors(monkeypatch: pytest.Mo
         pytest.raises(GeminiError, match="HTTP 429"),
     ):
         gemini.generate("q", {})
+
+
+def test_the_proxy_client_sends_a_json_schema_and_reads_openai_usage() -> None:
+    from bench.clients.gemini_proxy import GeminiProxyClient, json_schema  # noqa: PLC0415
+
+    seen: list[httpx.Request] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if request.method == "GET":
+            return httpx.Response(200, json={"data": []})
+        return httpx.Response(
+            200,
+            json={
+                "id": "v_1",
+                "model": "gemini-3.8-flash-n",
+                "choices": [
+                    {"message": {"content": '{"outcome": "BOUND"}'}, "finish_reason": "stop"}
+                ],
+                "usage": {
+                    "prompt_tokens": 18,
+                    "completion_tokens": 874,
+                    "completion_tokens_details": {"reasoning_tokens": 851},
+                },
+            },
+        )
+
+    schema = {
+        "type": "OBJECT",
+        "properties": {
+            "outcome": {"type": "STRING", "enum": ["BOUND"]},
+            "list": {"type": "ARRAY", "items": {"type": "STRING"}},
+        },
+        "required": ["outcome"],
+        "propertyOrdering": ["outcome"],
+    }
+    assert json_schema(schema) == {
+        "type": "object",
+        "properties": {
+            "outcome": {"type": "string", "enum": ["BOUND"]},
+            "list": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["outcome"],
+        "additionalProperties": False,
+    }
+    with GeminiProxyClient(api_key="k", transport=httpx.MockTransport(handle)) as gemini:
+        out = gemini.generate("q", schema, system="Extract.")
+        gemini.floor()
+    body = json.loads(seen[0].content)
+    assert seen[0].url == "http://localhost:8317/v1/chat/completions"
+    assert seen[0].headers["Authorization"] == "Bearer k"
+    assert body["model"] == "gemini-3.8-flash-high"
+    assert body["messages"][0] == {"role": "system", "content": "Extract."}
+    assert "temperature" not in body  # the model's default
+    assert body["response_format"]["json_schema"]["schema"]["additionalProperties"] is False
+    assert out.output == {"outcome": "BOUND"}
+    assert (out.prompt_tokens, out.output_tokens, out.thinking_tokens) == (18, 23, 851)
+    assert out.model_version == "gemini-3.8-flash-n"
+
+
+def test_the_proxy_client_needs_its_key_and_reports_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    from bench.clients.gemini_proxy import GeminiProxyClient  # noqa: PLC0415
+
+    monkeypatch.delenv("LRR_GEMINI_PROXY_KEY", raising=False)
+    with pytest.raises(GeminiError, match="LRR_GEMINI_PROXY_KEY"):
+        GeminiProxyClient()
+
+    def reply(status: int, payload: dict[str, Any]) -> httpx.MockTransport:
+        return httpx.MockTransport(lambda _r: httpx.Response(status, json=payload))
+
+    with (
+        GeminiProxyClient(api_key="k", transport=reply(429, {"error": "busy"})) as g,
+        pytest.raises(GeminiError, match="HTTP 429"),
+    ):
+        g.generate("q", {}, temperature=0.5)
+    with (
+        GeminiProxyClient(api_key="k", transport=reply(200, {"choices": []})) as g,
+        pytest.raises(GeminiError, match="no candidates"),
+    ):
+        g.generate("q", {})
+    with GeminiProxyClient(
+        api_key="k", transport=reply(200, {"choices": [{"message": {"content": "x"}}]})
+    ) as g:
+        assert g.generate("q", {}).output is None

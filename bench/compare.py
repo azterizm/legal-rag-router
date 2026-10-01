@@ -44,7 +44,9 @@ from typing import Any, Final
 import httpx
 
 from batteries.schema import BATTERIES, BATTERY_DIR, BatteryRow, read_battery
-from bench.clients.gemini import GeminiClient, GeminiError
+from bench.clients.gemini import GeminiError
+from bench.clients.gemini_proxy import BASE_URL as GEMINI_ENDPOINT
+from bench.clients.gemini_proxy import GeminiProxyClient
 from bench.clients.http import Timing, timed
 from bench.clients.jev import JevClient, JevError
 from bench.row_b import stats_ms
@@ -72,7 +74,8 @@ from bench.unit1 import (
 from eval.metrics import domain_metrics
 from legal_rag_router import Router
 
-GEMINI_MODEL: Final = "gemini-3.8-flash"
+GEMINI_MODEL: Final = "gemini-3.8-flash-high"
+"""Through the author's proxy (``bench.clients.gemini_proxy``), the only Gemini endpoint used."""
 SEED: Final = 20261001
 DETERMINISM_ROWS: Final = 200
 DETERMINISM_REPEATS: Final = 5
@@ -184,7 +187,7 @@ class Systems:
     def __init__(self, index: Path, *, with_service: bool, systems: set[str]) -> None:
         """Clients only for ``systems``, so a Jev-only run never needs a Gemini key."""
         uses = {s.split("_", 1)[0] for s in systems}
-        self.gemini = GeminiClient(GEMINI_MODEL) if "gemini" in uses else None
+        self.gemini = GeminiProxyClient(GEMINI_MODEL) if "gemini" in uses else None
         self.jev = JevClient() if "jev" in uses else None
         self.router = Router.from_path(index)
         self.service: httpx.Client | None = None
@@ -558,8 +561,10 @@ def _manifest(directory: Path, args: argparse.Namespace) -> None:
             "jev_model": "typesafe/jev-1.13",
             "seed": SEED,
             "prices": PRICES,
-            "note": "Gemini calls are made under the author's Google AI Pro subscription credits; "
-            "costs are reported at published API list prices.",
+            "gemini_endpoint": GEMINI_ENDPOINT,
+            "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy "
+            "run by the author's engineer, not Google's public API: token counts are the proxy's, "
+            "costs are at Google's published list price, and Gemini latency is the proxy's path.",
         }
     )
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
