@@ -179,9 +179,11 @@ def _timing(t: Timing) -> dict[str, Any]:
 class Systems:
     """The live clients, one keep-alive connection each; ``call`` runs one job."""
 
-    def __init__(self, index: Path, *, with_service: bool) -> None:
-        self.gemini = GeminiClient(GEMINI_MODEL)
-        self.jev = JevClient()
+    def __init__(self, index: Path, *, with_service: bool, systems: set[str]) -> None:
+        """Clients only for ``systems``, so a Jev-only run never needs a Gemini key."""
+        uses = {s.split("_", 1)[0] for s in systems}
+        self.gemini = GeminiClient(GEMINI_MODEL) if "gemini" in uses else None
+        self.jev = JevClient() if "jev" in uses else None
         self.router = Router.from_path(index)
         self.service: httpx.Client | None = None
         if with_service:
@@ -198,6 +200,7 @@ class Systems:
 
     def call(self, job: Job) -> dict[str, Any]:  # noqa: PLR0911 - one branch per system
         if job.system == "gemini_route":
+            assert self.gemini is not None  # noqa: S101 - built for the systems run
             g = self.gemini.generate(route_prompt(job.row), ROUTE_SCHEMA, system=CONTRACT)
             routed = read_route(g.output)
             return {
@@ -209,6 +212,7 @@ class Systems:
             }
         if job.system == "gemini_choice":
             assert job.choice is not None  # noqa: S101 - built with the job
+            assert self.gemini is not None  # noqa: S101
             g = self.gemini.generate(
                 gemini_choice_prompt(job.row, job.choice), gemini_choice_schema(job.choice)
             )
@@ -219,6 +223,7 @@ class Systems:
             }
         if job.system == "jev_choice":
             assert job.choice is not None  # noqa: S101
+            assert self.jev is not None  # noqa: S101
             d = self.jev.decide(job.row.query, jev_question(job.choice))
             return {
                 "picked": choice_from_jev(d.answers),
@@ -231,8 +236,10 @@ class Systems:
                 "timing": _timing(d.timing),
             }
         if job.system == "gemini_floor":
+            assert self.gemini is not None  # noqa: S101
             return {"timing": _timing(self.gemini.floor())}
         if job.system == "jev_floor":
+            assert self.jev is not None  # noqa: S101
             return {"timing": _timing(self.jev.floor())}
         if job.system == "router_in_process":
             start = time.perf_counter_ns()
@@ -312,10 +319,12 @@ def attempt(
         try:
             result = call(job)
         except Exception as exc:  # noqa: BLE001 - recorded, and retried only when transient
-            error = f"{type(exc).__name__}: {str(exc)[:300]}"
+            error = f"{type(exc).__name__}: {str(exc)[:1200]}"
             if not _retryable(exc) or n == MAX_ATTEMPTS:
                 break
-            sleep(min(60.0, 2.0**n + random.random()))
+            asked = getattr(exc, "retry_after", None)
+            backoff = min(60.0, 2.0**n + random.random())
+            sleep(max(backoff, float(asked) + 1.0) if asked else backoff)
             continue
         return _record(job, started, n, result, None)
     return _record(job, started, n, None, error)
@@ -546,8 +555,8 @@ def _run(args: argparse.Namespace) -> int:  # pragma: no cover - live calls
         "determinism": lambda: determinism_jobs(rows, neighbours),
         "latency": lambda: latency_jobs(rows, neighbours, with_service=with_service),
     }
-    jobs = builders[args.stage]()
-    systems = Systems(args.index, with_service=with_service)
+    jobs = select(builders[args.stage](), args.systems)
+    systems = Systems(args.index, with_service=with_service, systems={j.system for j in jobs})
     _manifest(args.dir, args)
     log = Log(args.dir / f"{args.stage}.jsonl")
     workers = 1 if args.stage == "latency" else args.workers
@@ -563,6 +572,46 @@ def _run(args: argparse.Namespace) -> int:  # pragma: no cover - live calls
         log.close()
     failed = sum(1 for r in read_log(log.path) if not r["ok"])
     print(f"done; {failed} calls failed after retries (they stay recorded)")
+    return 0
+
+
+def select(jobs: list[Job], systems: Sequence[str] | None) -> list[Job]:
+    """The jobs of ``systems`` (a system's floor calls go with it), or all of them."""
+    if not systems:
+        return jobs
+    keep = set(systems) | {f"{s.split('_', 1)[0]}_floor" for s in systems}
+    return [j for j in jobs if j.system in keep]
+
+
+def progress_table(
+    planned: Mapping[str, Sequence[Job]], logs: Mapping[str, Sequence[Mapping[str, Any]]]
+) -> list[str]:
+    """One line per pass and system: calls done of planned, the percentage, and failures."""
+    lines = []
+    for stage, jobs in planned.items():
+        records = {r["key"]: r for r in logs.get(stage, [])}
+        for system in sorted({j.system for j in jobs}):
+            mine = [j.key for j in jobs if j.system == system]
+            done = [records[k] for k in mine if k in records]
+            failed = sum(1 for r in done if not r["ok"])
+            pct = 100.0 * len(done) / len(mine) if mine else 0.0
+            lines.append(
+                f"{stage:12} {system:22} {len(done):6}/{len(mine):<6} {pct:6.1f}%  failed {failed}"
+            )
+    return lines
+
+
+def _status(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live run
+    router = Router.from_path(args.index)
+    neighbours = Neighbours.from_index(router.index)
+    rows = battery_rows()
+    planned = {
+        "accuracy": select(accuracy_jobs(rows, neighbours), args.systems),
+        "determinism": select(determinism_jobs(rows, neighbours), args.systems),
+        "latency": select(latency_jobs(rows, neighbours, with_service=True), args.systems),
+    }
+    logs = {stage: read_log(args.dir / f"{stage}.jsonl") for stage in planned}
+    print("\n".join(progress_table(planned, logs)))
     return 0
 
 
@@ -631,6 +680,11 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - live calls
     run.add_argument("--index", type=Path, default=Path("data/index"))
     run.add_argument("--no-service", action="store_true", help="leave out the router on Modal")
     run.add_argument("--confirmed", action="store_true", help="you have confirmed the estimate")
+    run.add_argument("--systems", nargs="+", help="only these systems, e.g. jev_choice")
+    status = sub.add_parser("status")
+    status.add_argument("--dir", type=Path, required=True)
+    status.add_argument("--index", type=Path, default=Path("data/index"))
+    status.add_argument("--systems", nargs="+")
     for name in ("estimate", "score"):
         p = sub.add_parser(name)
         p.add_argument("--dir", type=Path, required=True)
@@ -638,7 +692,8 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - live calls
         p.add_argument("--resamples", type=int, default=1000)
     args = parser.parse_args(argv)
     args.dir.mkdir(parents=True, exist_ok=True)
-    return {"run": _run, "estimate": _estimate, "score": _score}[args.command](args)
+    commands = {"run": _run, "status": _status, "estimate": _estimate, "score": _score}
+    return commands[args.command](args)
 
 
 if __name__ == "__main__":

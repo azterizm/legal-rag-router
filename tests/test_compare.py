@@ -266,3 +266,38 @@ def test_retryable_api_messages() -> None:
     request = httpx.Request("POST", "https://x")
     assert _retryable(httpx.HTTPStatusError("x", request=request, response=httpx.Response(502)))
     assert not _retryable(httpx.HTTPStatusError("x", request=request, response=httpx.Response(401)))
+
+
+def test_a_run_can_be_limited_to_some_systems_and_reports_its_progress() -> None:
+    from bench.compare import progress_table, select  # noqa: PLC0415
+
+    rows = [("misroute", ERA), ("invented", FAKE)]
+    neighbours = _neighbours()
+    jev = select(latency_jobs(rows, neighbours, with_service=True), ["jev_choice"])
+    assert {j.system for j in jev} == {"jev_choice", "jev_floor"}
+    assert select(jev, None) == jev
+    accuracy = select(accuracy_jobs(rows, neighbours), ["jev_choice"])
+    done = [{"key": accuracy[0].key, "ok": True}, {"key": accuracy[1].key, "ok": False}]
+    lines = progress_table({"accuracy": accuracy}, {"accuracy": done})
+    assert lines == ["accuracy     jev_choice                  2/3        66.7%  failed 1"]
+
+
+def test_google_retry_delay_is_honoured() -> None:
+    from bench.clients.gemini import _retry_after  # noqa: PLC0415
+
+    body = {"error": {"details": [{"@type": "x/google.rpc.RetryInfo", "retryDelay": "50s"}]}}
+    assert _retry_after(body) == 50.0
+    assert _retry_after({"error": {"details": [{"retryDelay": "soon"}]}}) is None
+    assert _retry_after({"error": {"details": [{"retryDelay": "xs"}]}}) is None
+    assert _retry_after(None) is None
+    calls = {"n": 0}
+
+    def limited(_job: Job) -> dict[str, Any]:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise GeminiError("HTTP 429: quota", retry_after=50.0)
+        return {}
+
+    slept: list[float] = []
+    attempt(limited, Job("k", "gemini_route", ERA, "misroute"), sleep=slept.append)
+    assert slept == [51.0]

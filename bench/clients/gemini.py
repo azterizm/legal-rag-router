@@ -25,7 +25,25 @@ API: Final = "/v1beta"
 
 
 class GeminiError(RuntimeError):
-    """The API answered without a usable structured response."""
+    """The API answered without a usable structured response. ``retry_after`` is the wait in
+    seconds Google asked for (its ``RetryInfo``), when it gave one."""
+
+    def __init__(self, message: str, retry_after: float | None = None) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def _retry_after(body: Any) -> float | None:
+    if not isinstance(body, dict):
+        return None
+    for detail in (body.get("error") or {}).get("details") or []:
+        delay = str(detail.get("retryDelay", ""))
+        if delay.endswith("s"):
+            try:
+                return float(delay[:-1])
+            except ValueError:
+                return None
+    return None
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,7 +110,13 @@ class GeminiClient:
         url = f"{API}/models/{self.model}:generateContent"
         response, timing = timed(self._client, "POST", url, json=body)
         if response.status_code != httpx.codes.OK:
-            raise GeminiError(f"HTTP {response.status_code}: {response.text[:300]}")
+            try:
+                reply: Any = response.json()
+            except ValueError:
+                reply = None
+            raise GeminiError(
+                f"HTTP {response.status_code}: {response.text[:1200]}", _retry_after(reply)
+            )
         data = response.json()
         candidates = data.get("candidates") or []
         if not candidates:
