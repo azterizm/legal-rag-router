@@ -968,6 +968,7 @@ Each of these changes order or method but not what gets delivered. See §4.
     - **Estimate for the rest** (⛔ for your confirmation): Gemini end to end 3,390 calls ≈ $29.03; Gemini choice 6,093 ≈ $6.35; Jev latency 287 ≈ $0.01. **Total ≈ $35.4 at the promotional price ($70.8 regular).**
     - **The command:** `scripts/compare_local.sh`. Resumable, and safe to stop at any time.
     - **Jev's results** were copied from the VM, checksums verified, to `results/raw/compare/` (git-ignored).
+    - **The proxy's 5-hour limit:** 378 Gemini accuracy calls (284 choice, 94 end to end) failed with HTTP 429 `model_cooldown` between 08:26 and 08:59 UTC. The runner now retries failed calls on a rerun. The new answer supersedes the failure in every count; the failed attempt stays in the file and is reported (`superseded_failures` in the summary).
   - **Jev-only run started (your call, 1 Oct):** accuracy (6,150) and determinism (985), in tmux session `jev` on the VM, into `results/raw/compare/`.
     - The latency pass waits for Gemini, because it interleaves all systems.
     - The VM stays up until the Gemini decision.

@@ -17,6 +17,9 @@
 #
 # Safe to stop at any time (Ctrl-C, closing the terminal, sleep, a crash): every finished call
 # is already on disk. Run the same command again and it carries on with the calls still missing.
+# A rerun also retries every call that failed (a quota cooldown, say); the new answer supersedes
+# the failure in every count, and the failed attempt stays in the file as history.
+# Workers: LRR_WORKERS (default 4) for accuracy and determinism; latency is one call at a time.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${LRR_GEMINI_PROXY_KEY:?export LRR_GEMINI_PROXY_KEY first}"

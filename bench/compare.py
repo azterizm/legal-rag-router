@@ -298,7 +298,9 @@ class Log:
     def __init__(self, path: Path) -> None:
         self.path = path
         self.done: set[str] = set()
-        self.done = {str(r["key"]) for r in read_log(path)}
+        # Only a call that succeeded is done: a rerun retries the failed ones. Their failed
+        # records stay in the file; the new answer supersedes them (``current``).
+        self.done = {str(r["key"]) for r in read_log(path) if r.get("ok")}
         self._lock = threading.Lock()
         self._fh = path.open("a", encoding="utf-8")
         if path.stat().st_size and not path.read_bytes().endswith(b"\n"):
@@ -404,6 +406,28 @@ def read_log(path: Path) -> list[dict[str, Any]]:
         if isinstance(record, dict) and "key" in record:
             records.append(record)
     return records
+
+
+def current(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    """One record per call: its latest success, else its latest failure. A failed call that a
+    rerun answered counts as answered; its failed records stay in the file as history."""
+    best: dict[str, dict[str, Any]] = {}
+    for record in records:
+        key = str(record["key"])
+        if record.get("ok") or not best.get(key, {}).get("ok"):
+            best[key] = dict(record)
+    return list(best.values())
+
+
+def superseded(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Failed records later answered by a rerun: how many, by system and error."""
+    answered = {str(r["key"]) for r in records if r.get("ok")}
+    gone = [r for r in records if not r.get("ok") and str(r["key"]) in answered]
+    errors: dict[str, int] = {}
+    for r in gone:
+        head = str(r.get("error") or "")[:80]
+        errors[head] = errors.get(head, 0) + 1
+    return {"count": len(gone), "errors": errors}
 
 
 def gemini_cost(records: Iterable[Mapping[str, Any]], prices: Mapping[str, float]) -> float:
@@ -603,7 +627,9 @@ def _run(args: argparse.Namespace) -> int:  # pragma: no cover - live calls
     _manifest(args.dir, args)
     log = Log(args.dir / f"{args.stage}.jsonl")
     workers = 1 if args.stage == "latency" else args.workers
-    print(f"{args.stage}: {len(jobs)} calls, {len(log.done)} already done", flush=True)
+    left = sum(1 for j in jobs if j.key not in log.done)
+    print(f"{args.stage}: {len(jobs)} calls, {left} to make (failed ones included), "
+          f"{workers} at a time", flush=True)  # fmt: skip
 
     def progress(done: int, total: int) -> None:
         if done % 200 == 0 or done == total:
@@ -613,7 +639,7 @@ def _run(args: argparse.Namespace) -> int:  # pragma: no cover - live calls
         run_jobs(systems.call, jobs, log, workers=workers, progress=progress)
     finally:
         log.close()
-    failed = sum(1 for r in read_log(log.path) if not r["ok"])
+    failed = sum(1 for r in current(read_log(log.path)) if not r["ok"])
     print(f"done; {failed} calls failed after retries (they stay recorded)")
     return 0
 
@@ -655,7 +681,7 @@ def _status(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live
             latency_jobs(rows, neighbours, with_service=not args.no_service), args.systems
         ),
     }
-    logs = {stage: read_log(args.dir / f"{stage}.jsonl") for stage in planned}
+    logs = {stage: current(read_log(args.dir / f"{stage}.jsonl")) for stage in planned}
     print("\n".join(progress_table(planned, logs)))
     return 0
 
@@ -679,7 +705,8 @@ def estimate_remaining(
     done: set[str] = set()
     for records in logs.values():
         for r in records:
-            done.add(str(r["key"]))
+            if r["ok"]:
+                done.add(str(r["key"]))
             if r["ok"] and r["system"] in {"gemini_route", "gemini_choice", "jev_choice"}:
                 measured.setdefault(r["system"], []).append(call_cost(r))
     out: dict[str, dict[str, float]] = {}
@@ -704,7 +731,7 @@ def _estimate(args: argparse.Namespace) -> int:  # pragma: no cover - reads a li
         "determinism": determinism_jobs(rows, neighbours),
         "latency": latency_jobs(rows, neighbours, with_service=False),
     }
-    logs = {stage: read_log(args.dir / f"{stage}.jsonl") for stage in planned}
+    logs = {stage: current(read_log(args.dir / f"{stage}.jsonl")) for stage in planned}
     measured = [r for records in logs.values() for r in records if r["ok"]]
     for system in ("gemini_route", "gemini_choice", "jev_choice"):
         mine = [r for r in measured if r["system"] == system]
@@ -721,13 +748,17 @@ def _estimate(args: argparse.Namespace) -> int:  # pragma: no cover - reads a li
 def _score(args: argparse.Namespace) -> int:  # pragma: no cover - reads a live run
     router = Router.from_path(args.index)
     rows_by_id = {row.id: (b, row) for b, row in battery_rows()}
-    accuracy = read_log(args.dir / "accuracy.jsonl")
+    accuracy = current(read_log(args.dir / "accuracy.jsonl"))
     summary = {
         "scored_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "index_snapshot": router.index.snapshot,
         "accuracy": score_accuracy(accuracy, rows_by_id, router),
-        "determinism": score_determinism(read_log(args.dir / "determinism.jsonl")),
-        "latency": score_latency(read_log(args.dir / "latency.jsonl"), args.resamples),
+        "determinism": score_determinism(current(read_log(args.dir / "determinism.jsonl"))),
+        "latency": score_latency(current(read_log(args.dir / "latency.jsonl")), args.resamples),
+        "superseded_failures": {
+            stage: superseded(read_log(args.dir / f"{stage}.jsonl"))
+            for stage in ("accuracy", "determinism", "latency")
+        },
         "usage": {s: usage(accuracy, s) for s in ("gemini_route", "gemini_choice", "jev_choice")},
         "prices": PRICES,
     }

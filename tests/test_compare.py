@@ -295,7 +295,7 @@ def test_determinism_and_latency_are_summarised() -> None:
 
 def test_the_log_survives_a_line_cut_off_by_a_hard_stop(tmp_path: Path) -> None:
     path = tmp_path / "accuracy.jsonl"
-    path.write_text(json.dumps({"key": "a"}) + "\n\n" + '{"key": "b", "ok', encoding="utf-8")
+    path.write_text(json.dumps({"key": "a", "ok": True}) + "\n\n" + '{"key": "b", "ok', encoding="utf-8")
     log = Log(path)
     assert log.done == {"a"}  # b's cut-off line is skipped, so b runs again
     log.write({"key": "b", "ok": True})
@@ -404,3 +404,43 @@ def test_the_estimate_prices_only_the_calls_left_at_measured_means() -> None:
     assert left["gemini_route"]["usd"] == pytest.approx(one)
     assert left["gemini_route"]["usd_regular"] == pytest.approx(2 * one)
     assert "jev_choice" not in left  # nothing measured for it yet
+
+
+def test_a_rerun_retries_failed_calls_and_the_answer_supersedes_them(tmp_path: Path) -> None:
+    from bench.compare import current, superseded  # noqa: PLC0415
+
+    path = tmp_path / "accuracy.jsonl"
+    path.write_text(
+        "\n".join(
+            json.dumps(r)
+            for r in (
+                {"key": "a", "ok": True, "system": "s"},
+                {
+                    "key": "b",
+                    "ok": False,
+                    "system": "s",
+                    "error": "GeminiError: HTTP 429: cooldown",
+                },
+            )
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    log = Log(path)
+    assert log.done == {"a"}  # b failed, so a rerun makes it again
+    ran: list[str] = []
+
+    def call(job: Job) -> dict[str, Any]:
+        ran.append(job.key)
+        return {}
+
+    jobs = [Job(k, "router_in_process", ERA, "misroute") for k in ("a", "b")]
+    run_jobs(call, jobs, log, workers=1)
+    log.close()
+    assert ran == ["b"]
+    records = read_log(path)
+    assert len(records) == 3  # the failure stays in the file as history
+    now = {r["key"]: r["ok"] for r in current(records)}
+    assert now == {"a": True, "b": True}
+    assert superseded(records) == {"count": 1, "errors": {"GeminiError: HTTP 429: cooldown": 1}}
+    assert current([{"key": "c", "ok": True}, {"key": "c", "ok": False}])[0]["ok"] is True
