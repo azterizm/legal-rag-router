@@ -21,7 +21,7 @@ git config --global core.autocrlf false
 if [ -d legal-rag-router ]; then
   git -C legal-rag-router pull -q ../lrr.bundle main
 else
-  git clone -q lrr.bundle legal-rag-router
+  git clone -q -b main lrr.bundle legal-rag-router
 fi
 cd legal-rag-router
 tar -xzf ../lrr-data.tgz
