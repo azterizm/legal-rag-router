@@ -291,6 +291,11 @@ The tests need no index download: they run on a small real-data fixture index co
 
 `0.1.0` is the first release: the United Kingdom, routing and discovery. Planned:
 
+- **Point-in-time phrasing (next release).** 0.1.0 passes "as it stood on 1 April 2012",
+  "as in force on …", "as enacted" and "original version" through as `temporal_hint`, but not
+  "as at 1 January 2012" or "as of 1 January 2012": those queries still bind, with no hint. The
+  next release reads them too. Resolving a date to the version in force stays with your
+  point-in-time layer.
 - **Spain** (BOE): `es/boe/{year}/{number}/{provision…}`, e.g. `es/boe/1885/6627/art42/1/b`.
 - **More domains** through grammar plugins that share the index, the abstention gate and the
   typo tiers: `eu/{reg|dir|dec|judgment}/{year}/{number}`, `us/usc/{title}/{section}`,

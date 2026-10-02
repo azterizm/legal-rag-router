@@ -21,12 +21,17 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Last updated | 2026-10-02 |
 | Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)**, **M13 ✅** |
-| Next step | None scheduled. Stage C (Spain) when you decide |
+| Next step | None scheduled. Planned for the next release: "as at" / "as of" dates as `temporal_hint` (stop 28). Stage C (Spain) when you decide |
 | Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (28): **Gap found: "as at" / "as of" dates are not read as `temporal_hint` (your call: planned for the next release).**
+  - Found while checking a portfolio case study whose probe is "As at 1 January 2012, … section 124 of the Employment Rights Act 1996?". 0.1.0 binds `uk/ukpga/1996/18/s124` but sets no `temporal_hint`.
+  - Checked on the full index: "as it stood on …" and "as in force on …" are passed through; "as at …", "as of …", "on …" and "at …" are not, before or after the citation. The binding is unaffected.
+  - **Planned for the next release:** UK-L-07 / UK-C-08 extended to "as at [date]" and "as of [date]" (grammar rows and tests first, then a sweep and battery check that nothing else changes). Grammar change ⛔: built only with your go. Stated in the README's Roadmap.
 
 - 2026-10-02 (27): **A mislabelled v1 figure corrected (your go).**
   - The README's Evidence table and the comparison report gave v1 (blind) as 2 / 1,897 bound to the wrong instrument. That is v1's *misroute* count; its wrong-instrument count is 0 (`results/uk-run-2026-09-29.md`). Both misroutes were mislabelled Part/Chapter rows that bound the right Act.
