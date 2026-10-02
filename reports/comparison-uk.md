@@ -20,7 +20,7 @@ figures should not be read as the model at a lower thinking level.
 | **Laya** (base, 421M) | Self-hosted; speed and footprint only (decision 3) | Not scored; see `docs/measurements.md` |
 
 **Gemini's answer, read three ways** (one call each, approved 1 Oct):
-1. **As a parser** (the vault's Unit 1): Gemini lists what was cited (title, year, number, provision). Those citations are resolved by the router's own index, and Gemini's coordinates are unused. This is the "LLM extracts, a lookup resolves" pipeline. A perfect extraction resolves to the gold in 1,915 of 1,918 single-citation rows, so this reading can cost Gemini at most about 0.16 %.
+1. **As a parser** (the vault's Unit 1): Gemini lists what was cited (title, year, number, provision). Those citations are resolved by the router's own index, and Gemini's coordinates are unused. This is the "LLM extracts, a lookup resolves" pipeline. A perfect extraction resolves to the gold in 1,915 / 1,918 single-citation rows, so this reading can cost Gemini at most about 0.16 %.
 2. **As an LLM-only router:** Gemini's own outcome and coordinates, from memory, with no index.
 3. **On existence** (Unit 2): reading 2's outcome on invented law and on real law.
 
@@ -28,66 +28,67 @@ All scored with the sealed run's own metrics code and Clopper–Pearson upper bo
 
 ## Headline: routing the battery
 
-Rates over the battery's rows. The upper 95 % bound is in brackets.
+Each cell is *count / out of* (rate). The upper 95 % bound, where shown, is after "≤".
 
 | Measure | Router v1 (blind) | Router v2 | Gemini 3.8 Flash (high) as parser, router resolves | Gemini 3.8 Flash (high), LLM only |
 |---|---|---|---|---|
-| Bound to the wrong instrument (of 1,897 real citations) | 2 (0.11 %) | **0** | **0** (≤ 0.16 %) | **102 (5.38 %, ≤ 6.31 %)** |
-| Real law refused (false abstention) | 84 (4.43 %) | 82 (4.32 %) | **55 (2.90 %, ≤ 3.62 %)** | 233 (12.28 %, ≤ 13.59 %) |
-| Held-out real citations left unresolved (of 1,000) | 67 (6.7 %) | 67 (6.7 %) | **11 (1.1 %)** | 11 (1.1 %) |
-| Invented law bound (of 68) | **0** | **0** | **0** | **0** |
-| Invented law refused with the right outcome | 68/68 | 68/68 | 68/68 | 68/68 |
-| Typos bound when they should not be (of 22) | 1 | 0 | 4 | 3 |
-| Rows with the expected outcome (of 2,112) | 1,903 (90.1 %) | 1,916 (90.7 %) | **1,972 (93.4 %)** | 1,799 (85.2 %) |
+| Bound to the wrong instrument (real citations) | 2 / 1,897 (0.11 %) | **0 / 1,897** | **0 / 1,897** (≤ 0.16 %) | **102 / 1,897 (5.38 %, ≤ 6.31 %)** |
+| Real law refused (false abstention) | 84 / 1,897 (4.43 %) | 82 / 1,897 (4.32 %) | **55 / 1,897 (2.90 %, ≤ 3.62 %)** | 233 / 1,897 (12.28 %, ≤ 13.59 %) |
+| Held-out real citations left unresolved | 67 / 1,000 (6.7 %) | 67 / 1,000 (6.7 %) | **11 / 1,000 (1.1 %)** | 11 / 1,000 (1.1 %) |
+| Invented law bound | **0 / 68** | **0 / 68** | **0 / 68** | **0 / 68** |
+| Invented law refused with the right outcome | 68 / 68 | 68 / 68 | 68 / 68 | 68 / 68 |
+| Typos bound when they should not be | 1 / 22 | 0 / 22 | 4 / 22 | 3 / 22 |
+| Rows with the expected outcome | 1,903 / 2,112 (90.1 %) | 1,916 / 2,112 (90.7 %) | **1,972 / 2,112 (93.4 %)** | 1,799 / 2,112 (85.2 %) |
 
-**Outcomes as expected, per battery** (router v2 / Gemini parser / Gemini LLM only):
+**Outcomes as expected, per battery** (rows with the expected outcome / rows in the battery):
 
-| Battery | Rows | Router v2 | Gemini parser | Gemini LLM only |
+| Battery | Router v1 (blind) | Router v2 | Gemini parser | Gemini LLM only |
 |---|---|---|---|---|
-| ambiguous | 25 | 25 | 8 | 2 |
-| catalogue | 45 | 45 | 32 | 31 |
-| collision | 40 | 40 | 40 | 39 |
-| false_abstention | 773 | 773 | 767 | 633 |
-| identifier | 29 | 29 | 26 | 26 |
-| informal | 27 | 27 | 19 | 22 |
-| invented | 68 | 68 | 68 | 68 |
-| misroute (real documents) | 1,030 | 836 | **944** | 926 |
-| typo | 75 | 73 | 68 | 52 |
+| ambiguous | 23 / 25 | 25 / 25 | 8 / 25 | 2 / 25 |
+| catalogue | 43 / 45 | 45 / 45 | 32 / 45 | 31 / 45 |
+| collision | 40 / 40 | 40 / 40 | 40 / 40 | 39 / 40 |
+| false_abstention | 770 / 773 | 773 / 773 | 767 / 773 | 633 / 773 |
+| identifier | 29 / 29 | 29 / 29 | 26 / 29 | 26 / 29 |
+| informal | 27 / 27 | 27 / 27 | 19 / 27 | 22 / 27 |
+| invented | 68 / 68 | 68 / 68 | 68 / 68 | 68 / 68 |
+| misroute (real documents) | 834 / 1,030 | 836 / 1,030 | **944 / 1,030** | 926 / 1,030 |
+| typo | 69 / 75 | 73 / 75 | 68 / 75 | 52 / 75 |
+| **All batteries** | 1,903 / 2,112 | 1,916 / 2,112 | **1,972 / 2,112** | 1,799 / 2,112 |
 
-(v2's hand batteries are not blind: they were fixed after v1. v1 scored 23, 43, 40, 770, 29, 27, 68, 834 and 69 on the same rows.)
+(v2's hand batteries are not blind: they were fixed after v1, so v1 is the blind figure.)
 
 **What this shows:**
-- **Gemini on its own is not a safe router.** It bound the wrong instrument for 1 real citation in 19, and refused 1 real citation in 8. Its outcome also changed between repeats on 17 % of rows (below). It did refuse every invented citation, given a contract that told it how.
-- **Gemini as a parser in front of the router is the most accurate pipeline measured.** On the real-document battery, it resolves 116 citations the router left unresolved or refused, and loses 8. Most are bare SI numbers ("1999/3434", which the router does not bind on purpose), multi-citation sentences, and schedule paragraphs the router linked to the wrong Act. With the router's index doing the resolving, it binds nothing wrong and nothing invented.
-- **The router is what keeps that pipeline safe.** Every coordinate it binds comes from the index, so the hybrid inherits the router's 0 wrong-instrument and 0 invented bindings. Gemini supplies recall on messy real text. The router alone wins every hand battery: ambiguity, typos, informal titles, identifiers and coverage. Gemini as a parser misses most ambiguities (8 of 25), because it picks one instrument instead of asking.
-- **The cost of that recall** is the rest of this report: about 13.5 s and $0.009 per query at p50, 17 % of answers changing between repeats, and the query leaving your network. The router's contract already has the slot for it: `ROUTE_UNRESOLVED` → `DISCOVER_THEN_BIND`. An LLM pass only on the queries the router leaves unresolved or refuses (258 of 2,112 here, 12 %, a share inflated by the battery's invented rows) would buy most of that recall at roughly an eighth of the cost and of the time spent waiting. That is a design proposal, not a measured result.
+- **Gemini on its own is not a safe router.** It bound the wrong instrument for 102 / 1,897 real citations (about 1 in 19), and refused 233 / 1,897 (about 1 in 8). Its outcome also changed between repeats on 34 / 200 rows (17 %, below). It did refuse every invented citation (68 / 68), given a contract that told it how.
+- **Gemini as a parser in front of the router is the most accurate pipeline measured.** On the real-document battery (1,030 rows), it resolves 116 that the router left unresolved or refused, and loses 8 that the router got right. Most are bare SI numbers ("1999/3434", which the router does not bind on purpose), multi-citation sentences, and schedule paragraphs the router linked to the wrong Act. With the router's index doing the resolving, it binds nothing wrong and nothing invented.
+- **The router is what keeps that pipeline safe.** Every coordinate it binds comes from the index, so the hybrid inherits the router's 0 wrong-instrument and 0 invented bindings. Gemini supplies recall on messy real text. The router alone wins every hand battery: ambiguity, typos, informal titles, identifiers and coverage. Gemini as a parser handles only 8 / 25 ambiguities, because it picks one instrument instead of asking.
+- **The cost of that recall** is the rest of this report: about 13.5 s at p50 and $0.009 per query, 34 / 200 answers changing between repeats, and the query leaving your network. The router's contract already has the slot for it: `ROUTE_UNRESOLVED` → `DISCOVER_THEN_BIND`. An LLM pass only on the queries the router leaves unresolved or refuses (258 / 2,112 here, 12 %, a share inflated by the battery's invented rows) would buy most of that recall at roughly an eighth of the cost and of the time spent waiting. That is a design proposal, not a measured result.
 
 ## Choice questions: Jev and Gemini 3.8 Flash (high) (perfect-retriever ceiling)
 
-The right instrument is always among the options, each labelled with its title and official citation, plus "none of these". So this is a best case: a retriever that never misses. 2,050 questions per option count; 62 rows without an instrument-level answer are left out by rule. Instrument level only.
+The right instrument is always among the options, each labelled with its title and official citation, plus "none of these". So this is a best case: a retriever that never misses. 2,050 questions per option count, of which 1,960 have a real instrument as the answer and 90 have "none of these". 62 of the 2,112 rows have no instrument-level answer and are left out by rule. Instrument level only.
 
-| Options | Jev correct | Gemini correct | Jev picked a real instrument when "none" was right (of 90) | Gemini, same |
+| Options | Jev correct | Gemini correct | Jev picked a real instrument when "none" was right | Gemini, same |
 |---|---|---|---|---|
-| 3 | 2,031 (99.1 %) | 2,037 (99.4 %) | 2 | 0 |
-| 10 | 2,033 (99.2 %) | 2,038 (99.4 %) | 1 | 0 |
-| 30 | 2,023 (98.7 %) | 2,035 (99.3 %) | 6 | 3 |
+| 3 | 2,031 / 2,050 (99.1 %) | 2,037 / 2,050 (99.4 %) | 2 / 90 | 0 / 90 |
+| 10 | 2,033 / 2,050 (99.2 %) | 2,038 / 2,050 (99.4 %) | 1 / 90 | 0 / 90 |
+| 30 | 2,023 / 2,050 (98.7 %) | 2,035 / 2,050 (99.3 %) | 6 / 90 | 3 / 90 |
 
 - **Given the right candidates, both models choose well,** and accuracy barely falls as the options grow. The vault's expected curve (96 → 79 → 54 % for decision models) is not borne out here; those were placeholders, and this measurement replaces them.
 - **What still matters:** the right instrument had to be offered. Laya, the self-hosted alternative, sees only 29 % of each title at 30 options (`docs/measurements.md`).
 
 ## Determinism
 
-The same query, five times (200 seeded rows):
+The same query, five times, over 200 seeded rows:
 
 | System | Rows whose answer changed |
 |---|---|
 | Router | 0, by construction (the sealed runs reproduce byte for byte) |
-| Jev (10 options) | 2 of 197 (1.0 %) |
-| **Gemini 3.8 Flash (high), end to end** | **34 of 200 (17.0 %)** |
+| Jev (10 options) | 2 / 197 (1.0 %); 3 of the 200 rows have no choice question |
+| **Gemini 3.8 Flash (high), end to end** | **34 / 200 (17.0 %)** |
 
 ## Cost per 1,000 queries
 
-At list price per token, from the token counts each system reported:
+At list price per token, from the token counts each system reported. The calls measured: Gemini end to end 2,112, Gemini choice 6,150, Jev 6,150 (accuracy pass).
 
 | System | Promotional price | Regular price |
 |---|---|---|
@@ -106,20 +107,20 @@ At list price per token, from the token counts each system reported:
 
 The latency pass sent 300 seeded rows one call at a time, interleaved, from the author's Mac in Pakistan. Each system's no-model floor call went on the same connection.
 
-| System | p50 [95 % CI] | p99 | Floor p50 | Note |
-|---|---|---|---|---|
-| Router, in process | 0.14 ms | 2.10 ms | none | Controlled bench, 306,336 calls (`docs/measurements.md`) |
-| Router, in process, inside this pass | 1.18 ms [1.14–1.28] | 6.29 ms | none | Each call follows a multi-second network wait, so the CPU and caches are cold |
-| Router as a network service (Row B, 30 Sept) | 276.6 ms | 364.5 ms | 275.7 ms | Modal us-east; the router's own share 0.63 ms |
-| Laya on an NVIDIA T4 | 34–37 ms | 44–46 ms | none | Self-hosted, model time only |
-| **Jev** (10 options) | **507 ms [497–518]** | 2,222 ms | 103 ms | OpenRouter |
-| **Gemini 3.8 Flash (high), end to end** | **13.5 s [12.1–15.2]** | **192 s** | 1.7 ms | The tail is thinking: the slowest call took 249 s for 32,497 thinking tokens |
+| System | Calls | p50 [95 % CI] | p99 | Floor p50 | Note |
+|---|---|---|---|---|---|
+| Router, in process | 306,336 | 0.14 ms | 2.10 ms | none | Controlled bench (`docs/measurements.md`) |
+| Router, in process, inside this pass | 300 | 1.18 ms [1.14–1.28] | 6.29 ms | none | Each call follows a multi-second network wait, so the CPU and caches are cold |
+| Router as a network service (Row B, 30 Sept) | 6,336 | 276.6 ms | 364.5 ms | 275.7 ms | Modal us-east; the router's own share 0.63 ms |
+| Laya on an NVIDIA T4 | 900 | 34–37 ms | 44–46 ms | none | Self-hosted, model time only; 300 per option count |
+| **Jev** (10 options) | 287 | **507 ms [497–518]** | 2,222 ms | 103 ms | OpenRouter; 13 of the 300 rows have no choice question |
+| **Gemini 3.8 Flash (high), end to end** | 300 | **13.5 s [12.1–15.2]** | **192 s** | 1.7 ms | The tail is thinking: the slowest call took 249 s for 32,497 thinking tokens |
 
 - **Gemini's time is the model's own.** Its floor call measures the hop from the client to the local proxy on the same Mac: 1.7 ms at p50. Beyond that, the calls went to Google AI Studio over the Mac's connection, as a direct call would.
 - **The long tail is thinking, not waiting.** In this one-call-at-a-time pass:
-  - 22 of 300 calls took over a minute, and 4 over two minutes;
+  - 22 / 300 calls took over a minute, and 4 / 300 over two minutes;
   - the slowest four (173–249 s) each thought 24,500–34,300 tokens, about 15× the typical 1,900, and generated at 130–150 tokens a second, the model's own pace;
-  - each finished normally with a valid answer, but two of the four were wrong;
+  - each finished normally with a valid answer, but 2 / 4 were wrong;
   - they are dense amendment-note citations ("S.I. 2020/1495, regs. 1(2), 21), S.I. 2020/1545…").
 
   The high thinking level spends minutes on exactly the queries a router would answer in a millisecond.
@@ -142,7 +143,7 @@ The latency pass sent 300 seeded rows one call at a time, interleaved, from the 
   - Token counts are the ones the proxy passed back. Costs are at Google's list price.
   - Reaching the proxy took 1.7 ms (p50) on the same Mac, and the slow calls generated at the model's own rate (see **Latency**). So nothing measured points to the setup adding time.
   - The proxy client is not part of the published code (removed 2 Oct). The code calls Google AI Studio's API directly with the same settings: see **Reproducing**.
-- **378 Gemini calls** (284 choice, 94 end to end) failed with the proxy's `model_cooldown` 429 during its 5-hour limit (08:26–08:59 UTC). They were rerun and answered. The failed attempts stay in the logs (`superseded_failures` in the summary).
+- **378 / 8,262 Gemini accuracy calls** (284 / 6,150 choice, 94 / 2,112 end to end) failed with the proxy's `model_cooldown` 429 during its 5-hour limit (08:26–08:59 UTC). They were rerun and answered. The failed attempts stay in the logs (`superseded_failures` in the summary).
 - **Gemini's instructions** gave it the router's whole contract: the coordinate format, outcomes, coverage and snapshot date, with nine worked examples checked not to overlap the battery. Without that, its coordinates would not be comparable at all.
 - **Rows that depend on our index's choices** (out of coverage) are scored with all rows and again without them. The figures above do not move.
 - **One run, at one time of day,** from one client: the author's Mac. The plan's second, off-peak run and a UK/EU client are left as improvements.
@@ -159,5 +160,5 @@ The latency pass sent 300 seeded rows one call at a time, interleaved, from the 
 - **The latency pass leaves out the router on Modal** unless `LRR_ROW_B=1` is set, with a deployed `deploy/modal_router.py`.
 - **Resumable:** every call is written as it returns. A rerun makes only the missing or failed calls.
 - **Inputs:** the battery, the option sets and every seed are fixed, so a rerun asks exactly the same questions.
-- **What may differ:** Gemini's answers vary between runs (17 % of rows changed on repeat here). Its latency will also differ with the client's location, the time of day and Google's load.
+- **What may differ:** Gemini's answers vary between runs (34 / 200 rows changed on repeat here). Its latency will also differ with the client's location, the time of day and Google's load.
 - **Cost:** about $38 at Google's promotional list price ($76 regular), and $0.30 of OpenRouter credit.
