@@ -1,6 +1,6 @@
 # Proposed vault changes: discover-then-bind (roadmap D6)
 
-Status (29 Sept 2026): **proposed, not applied.** The vault (`Business/Technical Consultancy/Drafts/26 Sept - Hosted Reference Architecture/`) is edited only with your go (CLAUDE.md).
+Status: **applied to the vault on 2 Oct 2026** (your go, roadmap M13, stop 26), as written below, in 02 §5, 05 §4, 07 §6 and 10. Proposed 29 Sept 2026; kept here as the record of what changed.
 
 Stage D moved discovery from a Phase 4 fallback into the router package, and measured it (`docs/discovery.md`, `reports/discovery-uk.md`). Four vault documents describe the old design. Each change below keeps the safety rule unchanged: **text reaches generation only through a bound coordinate**. Discovery returns candidates for confirmation, never text, and never binds.
 

@@ -19,14 +19,30 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-10-02 |
-| Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)** |
-| Next step | **M12 done: 0.1.0 released** (PyPI and GitHub, stop 25). Next: M13, vault doc updates |
-| Waiting on you | A go for M13 (vault edits): I show you the diff first. Optional: the Dependabot PR |
+| Current stage | **Phase 1 for the UK complete** (stop 26): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)**, **M13 ✅** |
+| Next step | None scheduled. Stage C (Spain) when you decide |
+| Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (26): **M13 done; Phase 1 (UK) wrapped up.**
+  - **Vault (your go, after the diff):** 01 (6 lines), 02 (34), 05 (8), 07 (22), 10 (13) updated:
+    - the index structure as built (memory-mapped sorted tables; the trie and frozenset dropped, with the measurements);
+    - every Phase 1 target in 01, 02 and 07 replaced by its measured figure, including the < 2 ms p99 target **not met**;
+    - the M11 comparison in place of the placeholders (the 96 → 54 % choice curve is withdrawn: 99 % measured);
+    - the D6 discovery proposals (`docs/vault-proposals-discovery.md`, now marked applied);
+    - 0.1.0 is UK only, with Spain next;
+    - the fetch command now has `--ignore-missing`.
+    The files matched the copies the diff was made from before writing.
+  - **GitHub:** rulesets "Protect main" (no deletion or force push; the 11 CI and CodeQL checks required) and "Immutable release and seal tags" (`v*`, `battery-seal-*`, `concept-seal-*`); repository admins bypass both.
+  - **Phase 1 for the UK is complete:** M0–M13 done; `legal-rag-router 0.1.0` on PyPI and GitHub.
+  - **Open, each needing your decision:**
+    - **Stage C (Spain):** the vault now says "next release"; nothing for it is built;
+    - the comparison's off-peak run and a UK/EU client;
+    - the Dependabot PR (Hypothesis), which needs a rebase.
 
 - 2026-10-02 (25): **M12 done: `legal-rag-router 0.1.0` is released (your go).**
   - **Tag `v0.1.0`** on `2f89b61`; `release.yml` passed every job (run 36966908963): preflight, build and check, PyPI, GitHub release.
@@ -1071,13 +1087,16 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M13 — Vault doc updates (plan step 12)
 
-- [ ] Compare the vault docs with the build. 10 §5 says 01/02/03/05/07 were already updated on 27 Sept, so only the remaining differences get folded back:
-  - the index structure chosen in M6;
-  - measured sizes and load time;
-  - the confirmed BOE field names;
-  - the Trie wording in 02 §2;
-  - the measured figures, with their register changed from `By design (Target)` to `Measured`.
-- ⛔ I show you the diff before writing into the vault.
+> **Done 2 Oct 2026** (stop 26): five vault docs updated with your go, after you saw the diff.
+
+- [x] Compare the vault docs with the build. 10 §5 says 01/02/03/05/07 were already updated on 27 Sept, so only the remaining differences get folded back:
+  - the index structure chosen in M6 (01 §7, 02 §2, 10 step 6 and §5);
+  - measured sizes and load time (01 §5, §7);
+  - the confirmed BOE field names: *waits for Stage C (Spain)*;
+  - the Trie wording in 02 §2–3, 07 §2 and 10;
+  - the measured figures, with their register changed from `By design (Target)` to `Measured` (01 §6–7, 02 §3, §7, §9, 07 §2–3, §6);
+  - also: the D6 discovery proposals (02 §5, 05 §4, 07 §6, 10), the 0.1.0 scope (UK only), and the fetch command's `--ignore-missing`.
+- [x] ⛔ I show you the diff before writing into the vault.
 
 ---
 
