@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -109,7 +110,7 @@ def test_cli(tmp_path: Path) -> None:
 
 def test_import_queue(tmp_path: Path) -> None:
     db = tmp_path / "q.db"
-    with sqlite3.connect(db) as connection:
+    with closing(sqlite3.connect(db)) as connection, connection:
         connection.execute(
             "CREATE TABLE download_queue (doc_id TEXT, series TEXT, year TEXT, number TEXT, "
             "title TEXT, xml_url TEXT, status TEXT)"

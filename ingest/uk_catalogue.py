@@ -39,6 +39,7 @@ import json
 import logging
 import sys
 from collections.abc import Iterable, Iterator, Sequence
+from contextlib import closing
 from pathlib import Path
 from typing import Final
 from xml.etree.ElementTree import Element
@@ -176,7 +177,8 @@ def import_queue(db: Path, *, source: str) -> Iterator[CatalogueEntry]:
     """
     import sqlite3  # noqa: PLC0415 - only this importer needs it
 
-    with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as connection:
+    # ``with connection`` only ends a transaction; closing() closes it (ResourceWarning on 3.13+).
+    with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True)) as connection:
         rows = connection.execute(
             "SELECT series, year, number, title FROM download_queue"
         ).fetchall()

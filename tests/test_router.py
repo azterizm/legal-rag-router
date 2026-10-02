@@ -5,6 +5,7 @@ Golden probes follow the plan's Verification section (UK part) and docs/grammar.
 
 from __future__ import annotations
 
+import gc
 import json
 import logging
 import os
@@ -47,6 +48,9 @@ _STRESS = Path(__file__).resolve().parents[1] / "bench" / "results" / "stress-da
 NOISE_FLOOR_MS = float(json.loads(_STRESS.read_text())["floor_ms"])
 NOISE_BUDGET_NS = int(NOISE_FLOOR_MS * 2 * 1_000_000 * _SCALE)
 """4 KB noise: twice the measured worst case of bench/stress.py (roadmap Q-M7-2)."""
+DOUBLING_FACTOR = 3.0 if _SCALE > 1 else 2.5
+"""Linear doubling: ≤ 2.5x on a quiet machine, where some classes measure 2.2-2.47x; 3x on CI
+or under coverage (roadmap decision 16, amended 2 Oct 2026). Quadratic growth would be ~4x."""
 
 
 @pytest.fixture(scope="module")
@@ -523,12 +527,22 @@ def test_doubling_input_is_linear(name: str) -> None:
     router = _shared_router()
     text = GENERATORS[name](random.Random(f"20260927:{name}:test"), MAX_QUERY_CHARS)
 
-    def best(query: str) -> int:
-        return min(router.route(query).latency_ns for _ in range(7))
+    def best_pair(short: str, long: str) -> tuple[int, int]:
+        # Alternate the two sizes, GC paused, so a noisy moment on a shared CI runner hits
+        # both rather than one; the best of 15 rounds is each input's own cost.
+        times: tuple[list[int], list[int]] = ([], [])
+        gc.disable()
+        try:
+            for _ in range(15):
+                times[0].append(router.route(short).latency_ns)
+                times[1].append(router.route(long).latency_ns)
+        finally:
+            gc.enable()
+        return min(times[0]), min(times[1])
 
     for n in (MAX_QUERY_CHARS // 4, MAX_QUERY_CHARS // 2):
-        small, large = best(text[:n]), best(text[: 2 * n])
-        assert large <= 2.5 * max(small, 50_000), (name, n, small, large)
+        small, large = best_pair(text[:n], text[: 2 * n])
+        assert large <= DOUBLING_FACTOR * max(small, 50_000), (name, n, small, large)
 
 
 def test_results_never_carry_query_text_into_coordinates(router: Router) -> None:
