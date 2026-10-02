@@ -32,13 +32,15 @@ Each cell is *count / out of* (rate). The upper 95 % bound, where shown, is afte
 
 | Measure | Router v1 (blind) | Router v2 | Gemini 3.8 Flash (high) as parser, router resolves | Gemini 3.8 Flash (high), LLM only |
 |---|---|---|---|---|
-| Bound to the wrong instrument (real citations) | 2 / 1,897 (0.11 %) | **0 / 1,897** | **0 / 1,897** (≤ 0.16 %) | **102 / 1,897 (5.38 %, ≤ 6.31 %)** |
+| Bound to the wrong instrument (real citations) | 0 / 1,897 (≤ 0.16 %)¹ | **0 / 1,897** | **0 / 1,897** (≤ 0.16 %) | **102 / 1,897 (5.38 %, ≤ 6.31 %)** |
 | Real law refused (false abstention) | 84 / 1,897 (4.43 %) | 82 / 1,897 (4.32 %) | **55 / 1,897 (2.90 %, ≤ 3.62 %)** | 233 / 1,897 (12.28 %, ≤ 13.59 %) |
 | Held-out real citations left unresolved | 67 / 1,000 (6.7 %) | 67 / 1,000 (6.7 %) | **11 / 1,000 (1.1 %)** | 11 / 1,000 (1.1 %) |
 | Invented law bound | **0 / 68** | **0 / 68** | **0 / 68** | **0 / 68** |
 | Invented law refused with the right outcome | 68 / 68 | 68 / 68 | 68 / 68 | 68 / 68 |
 | Typos bound when they should not be | 1 / 22 | 0 / 22 | 4 / 22 | 3 / 22 |
 | Rows with the expected outcome | 1,903 / 2,112 (90.1 %) | 1,916 / 2,112 (90.7 %) | **1,972 / 2,112 (93.4 %)** | 1,799 / 2,112 (85.2 %) |
+
+¹ Corrected 2 Oct 2026. This cell first read 2 / 1,897 (0.11 %), which is v1's *misroute* count. Both misroutes bound the right Act; their labels were wrong (`reports/sealed-run-uk.md`). v1's wrong-instrument count is 0 (`results/uk-run-2026-09-29.md`). The sealed result files are unchanged.
 
 **Outcomes as expected, per battery** (rows with the expected outcome / rows in the battery):
 

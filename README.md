@@ -243,7 +243,7 @@ held out from development; [report](https://github.com/azterizm/legal-rag-router
 
 | Measure | Result |
 |---|---|
-| Bound to the wrong instrument | **0 / 1,897** real citations (v1, blind: 2 / 1,897) |
+| Bound to the wrong instrument | **0 / 1,897** real citations (v1, blind: also 0 / 1,897) |
 | Invented law bound | **0 / 68** (all 68 refused) |
 | Same section number in different Acts, bound to the wrong Act | **0 / 40** |
 | Real law refused | 82 / 1,897 (4.3 %) |

@@ -19,7 +19,7 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-10-02 |
-| Current stage | **Phase 1 for the UK complete** (stop 26): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
+| Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)**, **M13 ✅** |
 | Next step | None scheduled. Stage C (Spain) when you decide |
 | Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
@@ -27,6 +27,11 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (27): **A mislabelled v1 figure corrected (your go).**
+  - The README's Evidence table and the comparison report gave v1 (blind) as 2 / 1,897 bound to the wrong instrument. That is v1's *misroute* count; its wrong-instrument count is 0 (`results/uk-run-2026-09-29.md`). Both misroutes were mislabelled Part/Chapter rows that bound the right Act.
+  - Corrected in `README.md` and `reports/comparison-uk.md` (with a note under the table). The sealed result files are unchanged; Gemini's 102 / 1,897 is its wrong-instrument count and stands.
+  - PyPI's 0.1.0 page keeps the old README until the next release.
 
 - 2026-10-02 (26): **M13 done; Phase 1 (UK) wrapped up.**
   - **Vault (your go, after the diff):** 01 (6 lines), 02 (34), 05 (8), 07 (22), 10 (13) updated:
