@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use legal-rag-router or its benchmark, please cite it as below."
+type: software
+title: "legal-rag-router: deterministic citation routing and epistemic abstention for legal RAG"
+abstract: >-
+  An in-process pre-router for legal retrieval-augmented generation. It reads the legal citation
+  in a query, checks it against an index of the statute book, and returns exactly one decision:
+  a bound coordinate to retrieve from, a clarifying question, or a refusal because the cited law
+  does not exist. No model, no network, deterministic.
+authors:
+  - given-names: Abdullah
+    family-names: Memon
+    email: abdullah@memonsystems.com
+    affiliation: Memon Systems Ltd
+license: AGPL-3.0-only
+repository-code: "https://github.com/azterizm/legal-rag-router"
+url: "https://memonsystems.com"
+keywords:
+  - legal
+  - retrieval-augmented generation
+  - citation parsing
+  - legislation
+  - abstention

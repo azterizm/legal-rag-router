@@ -20,13 +20,20 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-10-02 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | **M11 done** (`reports/comparison-uk.md`). Next: M12, release, with ⛔ points of its own |
-| Waiting on you | Your reading of `reports/comparison-uk.md`, then a go for M12. Optional: a go for the vault proposals (the comparison replaces several vault placeholders) |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅** |
+| Next step | **M9 and M11 done** (README and docs, stop 22; `reports/comparison-uk.md`). Next: M12, release, with ⛔ points of its own |
+| Waiting on you | A go for M12. Optional: a go for the vault proposals (the comparison replaces several vault placeholders) |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (22): **M9 done: the README and docs wrapped up before M12 (your call).**
+  - **README rewritten** as the library guide: what it does and why, coverage and the snapshot, install and the two-command index fetch, quick start, the six statuses with real outputs, a `next_action` integration, the filter, discovery, `context=`, `jurisdictions=`, logging and privacy, failure behaviour, sealed evidence, roadmap, consultancy and author credit (Abdullah Memon, Memon Systems Ltd), citing, licence. Links are absolute so they work on PyPI.
+  - **New:** `docs/README.md` (map of every doc, report and seal, with the seal-check commands), `CITATION.cff` (validated), `CONTRIBUTING.md`; CHANGELOG `[Unreleased]` filled for 0.1.0.
+  - **Metadata:** author Abdullah Memon, maintainer Memon Systems Ltd; Documentation and Consultancy URLs; the sdist ships the new files. Four missing public docstrings added. The stray `sm.xml` (a saved CloudFront 301 page) removed.
+  - **M12 now also fixes:** the release asset names and layout the README's fetch commands assume.
+  - **Resume:** M12 (release), which has ⛔ points (the tag and the PyPI publish).
 
 - 2026-10-02 (21): **Report wording (your call).**
   - The model is named **Gemini 3.8 Flash (high)** throughout, since the thinking level matters.
@@ -847,20 +854,23 @@ Each of these changes order or method but not what gets delivered. See §4.
 
 ### M9 — Documentation (production-readiness; spread across M1–M8, finished here)
 
-- [ ] `docs/contract.md`: the downstream contract, the `next_action` table, the "text reaches generation only through a bound coordinate" rule, strict vs confirm mode (Phase 4), and the registry-adapter rules.
-- [ ] `docs/grammar.md` final; `docs/sources.md`; `docs/measurements.md`.
-- [ ] README:
+> **Done 2 Oct 2026** (stop 22). The library guide lives in the README; `docs/README.md` maps the rest.
+
+- [x] `docs/contract.md`: the downstream contract, the `next_action` table, the "text reaches generation only through a bound coordinate" rule, strict vs confirm mode (Phase 4), and the registry-adapter rules.
+- [x] `docs/grammar.md` final; `docs/sources.md`; `docs/measurements.md`.
+- [x] README:
   - install;
   - the two-command index fetch (01 §5);
   - `Router.from_path`;
-  - a usage example per status;
+  - a usage example per status (real outputs from the 2026-09-28 index);
   - `jurisdictions=` and `context=`;
   - coverage and snapshot honesty;
   - opt-in logging and privacy;
   - extension slots;
-  - how to add a jurisdiction;
-  - licence and attribution.
-- [ ] Public API docstrings. `__all__` defines the stable surface.
+  - how to add a jurisdiction (the roadmap section and CONTRIBUTING's grammar-first rule);
+  - licence and attribution;
+  - author credit and consultancy (Memon Systems Ltd), citing (`CITATION.cff`).
+- [x] Public API docstrings. `__all__` defines the stable surface.
 
 ### M10 — Seal, then run (plan step 9) · day 8
 
@@ -1022,8 +1032,9 @@ Each of these changes order or method but not what gets delivered. See §4.
   2. Check that the wheel contains only `legal_rag_router` and that the package has zero runtime dependencies.
   3. Publish to PyPI through the Trusted Publisher (OIDC, `pypi` environment, PEP 740 attestations).
   4. Create a GitHub release with `index-*.tar.gz`, `SHA256SUMS` and `NOTICE`.
+- [ ] Release assets match the README's fetch commands: `index-*.tar.gz` and `concepts-*.tar.gz`, each unpacking its files at the archive root (into `data/index` and `data/concepts`), with `SHA256SUMS` covering both.
 - [ ] Release checklist:
-  - CHANGELOG entry and version bump.
+  - CHANGELOG: rename `[Unreleased]` to `[0.1.0]` with the date; version bump; `version` and `date-released` in `CITATION.cff`.
   - `pip install legal-rag-router==0.1.0` in a clean venv.
   - `Router.from_path()` works on the downloaded release index.
   - `gh attestation verify` passes on the wheel.

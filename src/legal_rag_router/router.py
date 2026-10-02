@@ -350,6 +350,7 @@ class Router:
 
     @property
     def index(self) -> RouterIndex:
+        """The verified index this router reads."""
         return self._index
 
     # ------------------------------------------------------------------ public

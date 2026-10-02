@@ -7,7 +7,8 @@ name = "legal-rag-router"
 version = "0.1.0.dev0"
 description = "Deterministic coordinate pre-routing and epistemic abstention for legal RAG"
 readme = "README.md"
-authors = [{ name = "Memon Systems", email = "abdullah@memonsystems.com" }]
+authors = [{ name = "Abdullah Memon", email = "abdullah@memonsystems.com" }]
+maintainers = [{ name = "Memon Systems Ltd", email = "abdullah@memonsystems.com" }]
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
@@ -33,6 +34,8 @@ Homepage = "https://github.com/azterizm/legal-rag-router"
 Repository = "https://github.com/azterizm/legal-rag-router"
 Issues = "https://github.com/azterizm/legal-rag-router/issues"
 Changelog = "https://github.com/azterizm/legal-rag-router/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/azterizm/legal-rag-router/blob/main/docs/README.md"
+Consultancy = "https://memonsystems.com/engagements"
 
 [dependency-groups]
 dev = [
@@ -67,6 +70,8 @@ include = [
     "docs",
     "README.md",
     "CHANGELOG.md",
+    "CITATION.cff",
+    "CONTRIBUTING.md",
     "LICENSE",
     "NOTICE",
     "SECURITY.md",

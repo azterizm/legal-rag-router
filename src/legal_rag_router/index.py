@@ -185,6 +185,7 @@ class RouterIndex:
         return str(self.manifest["snapshot"])
 
     def instrument(self, instrument_id: str) -> InstrumentInfo | None:
+        """The instrument with this id (``uk_ukpga_1996_18``), or ``None`` if it is not indexed."""
         raw = self.tables["instruments"].get(instrument_id)
         return None if raw is None else InstrumentInfo.from_json(instrument_id, json.loads(raw))
 

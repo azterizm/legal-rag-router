@@ -25,6 +25,8 @@ __all__ = [
 
 
 class RouteStatus(StrEnum):
+    """What the router found for a query (``docs/contract.md`` §1)."""
+
     BOUNDED = "ROUTE_BOUNDED"
     AMBIGUOUS = "ROUTE_AMBIGUOUS"
     INSTRUMENT_NOT_FOUND = "EPISTEMIC_ABSTENTION_INSTRUMENT_NOT_FOUND"
@@ -34,6 +36,7 @@ class RouteStatus(StrEnum):
 
     @property
     def is_abstention(self) -> bool:
+        """True for the two epistemic abstentions: the cited instrument or provision is not real."""
         return self in (RouteStatus.INSTRUMENT_NOT_FOUND, RouteStatus.PROVISION_NOT_FOUND)
 
 
