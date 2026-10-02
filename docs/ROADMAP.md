@@ -28,6 +28,12 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-10-02 (20): **The proxy client removed; reproduction goes through Google AI Studio (your call).**
+  - The proxy routed to Google AI Studio from your own setup, so a reproducer needs the direct API, not your setup. `bench/clients/gemini_proxy.py`, its tests and `scripts/compare_local.sh` are removed.
+  - `bench/compare.py` now calls `bench/clients/gemini.py` with `gemini-3.8-flash`, `thinkingLevel: "high"` and the default temperature: the settings of the sealed run. One test call on 2 Oct confirmed that the direct API accepts `thinkingLevel`.
+  - `scripts/compare_run.sh` reruns every pass.
+  - The sealed 1 Oct results are unchanged. The report says how Gemini was reached and adds a **Reproducing** section.
+
 - 2026-10-02 (19): **M11-UK done: the comparison is run, scored and sealed.** Reading: `reports/comparison-uk.md`; sealed as `seals/results-compare-2026-10-01.json` (`b96c5c86…`), citing the v2 battery seal; artefacts in `results/compare-uk-2026-10-01/`.
   - **Gemini on its own** (`gemini-3.8-flash-high` via the author's proxy):
     - bound the wrong instrument for 102 of 1,897 real citations (5.4 %);
@@ -95,7 +101,7 @@ Newest first. One line per stop: what was finished, and where to resume.
     - No code change after the seal; no re-scoping of the target.
   - **Row B, the router's side done (30 Sept):** round trip p50 276.6 ms, of which the network floor is 275.7 ms; 0 of 6,336 answers differ. Region by measurement: us-east (§4 decision 23). Modal is stopped.
   - **Laya decided (30 Sept):** option 1, speed and footprint only, base checkpoint, no training (§4 decision 3, amended).
-  - **Resume:** your local run of `scripts/compare_local.sh` (after confirming the estimate); then the score, the results seal and `reports/comparison-uk.md`. Offline parts only until the ⛔ cost confirmation.
+  - **Resume:** done; see stop 19. (`scripts/compare_local.sh` was removed on 2 Oct; `scripts/compare_run.sh` reproduces the comparison.)
 
 - 2026-09-29 (17): **M10-UK: x86-64 latency measured; M10 complete.** *(Withdrawn 30 Sept: Chrome was running; see stop 18.)* Reading: `reports/sealed-run-uk.md`, `bench/results/latency-windows-x86_64.json`.
   - **Seal verified on x86-64:** `seals/battery-2026-09-29-v2.json` matched byte-for-byte (`024da21e…`) on the rig.
@@ -875,7 +881,7 @@ Each of these changes order or method but not what gets delivered. See §4.
   2. the router as a Modal function (Row B);
   3. Laya;
   4. Jev and Gemini.
-- [x] `bench/clients/gemini.py`: Gemini Flash with structured output; model id pinned in the run manifest. (Run through the author's proxy instead: `bench/clients/gemini_proxy.py`, 1 Oct.)
+- [x] `bench/clients/gemini.py`: Gemini Flash with structured output; model id pinned in the run manifest. (The 1 Oct run reached Gemini through the author's own proxy; that client was removed on 2 Oct, so reproduction uses this one, `thinkingLevel: "high"`, default temperature.)
 - [x] `bench/clients/jev.py`: ported from `jev_client.py`.
 - [x] Harness (`bench/compare.py`; accuracy and latency passes split, approved 1 Oct):
   - Interleaved randomised order.
@@ -985,7 +991,7 @@ Each of these changes order or method but not what gets delivered. See §4.
     - **The latency pass runs without the router on Modal** (`--no-service`). The router's Row B from 30 Sept stands.
     - **Smoke** (20 rows): 77/77 calls, 0 unusable. End to end $0.0086 per call (median 8.4 s; thinking mean 1,856 tokens); choice $0.0010 per call (3.2 s).
     - **Estimate for the rest** (⛔ for your confirmation): Gemini end to end 3,390 calls ≈ $29.03; Gemini choice 6,093 ≈ $6.35; Jev latency 287 ≈ $0.01. **Total ≈ $35.4 at the promotional price ($70.8 regular).**
-    - **The command:** `scripts/compare_local.sh`. Resumable, and safe to stop at any time.
+    - **The command:** `scripts/compare_local.sh`. Resumable, and safe to stop at any time. *(Removed 2 Oct with the proxy client.)*
     - **Jev's results** were copied from the VM, checksums verified, to `results/raw/compare/` (git-ignored).
     - **The proxy's 5-hour limit:** 378 Gemini accuracy calls (284 choice, 94 end to end) failed with HTTP 429 `model_cooldown` between 08:26 and 08:59 UTC. The runner now retries failed calls on a rerun. The new answer supersedes the failure in every count; the failed attempt stays in the file and is reported (`superseded_failures` in the summary).
   - **Jev-only run started (your call, 1 Oct):** accuracy (6,150) and determinism (985), in tmux session `jev` on the VM, into `results/raw/compare/`.

@@ -44,9 +44,8 @@ from typing import Any, Final
 import httpx
 
 from batteries.schema import BATTERIES, BATTERY_DIR, BatteryRow, read_battery
-from bench.clients.gemini import GeminiError
-from bench.clients.gemini_proxy import BASE_URL as GEMINI_ENDPOINT
-from bench.clients.gemini_proxy import GeminiProxyClient
+from bench.clients.gemini import ORIGIN as GEMINI_ENDPOINT
+from bench.clients.gemini import GeminiClient, GeminiError
 from bench.clients.http import Timing, timed
 from bench.clients.jev import JevClient, JevError
 from bench.row_b import stats_ms
@@ -74,8 +73,11 @@ from bench.unit1 import (
 from eval.metrics import domain_metrics
 from legal_rag_router import Router
 
-GEMINI_MODEL: Final = "gemini-3.8-flash-high"
-"""Through the author's proxy (``bench.clients.gemini_proxy``), the only Gemini endpoint used."""
+GEMINI_MODEL: Final = "gemini-3.8-flash"
+GEMINI_THINKING: Final = "high"
+"""Google AI Studio's API (``bench.clients.gemini``) at the high thinking level and the model's
+default temperature: the settings of the sealed 1 Oct run, which reached the same model through
+the author's own proxy (``reports/comparison-uk.md``)."""
 SEED: Final = 20261001
 DETERMINISM_ROWS: Final = 200
 DETERMINISM_REPEATS: Final = 5
@@ -187,7 +189,7 @@ class Systems:
     def __init__(self, index: Path, *, with_service: bool, systems: set[str]) -> None:
         """Clients only for ``systems``, so a Jev-only run never needs a Gemini key."""
         uses = {s.split("_", 1)[0] for s in systems}
-        self.gemini = GeminiProxyClient(GEMINI_MODEL) if "gemini" in uses else None
+        self.gemini = GeminiClient(GEMINI_MODEL) if "gemini" in uses else None
         self.jev = JevClient() if "jev" in uses else None
         self.router = Router.from_path(index)
         self.service: httpx.Client | None = None
@@ -206,7 +208,9 @@ class Systems:
     def call(self, job: Job) -> dict[str, Any]:  # noqa: PLR0911 - one branch per system
         if job.system == "gemini_route":
             assert self.gemini is not None  # noqa: S101 - built for the systems run
-            g = self.gemini.generate(route_prompt(job.row), ROUTE_SCHEMA, system=CONTRACT)
+            g = self.gemini.generate(
+                route_prompt(job.row), ROUTE_SCHEMA, system=CONTRACT, thinking_level=GEMINI_THINKING
+            )
             routed = read_route(g.output)
             return {
                 "status": routed.status,
@@ -220,7 +224,9 @@ class Systems:
             assert job.choice is not None  # noqa: S101 - built with the job
             assert self.gemini is not None  # noqa: S101
             g = self.gemini.generate(
-                gemini_choice_prompt(job.row, job.choice), gemini_choice_schema(job.choice)
+                gemini_choice_prompt(job.row, job.choice),
+                gemini_choice_schema(job.choice),
+                thinking_level=GEMINI_THINKING,
             )
             return {
                 "picked": choice_from_gemini(g.output),
@@ -595,13 +601,13 @@ def _manifest(directory: Path, args: argparse.Namespace) -> None:
             "platform": platform.platform(),
             "python": sys.version.split()[0],
             "gemini_model": GEMINI_MODEL,
+            "gemini_thinking_level": GEMINI_THINKING,
             "jev_model": "typesafe/jev-1.13",
             "seed": SEED,
             "prices": PRICES,
             "gemini_endpoint": GEMINI_ENDPOINT,
-            "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy "
-            "run by the author's engineer, not Google's public API: token counts are the proxy's, "
-            "costs are at Google's published list price, and Gemini latency is the proxy's path.",
+            "note": "Gemini through Google AI Studio's API; token counts are Google's, costs are "
+            "at Google's published list price.",
         }
     )
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

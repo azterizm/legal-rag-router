@@ -1,9 +1,11 @@
 """Gemini Flash with structured output (roadmap M11, System 1A).
 
 Plain REST on ``generativelanguage.googleapis.com`` (no SDK), with the key read from
-``GEMINI_API_KEY`` and sent in the ``x-goog-api-key`` header. ``generate`` asks for JSON
-matching a response schema at a fixed temperature and returns the parsed object, the token
-counts Google reports, the resolved model version and the timing. ``floor()`` times
+``GEMINI_API_KEY`` and sent in the ``x-goog-api-key`` header (a Google AI Studio key; the free
+tier allows 20 requests a day per model, so a full run needs a paid-tier project). ``generate``
+asks for JSON matching a response schema, at the model's default temperature unless one is given
+and at an optional thinking level, and returns the parsed object, the token counts Google
+reports, the resolved model version and the timing. ``floor()`` times
 ``GET models/{model}``, which runs no model, on the same host and connection (Row A). The
 model id is pinned by the caller and recorded with every result.
 """
@@ -91,16 +93,25 @@ class GeminiClient:
         schema: Mapping[str, Any],
         *,
         system: str | None = None,
-        temperature: float = 0.0,
+        temperature: float | None = None,
+        thinking_level: str | None = None,
         thinking_budget: int | None = None,
     ) -> Generation:
+        """``temperature`` stays the model's default unless given. ``thinking_level`` ("low",
+        "high") is Gemini 3's setting; ``thinking_budget`` the older models' token budget."""
         config: dict[str, Any] = {
-            "temperature": temperature,
             "responseMimeType": "application/json",
             "responseSchema": dict(schema),
         }
+        if temperature is not None:
+            config["temperature"] = temperature
+        thinking: dict[str, Any] = {}
+        if thinking_level is not None:
+            thinking["thinkingLevel"] = thinking_level
         if thinking_budget is not None:
-            config["thinkingConfig"] = {"thinkingBudget": thinking_budget}
+            thinking["thinkingBudget"] = thinking_budget
+        if thinking:
+            config["thinkingConfig"] = thinking
         body: dict[str, Any] = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": config,

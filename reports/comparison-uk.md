@@ -125,10 +125,11 @@ The latency pass sent 300 seeded rows one call at a time, interleaved, from the 
 
 ## How the run went, and what to disclose
 
-- **The Gemini endpoint.** Gemini was reached only through a private OpenAI-compatible proxy at `localhost:8317`, run by the author's engineer, at the author's direction. It is not Google's public API, and it also serves non-Google models.
-  - The model was `gemini-3.8-flash-high` (high thinking), reported as `gemini-3.8-flash-n`, at its default temperature.
-  - Token counts are the proxy's. Costs are at Google's list price.
-  - Google's own API key was on the free tier (20 requests a day) and could not be used.
+- **How Gemini was reached in this run.** The calls went to Google AI Studio through the author's own routing setup, an OpenAI-compatible proxy on the author's machine (`localhost:8317`). The author's direct Google AI Studio key was on the free tier (20 requests a day) and could not carry the run.
+  - The model was Gemini 3.8 Flash at the high thinking level and its default temperature (`gemini-3.8-flash-high`, reported as `gemini-3.8-flash-n`).
+  - Token counts are the ones the proxy passed back. Costs are at Google's list price.
+  - Gemini's latency includes the proxy's path.
+  - The proxy client is not part of the published code (removed 2 Oct). The code calls Google AI Studio's API directly with the same settings: see **Reproducing**.
 - **378 Gemini calls** (284 choice, 94 end to end) failed with the proxy's `model_cooldown` 429 during its 5-hour limit (08:26–08:59 UTC). They were rerun and answered. The failed attempts stay in the logs (`superseded_failures` in the summary).
 - **Gemini's instructions** gave it the router's whole contract: the coordinate format, outcomes, coverage and snapshot date, with nine worked examples checked not to overlap the battery. Without that, its coordinates would not be comparable at all.
 - **Rows that depend on our index's choices** (out of coverage) are scored with all rows and again without them. The figures above do not move.
@@ -136,3 +137,15 @@ The latency pass sent 300 seeded rows one call at a time, interleaved, from the 
 - **The router on Modal was not interleaved** with this pass. Its Row B is the separate run of 30 Sept.
 - **Jev and Gemini choice results are instrument-level only,** with the right answer always offered.
 - **Router v2 is not blind on the hand batteries.** v1 is the blind figure and is shown beside it.
+
+## Reproducing
+
+`scripts/compare_run.sh <results dir>` reruns every pass: accuracy, determinism and latency, then the scoring.
+- **Gemini** is called through Google AI Studio's API directly (`bench/clients/gemini.py`, key in `GEMINI_API_KEY`). It uses `gemini-3.8-flash` at `thinkingLevel: "high"` and the model's default temperature, the settings of this run.
+- **The key must be on a paid-tier project:** the run makes about 9,500 Gemini calls, and the free tier allows 20 a day per model.
+- **Jev** needs `OPENROUTER_API_KEY`.
+- **The latency pass leaves out the router on Modal** unless `LRR_ROW_B=1` is set, with a deployed `deploy/modal_router.py`.
+- **Resumable:** every call is written as it returns. A rerun makes only the missing or failed calls.
+- **Inputs:** the battery, the option sets and every seed are fixed, so a rerun asks exactly the same questions.
+- **What may differ:** Gemini's answers vary between runs (17 % of rows changed on repeat here). Its latency will also differ from the figures above, which include the author's proxy.
+- **Cost:** about $38 at Google's promotional list price ($76 regular), and $0.30 of OpenRouter credit.
