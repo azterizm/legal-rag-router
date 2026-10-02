@@ -20,13 +20,24 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 |---|---|
 | Last updated | 2026-10-02 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅** |
-| Next step | **M12 in progress** (stop 23): 0.1.0 prepared and verified locally; the repo is pushed to GitHub. Next: CI, the PyPI publisher, the draft release, then the tag |
-| Waiting on you | The PyPI pending publisher (stop 23), then the go for the `v0.1.0` tag. Optional: a go for the vault proposals (the comparison replaces several vault placeholders) |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)** |
+| Next step | **M12 done: 0.1.0 released** (PyPI and GitHub, stop 25). Next: M13, vault doc updates |
+| Waiting on you | A go for M13 (vault edits): I show you the diff first. Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (25): **M12 done: `legal-rag-router 0.1.0` is released (your go).**
+  - **Tag `v0.1.0`** on `2f89b61`; `release.yml` passed every job (run 36966908963): preflight, build and check, PyPI, GitHub release.
+  - **PyPI:** https://pypi.org/project/legal-rag-router/0.1.0/ (wheel and sdist), published by the Trusted Publisher with a PEP 740 attestation (GitHub, `release.yml`, environment `pypi`). The `pypi` environment accepts only `v*` tags.
+  - **GitHub release:** https://github.com/azterizm/legal-rag-router/releases/tag/v0.1.0, with the index and concept index, `NOTICE`, `SHA256SUMS`, the wheel and the sdist.
+  - **Checked against the live release:**
+    - `pip install legal-rag-router==0.1.0` in a clean Python 3.13 venv;
+    - the README's `gh release download` and checksum commands;
+    - `Router.from_path()` on the downloaded index binds `s124` and refuses the invented Act;
+    - `gh attestation verify` on the wheel downloaded from PyPI (SLSA provenance v1, `release.yml`, `refs/tags/v0.1.0`, `2f89b61`).
+  - **Resume:** M13 (vault doc updates), which needs your go before any vault edit. Open: the Dependabot pull request bumping Hypothesis needs a rebase onto `2f89b61` to pass CI.
 
 - 2026-10-02 (24): **First CI on GitHub failed; fixed.** The repo is public at github.com/azterizm/legal-rag-router (`main` and the three seal tags pushed, your go).
   - **Python 3.13/3.14:** `with sqlite3.connect(...)` ends a transaction but never closes the connection. 3.13+ warns, and pytest's warnings-as-errors failed a later test. Fixed with `contextlib.closing` in `ingest/uk_catalogue.py` and `tests/test_sweep.py`; reproduced and verified locally on 3.13.
@@ -1051,12 +1062,12 @@ Each of these changes order or method but not what gets delivered. See §4.
   3. Publish to PyPI through the Trusted Publisher (OIDC, `pypi` environment, PEP 740 attestations).
   4. Create a GitHub release with `index-*.tar.gz`, `SHA256SUMS` and `NOTICE`.
 - [x] Release assets match the README's fetch commands: `index-*.tar.gz` and `concepts-*.tar.gz`, each unpacking its files at the archive root (into `data/index` and `data/concepts`), with `SHA256SUMS` covering both.
-- [ ] Release checklist:
+- [x] Release checklist (all checked 2 Oct against the live release, stop 25):
   - CHANGELOG: rename `[Unreleased]` to `[0.1.0]` with the date; version bump; `version` and `date-released` in `CITATION.cff`.
   - `pip install legal-rag-router==0.1.0` in a clean venv.
   - `Router.from_path()` works on the downloaded release index.
   - `gh attestation verify` passes on the wheel.
-- ⛔ 🧑 **Tag `v0.1.0` and publish only on your explicit go.** Publishing to PyPI can't be undone.
+- [x] ⛔ 🧑 **Tag `v0.1.0` and publish only on your explicit go.** Publishing to PyPI can't be undone. *(Your go, 2 Oct; published.)*
 
 ### M13 — Vault doc updates (plan step 12)
 
