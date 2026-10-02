@@ -295,7 +295,8 @@ def test_determinism_and_latency_are_summarised() -> None:
 
 def test_the_log_survives_a_line_cut_off_by_a_hard_stop(tmp_path: Path) -> None:
     path = tmp_path / "accuracy.jsonl"
-    path.write_text(json.dumps({"key": "a", "ok": True}) + "\n\n" + '{"key": "b", "ok', encoding="utf-8")
+    complete = json.dumps({"key": "a", "ok": True})
+    path.write_text(complete + "\n\n" + '{"key": "b", "ok', encoding="utf-8")
     log = Log(path)
     assert log.done == {"a"}  # b's cut-off line is skipped, so b runs again
     log.write({"key": "b", "ok": True})

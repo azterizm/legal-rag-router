@@ -18,15 +18,34 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-09-30 |
+| Last updated | 2026-10-02 |
 | Current stage | **M10-UK: sealed runs v1 and v2 done** (`reports/sealed-run-uk.md`); controlled latency re-runs done: p99 Mac 2.10 ms, rig 9.21 ms, both short of < 2 ms (stop 18). Before it, **Stage D (concept discovery, UK)**, inserted before M10 at your request: **stage D done** (`Router.discover()`; sealed test run in `reports/discovery-uk.md`; contract and README updated). Stage B done; UK batteries and the concept battery sealed and tagged |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅** |
-| Next step | M11: Jev and Gemini. The router's Row B run and Laya are done |
-| Waiting on you | ⛔ The M11 cost estimate before any paid call. Optional: a go for the vault proposals |
+| Next step | **M11 done** (`reports/comparison-uk.md`). Next: M12, release, with ⛔ points of its own |
+| Waiting on you | Your reading of `reports/comparison-uk.md`, then a go for M12. Optional: a go for the vault proposals (the comparison replaces several vault placeholders) |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-02 (19): **M11-UK done: the comparison is run, scored and sealed.** Reading: `reports/comparison-uk.md`; sealed as `seals/results-compare-2026-10-01.json` (`b96c5c86…`), citing the v2 battery seal; artefacts in `results/compare-uk-2026-10-01/`.
+  - **Gemini on its own** (`gemini-3.8-flash-high` via the author's proxy):
+    - bound the wrong instrument for 102 of 1,897 real citations (5.4 %);
+    - refused 233 (12.3 %);
+    - changed its answer between repeats on 17 % of rows;
+    - bound no invented law (0/68).
+  - **Gemini as a parser, with the router's index resolving:**
+    - the most accurate pipeline measured: 1,972 of 2,112 rows as expected, against the router's 1,916 (v2) and 1,903 (v1, blind);
+    - 0 wrong instruments and 0 invented bound;
+    - real law refused 2.9 % (the router 4.3 %); held-out misses 1.1 % (the router 6.7 %);
+    - it wins on real-document text (bare SI numbers, multi-citation sentences) and loses on ambiguity (8 of 25) and the other hand batteries.
+  - **Choice questions** (right answer always offered): Jev 98.7–99.2 %, Gemini 99.3–99.4 %, nearly flat from 3 to 30 options. The vault's expected decline is not borne out.
+  - **Determinism:** the answer changed on Jev 1.0 %, Gemini 17.0 %, the router 0.
+  - **Cost per 1,000 queries:** Gemini $8.76 end to end, $1.00 for a choice question; Jev $0.041; the router $0.
+  - **Latency p50 from the Mac:** Jev 507 ms; Gemini 13.5 s through the proxy (p99 192 s); the router 0.14 ms in process, 277 ms as a remote service.
+  - **The run cost, at list price:** Gemini $37.78 promotional ($75.56 regular); Jev $0.30. 378 Gemini calls hit the proxy's 5-hour cooldown and were rerun.
+  - **Proposal, not a result:** an LLM pass only on the queries the router leaves unresolved or refuses (12 % of this battery), keeping the index as the resolver. It would keep the hybrid's recall at a fraction of its cost.
+  - **Resume:** your reading of the report, then M12 (release), which has ⛔ points (the tag and the PyPI publish).
 
 - 2026-09-30 (18): **The first x86 run withdrawn; a controlled re-run on both machines.** Reading: `docs/measurements.md`, end of "sealed-run latency, Apple Silicon".
   - **Withdrawn (your call, 30 Sept):** the 29 Sept x86 run (commit 0e78c83): Chrome was running heavily in the background. `bench/results/latency-windows-x86_64.json` and its sections in `measurements.md` and the report are removed; `scripts/latency_x86.sh` is removed too. Git history keeps them.
@@ -856,15 +875,15 @@ Each of these changes order or method but not what gets delivered. See §4.
   2. the router as a Modal function (Row B);
   3. Laya;
   4. Jev and Gemini.
-- [ ] `bench/clients/gemini.py`: Gemini Flash with structured output; model id pinned in the run manifest.
-- [ ] `bench/clients/jev.py`: ported from `jev_client.py`.
-- [ ] Harness:
+- [x] `bench/clients/gemini.py`: Gemini Flash with structured output; model id pinned in the run manifest. (Run through the author's proxy instead: `bench/clients/gemini_proxy.py`, 1 Oct.)
+- [x] `bench/clients/jev.py`: ported from `jev_client.py`.
+- [x] Harness (`bench/compare.py`; accuracy and latency passes split, approved 1 Oct):
   - Interleaved randomised order.
   - Warm keep-alive pools.
   - httpx `trace` split (DNS, connect, TLS, TTFB).
   - Warm-up calls discarded.
   - Bootstrap CIs; raw per-call timings kept.
-- [ ] Latency rows:
+- [x] Latency rows (Row A as floor-paired calls; Row B 30 Sept; Row C in process):
   - **Row A:** a measured network floor (a no-model request to the same host), with provider-reported timing shown beside it.
   - **Row B:** the router as a warm Modal CPU HTTP function in the provider's region.
     - (30 Sept) `deploy/modal_router.py`, deployed to your workspace as `legal-rag-router`:
@@ -882,13 +901,13 @@ Each of these changes order or method but not what gets delivered. See §4.
       - **0 of 6,336 answers differ** from the local router.
       - The app is stopped (`modal app stop legal-rag-router`); `modal deploy deploy/modal_router.py` brings it back for the interleaved run with Jev and Gemini.
   - **Row C:** as deployed.
-- [ ] Other axes:
+- [x] Other axes:
   - accuracy on the sealed battery, or a stated sample of it;
   - bound-on-invented;
   - **determinism** (5 repeats of each query);
   - tokens and cost;
   - egress.
-- [ ] `bench/unit1_cardinality.py`: accuracy as the option set grows (3 / 10 / 30+ options), from 07 §2.
+- [x] `bench/unit1_cardinality.py`: accuracy as the option set grows (3 / 10 / 30+ options), from 07 §2. (Done as the choice questions in `bench/unit1.py` and `bench/compare.py`.)
 - [x] `bench/clients/laya.py` (decision 3 as amended): base Laya, speed and footprint only, at the same option counts. Measured on the Mac CPU and GPU, the rig CPU and a Modal T4; the rig GPU was dropped (1 Oct). Results in `docs/measurements.md`.
   - **Measurement plan (fixed 30 Sept, before any result):**
     - **Model:** `convaiinnovations/laya` loaded directly (`laya.load`), not through `laya.Router`, which may pick another checkpoint. The Hugging Face revision and every weight file's SHA-256 are recorded; the rig gets the same files, copied from the Mac.
@@ -928,7 +947,7 @@ Each of these changes order or method but not what gets delivered. See §4.
       - `uv run --with laya`, with `HF_HOME=~/.cache/lrr-laya`; nothing enters `pyproject.toml` or the lock;
       - **you run the downloads**;
       - removal is `rm -rf ~/.cache/lrr-laya` and `uv cache clean`, on each machine.
-- [ ] ~~Two runs: UK/EU business hours and off-peak.~~ **One run (your call, 1 Oct):** the second time-of-day run is left as a later improvement, to protect the launch date. Results sealed against the same battery seal.
+- [x] ~~Two runs: UK/EU business hours and off-peak.~~ **One run (your call, 1 Oct):** the second time-of-day run is left as a later improvement, to protect the launch date. Results sealed against the same battery seal.
 - **Comparison design (your approval, 1 Oct), Jev and Gemini:**
   1. **Gemini end to end, all 2,112 rows:**
      - Gemini returns the router's kind of answer (an outcome and legislation.gov.uk coordinates), as JSON enforced by a response schema, from memory, with no index;

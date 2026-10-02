@@ -1,0 +1,478 @@
+{
+  "runs": [
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T05:09:55+00:00",
+      "limit": null,
+      "workers": 8,
+      "client_region": "Azure Malaysia West (Standard_B2als_v2)",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "gemini_model": "gemini-3.8-flash",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "note": "Gemini calls are made under the author's Google AI Pro subscription credits; costs are reported at published API list prices."
+    },
+    {
+      "pass": "determinism",
+      "started_utc": "2026-10-01T05:13:36+00:00",
+      "limit": null,
+      "workers": 8,
+      "client_region": "Azure Malaysia West (Standard_B2als_v2)",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "gemini_model": "gemini-3.8-flash",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "note": "Gemini calls are made under the author's Google AI Pro subscription credits; costs are reported at published API list prices."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T05:52:22+00:00",
+      "limit": 20,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T06:00:15+00:00",
+      "limit": null,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T07:17:28+00:00",
+      "limit": null,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T07:47:38+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T12:49:46+00:00",
+      "limit": null,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "determinism",
+      "started_utc": "2026-10-01T13:36:40+00:00",
+      "limit": null,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T13:39:15+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "determinism",
+      "started_utc": "2026-10-01T13:39:17+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T13:46:23+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "determinism",
+      "started_utc": "2026-10-01T14:16:38+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "latency",
+      "started_utc": "2026-10-01T14:58:23+00:00",
+      "limit": null,
+      "workers": 8,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T17:48:50+00:00",
+      "limit": null,
+      "workers": 4,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "accuracy",
+      "started_utc": "2026-10-01T17:48:54+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "determinism",
+      "started_utc": "2026-10-01T17:48:55+00:00",
+      "limit": null,
+      "workers": 12,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    },
+    {
+      "pass": "latency",
+      "started_utc": "2026-10-01T17:48:56+00:00",
+      "limit": null,
+      "workers": 8,
+      "client_region": "the author's Mac, Pakistan",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.15",
+      "gemini_model": "gemini-3.8-flash-high",
+      "jev_model": "typesafe/jev-1.13",
+      "seed": 20261001,
+      "prices": {
+        "gemini_promotional_per_m": {
+          "input": 0.75,
+          "output": 3.75
+        },
+        "gemini_regular_per_m": {
+          "input": 1.5,
+          "output": 7.5
+        },
+        "jev_per_m": {
+          "input": 0.042,
+          "output": 0.0
+        }
+      },
+      "gemini_endpoint": "http://localhost:8317/v1",
+      "note": "Gemini 3.8 Flash (high thinking) through a private OpenAI-compatible proxy run by the author's engineer, not Google's public API: token counts are the proxy's, costs are at Google's published list price, and Gemini latency is the proxy's path."
+    }
+  ]
+}

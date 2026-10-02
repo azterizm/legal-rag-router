@@ -425,3 +425,10 @@ The maximum is the same query in every run. It is one of the replayed real citat
 - **Even on its reference GPU, Laya's p50 is about 55–60× the router's on a single cloud CPU core, and 280–310× the router's on the Mac.**
 - **Laya needs a GPU to get there.** On the same CPUs the router runs on, it is 740–4,000× slower.
 - **None of this depends on fine-tuning.** The title cut at 30 options is the same on every machine.
+
+## 2026-10-01: the router against Gemini, Jev and Laya (roadmap M11)
+
+The full comparison (accuracy, determinism, cost, latency and data egress) is in `reports/comparison-uk.md`, sealed as `seals/results-compare-2026-10-01.json`. Latency from that run:
+- Jev, p50 507 ms;
+- Gemini through the author's proxy, p50 13.5 s and p99 192 s;
+- the router in process inside the interleaved pass, p50 1.18 ms, slower than the controlled 0.14 ms because every call followed a multi-second network wait.

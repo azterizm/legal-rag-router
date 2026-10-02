@@ -1,0 +1,2263 @@
+{
+  "scored_utc": "2026-10-01T19:54:11+00:00",
+  "index_snapshot": "2026-09-28",
+  "accuracy": {
+    "gemini_route": {
+      "reading": "2: Gemini as an LLM-only router (its own outcome and coordinates)",
+      "all_rows": {
+        "collision": {
+          "count": 0,
+          "total": 40,
+          "rate": 0.0,
+          "upper_95": 0.072158
+        },
+        "misroute": {
+          "count": 102,
+          "total": 1897,
+          "rate": 0.053769,
+          "upper_95": 0.063078
+        },
+        "misroute_wrong_instrument": {
+          "count": 102,
+          "total": 1897,
+          "rate": 0.053769,
+          "upper_95": 0.063078
+        },
+        "miss_heldout": {
+          "count": 11,
+          "total": 1000,
+          "rate": 0.011,
+          "upper_95": 0.018142
+        },
+        "false_abstention": {
+          "count": 233,
+          "total": 1897,
+          "rate": 0.122826,
+          "upper_95": 0.135919
+        },
+        "covered_reported_out_of_coverage": {
+          "count": 4,
+          "total": 2021,
+          "rate": 0.001979,
+          "upper_95": 0.004523
+        },
+        "uncovered_refused": {
+          "count": 1,
+          "total": 16,
+          "rate": 0.0625,
+          "upper_95": 0.263957
+        },
+        "bound_on_invented": {
+          "count": 0,
+          "total": 68,
+          "rate": 0.0,
+          "upper_95": 0.043099
+        },
+        "strict_abstention": {
+          "count": 68,
+          "total": 68,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_precision": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_recall": {
+          "count": 20,
+          "total": 31,
+          "rate": 0.645161,
+          "upper_95": 0.78664
+        },
+        "typo_clarify_recall": {
+          "count": 0,
+          "total": 7,
+          "rate": 0.0,
+          "upper_95": 0.348164
+        },
+        "typo_bound_when_it_should_not": {
+          "count": 3,
+          "total": 22,
+          "rate": 0.136364,
+          "upper_95": 0.315913
+        },
+        "batteries": {
+          "ambiguous": {
+            "rows": 25,
+            "status_as_expected": {
+              "count": 2,
+              "total": 25,
+              "rate": 0.08,
+              "upper_95": 0.23104
+            }
+          },
+          "catalogue": {
+            "rows": 45,
+            "status_as_expected": {
+              "count": 31,
+              "total": 45,
+              "rate": 0.688889,
+              "upper_95": 0.801108
+            },
+            "met": {
+              "count": 12,
+              "total": 13,
+              "rate": 0.923077,
+              "upper_95": 0.996062
+            },
+            "misroute": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 13,
+              "rate": 0.076923,
+              "upper_95": 0.31634
+            },
+            "miss": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "asked": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            }
+          },
+          "collision": {
+            "rows": 40,
+            "status_as_expected": {
+              "count": 39,
+              "total": 40,
+              "rate": 0.975,
+              "upper_95": 0.998718
+            },
+            "met": {
+              "count": 39,
+              "total": 40,
+              "rate": 0.975,
+              "upper_95": 0.998718
+            },
+            "misroute": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 40,
+              "rate": 0.025,
+              "upper_95": 0.113188
+            },
+            "miss": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "asked": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            }
+          },
+          "false_abstention": {
+            "rows": 773,
+            "status_as_expected": {
+              "count": 633,
+              "total": 773,
+              "rate": 0.818887,
+              "upper_95": 0.841388
+            },
+            "met": {
+              "count": 545,
+              "total": 773,
+              "rate": 0.705045,
+              "upper_95": 0.732057
+            },
+            "misroute": {
+              "count": 88,
+              "total": 773,
+              "rate": 0.113842,
+              "upper_95": 0.134386
+            },
+            "wrong_instrument": {
+              "count": 88,
+              "total": 773,
+              "rate": 0.113842,
+              "upper_95": 0.134386
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "false_abstention": {
+              "count": 138,
+              "total": 773,
+              "rate": 0.178525,
+              "upper_95": 0.202729
+            },
+            "miss": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "asked": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "out_of_coverage": {
+              "count": 2,
+              "total": 773,
+              "rate": 0.002587,
+              "upper_95": 0.008122
+            }
+          },
+          "identifier": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 26,
+              "total": 29,
+              "rate": 0.896552,
+              "upper_95": 0.971204
+            },
+            "met": {
+              "count": 20,
+              "total": 23,
+              "rate": 0.869565,
+              "upper_95": 0.963485
+            },
+            "misroute": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "miss": {
+              "count": 3,
+              "total": 23,
+              "rate": 0.130435,
+              "upper_95": 0.303638
+            },
+            "asked": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            }
+          },
+          "informal": {
+            "rows": 27,
+            "status_as_expected": {
+              "count": 22,
+              "total": 27,
+              "rate": 0.814815,
+              "upper_95": 0.924064
+            },
+            "met": {
+              "count": 16,
+              "total": 18,
+              "rate": 0.888889,
+              "upper_95": 0.979889
+            },
+            "misroute": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "false_abstention": {
+              "count": 2,
+              "total": 18,
+              "rate": 0.111111,
+              "upper_95": 0.310263
+            },
+            "miss": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "asked": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            }
+          },
+          "invented": {
+            "rows": 68,
+            "status_as_expected": {
+              "count": 68,
+              "total": 68,
+              "rate": 1.0,
+              "upper_95": 1.0
+            }
+          },
+          "misroute": {
+            "rows": 1030,
+            "status_as_expected": {
+              "count": 926,
+              "total": 1030,
+              "rate": 0.899029,
+              "upper_95": 0.914095
+            },
+            "met": {
+              "count": 912,
+              "total": 1030,
+              "rate": 0.885437,
+              "upper_95": 0.901413
+            },
+            "misroute": {
+              "count": 14,
+              "total": 1030,
+              "rate": 0.013592,
+              "upper_95": 0.021168
+            },
+            "wrong_instrument": {
+              "count": 14,
+              "total": 1030,
+              "rate": 0.013592,
+              "upper_95": 0.021168
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "false_abstention": {
+              "count": 91,
+              "total": 1030,
+              "rate": 0.08835,
+              "upper_95": 0.104271
+            },
+            "miss": {
+              "count": 11,
+              "total": 1030,
+              "rate": 0.01068,
+              "upper_95": 0.017615
+            },
+            "asked": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "out_of_coverage": {
+              "count": 2,
+              "total": 1030,
+              "rate": 0.001942,
+              "upper_95": 0.0061
+            }
+          },
+          "typo": {
+            "rows": 75,
+            "status_as_expected": {
+              "count": 52,
+              "total": 75,
+              "rate": 0.693333,
+              "upper_95": 0.780487
+            },
+            "met": {
+              "count": 29,
+              "total": 44,
+              "rate": 0.659091,
+              "upper_95": 0.776743
+            },
+            "misroute": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "false_abstention": {
+              "count": 15,
+              "total": 44,
+              "rate": 0.340909,
+              "upper_95": 0.475387
+            },
+            "miss": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "asked": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            }
+          }
+        }
+      },
+      "knowable_rows": {
+        "collision": {
+          "count": 0,
+          "total": 40,
+          "rate": 0.0,
+          "upper_95": 0.072158
+        },
+        "misroute": {
+          "count": 102,
+          "total": 1897,
+          "rate": 0.053769,
+          "upper_95": 0.063078
+        },
+        "misroute_wrong_instrument": {
+          "count": 102,
+          "total": 1897,
+          "rate": 0.053769,
+          "upper_95": 0.063078
+        },
+        "miss_heldout": {
+          "count": 11,
+          "total": 1000,
+          "rate": 0.011,
+          "upper_95": 0.018142
+        },
+        "false_abstention": {
+          "count": 233,
+          "total": 1897,
+          "rate": 0.122826,
+          "upper_95": 0.135919
+        },
+        "covered_reported_out_of_coverage": {
+          "count": 4,
+          "total": 2021,
+          "rate": 0.001979,
+          "upper_95": 0.004523
+        },
+        "uncovered_refused": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "bound_on_invented": {
+          "count": 0,
+          "total": 68,
+          "rate": 0.0,
+          "upper_95": 0.043099
+        },
+        "strict_abstention": {
+          "count": 68,
+          "total": 68,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_precision": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_recall": {
+          "count": 20,
+          "total": 31,
+          "rate": 0.645161,
+          "upper_95": 0.78664
+        },
+        "typo_clarify_recall": {
+          "count": 0,
+          "total": 7,
+          "rate": 0.0,
+          "upper_95": 0.348164
+        },
+        "typo_bound_when_it_should_not": {
+          "count": 3,
+          "total": 22,
+          "rate": 0.136364,
+          "upper_95": 0.315913
+        },
+        "batteries": {
+          "ambiguous": {
+            "rows": 25,
+            "status_as_expected": {
+              "count": 2,
+              "total": 25,
+              "rate": 0.08,
+              "upper_95": 0.23104
+            }
+          },
+          "catalogue": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 20,
+              "total": 29,
+              "rate": 0.689655,
+              "upper_95": 0.827535
+            },
+            "met": {
+              "count": 12,
+              "total": 13,
+              "rate": 0.923077,
+              "upper_95": 0.996062
+            },
+            "misroute": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 13,
+              "rate": 0.076923,
+              "upper_95": 0.31634
+            },
+            "miss": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "asked": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            }
+          },
+          "collision": {
+            "rows": 40,
+            "status_as_expected": {
+              "count": 39,
+              "total": 40,
+              "rate": 0.975,
+              "upper_95": 0.998718
+            },
+            "met": {
+              "count": 39,
+              "total": 40,
+              "rate": 0.975,
+              "upper_95": 0.998718
+            },
+            "misroute": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 40,
+              "rate": 0.025,
+              "upper_95": 0.113188
+            },
+            "miss": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "asked": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            }
+          },
+          "false_abstention": {
+            "rows": 773,
+            "status_as_expected": {
+              "count": 633,
+              "total": 773,
+              "rate": 0.818887,
+              "upper_95": 0.841388
+            },
+            "met": {
+              "count": 545,
+              "total": 773,
+              "rate": 0.705045,
+              "upper_95": 0.732057
+            },
+            "misroute": {
+              "count": 88,
+              "total": 773,
+              "rate": 0.113842,
+              "upper_95": 0.134386
+            },
+            "wrong_instrument": {
+              "count": 88,
+              "total": 773,
+              "rate": 0.113842,
+              "upper_95": 0.134386
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "false_abstention": {
+              "count": 138,
+              "total": 773,
+              "rate": 0.178525,
+              "upper_95": 0.202729
+            },
+            "miss": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "asked": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "out_of_coverage": {
+              "count": 2,
+              "total": 773,
+              "rate": 0.002587,
+              "upper_95": 0.008122
+            }
+          },
+          "identifier": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 26,
+              "total": 29,
+              "rate": 0.896552,
+              "upper_95": 0.971204
+            },
+            "met": {
+              "count": 20,
+              "total": 23,
+              "rate": 0.869565,
+              "upper_95": 0.963485
+            },
+            "misroute": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "miss": {
+              "count": 3,
+              "total": 23,
+              "rate": 0.130435,
+              "upper_95": 0.303638
+            },
+            "asked": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            }
+          },
+          "informal": {
+            "rows": 27,
+            "status_as_expected": {
+              "count": 22,
+              "total": 27,
+              "rate": 0.814815,
+              "upper_95": 0.924064
+            },
+            "met": {
+              "count": 16,
+              "total": 18,
+              "rate": 0.888889,
+              "upper_95": 0.979889
+            },
+            "misroute": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "false_abstention": {
+              "count": 2,
+              "total": 18,
+              "rate": 0.111111,
+              "upper_95": 0.310263
+            },
+            "miss": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "asked": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            }
+          },
+          "invented": {
+            "rows": 68,
+            "status_as_expected": {
+              "count": 68,
+              "total": 68,
+              "rate": 1.0,
+              "upper_95": 1.0
+            }
+          },
+          "misroute": {
+            "rows": 1030,
+            "status_as_expected": {
+              "count": 926,
+              "total": 1030,
+              "rate": 0.899029,
+              "upper_95": 0.914095
+            },
+            "met": {
+              "count": 912,
+              "total": 1030,
+              "rate": 0.885437,
+              "upper_95": 0.901413
+            },
+            "misroute": {
+              "count": 14,
+              "total": 1030,
+              "rate": 0.013592,
+              "upper_95": 0.021168
+            },
+            "wrong_instrument": {
+              "count": 14,
+              "total": 1030,
+              "rate": 0.013592,
+              "upper_95": 0.021168
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "false_abstention": {
+              "count": 91,
+              "total": 1030,
+              "rate": 0.08835,
+              "upper_95": 0.104271
+            },
+            "miss": {
+              "count": 11,
+              "total": 1030,
+              "rate": 0.01068,
+              "upper_95": 0.017615
+            },
+            "asked": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "out_of_coverage": {
+              "count": 2,
+              "total": 1030,
+              "rate": 0.001942,
+              "upper_95": 0.0061
+            }
+          },
+          "typo": {
+            "rows": 75,
+            "status_as_expected": {
+              "count": 52,
+              "total": 75,
+              "rate": 0.693333,
+              "upper_95": 0.780487
+            },
+            "met": {
+              "count": 29,
+              "total": 44,
+              "rate": 0.659091,
+              "upper_95": 0.776743
+            },
+            "misroute": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "false_abstention": {
+              "count": 15,
+              "total": 44,
+              "rate": 0.340909,
+              "upper_95": 0.475387
+            },
+            "miss": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "asked": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            }
+          }
+        }
+      },
+      "unusable_answers": 0,
+      "malformed_coordinates": 27
+    },
+    "gemini_existence": {
+      "reading": "3: Gemini on existence (Unit 2), from reading 2's outcomes",
+      "bound_on_invented": {
+        "count": 0,
+        "total": 68,
+        "rate": 0.0,
+        "upper_95": 0.043099
+      },
+      "strict_abstention": {
+        "count": 68,
+        "total": 68,
+        "rate": 1.0,
+        "upper_95": 1.0
+      },
+      "false_abstention": {
+        "count": 233,
+        "total": 1897,
+        "rate": 0.122826,
+        "upper_95": 0.135919
+      }
+    },
+    "gemini_parser": {
+      "reading": "1: Gemini as a parser (Unit 1); its extracted citations resolved by the router's index, its own coordinates unused",
+      "all_rows": {
+        "collision": {
+          "count": 0,
+          "total": 40,
+          "rate": 0.0,
+          "upper_95": 0.072158
+        },
+        "misroute": {
+          "count": 0,
+          "total": 1897,
+          "rate": 0.0,
+          "upper_95": 0.001578
+        },
+        "misroute_wrong_instrument": {
+          "count": 0,
+          "total": 1897,
+          "rate": 0.0,
+          "upper_95": 0.001578
+        },
+        "miss_heldout": {
+          "count": 11,
+          "total": 1000,
+          "rate": 0.011,
+          "upper_95": 0.018142
+        },
+        "false_abstention": {
+          "count": 55,
+          "total": 1897,
+          "rate": 0.028993,
+          "upper_95": 0.036161
+        },
+        "covered_reported_out_of_coverage": {
+          "count": 8,
+          "total": 2021,
+          "rate": 0.003958,
+          "upper_95": 0.007131
+        },
+        "uncovered_refused": {
+          "count": 0,
+          "total": 16,
+          "rate": 0.0,
+          "upper_95": 0.17075
+        },
+        "bound_on_invented": {
+          "count": 0,
+          "total": 68,
+          "rate": 0.0,
+          "upper_95": 0.043099
+        },
+        "strict_abstention": {
+          "count": 68,
+          "total": 68,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_precision": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_recall": {
+          "count": 31,
+          "total": 31,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_clarify_recall": {
+          "count": 2,
+          "total": 7,
+          "rate": 0.285714,
+          "upper_95": 0.658739
+        },
+        "typo_bound_when_it_should_not": {
+          "count": 4,
+          "total": 22,
+          "rate": 0.181818,
+          "upper_95": 0.369091
+        },
+        "batteries": {
+          "ambiguous": {
+            "rows": 25,
+            "status_as_expected": {
+              "count": 8,
+              "total": 25,
+              "rate": 0.32,
+              "upper_95": 0.503642
+            }
+          },
+          "catalogue": {
+            "rows": 45,
+            "status_as_expected": {
+              "count": 32,
+              "total": 45,
+              "rate": 0.711111,
+              "upper_95": 0.819883
+            },
+            "met": {
+              "count": 12,
+              "total": 13,
+              "rate": 0.923077,
+              "upper_95": 0.996062
+            },
+            "misroute": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 13,
+              "rate": 0.076923,
+              "upper_95": 0.31634
+            },
+            "miss": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "asked": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            }
+          },
+          "collision": {
+            "rows": 40,
+            "status_as_expected": {
+              "count": 40,
+              "total": 40,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "met": {
+              "count": 40,
+              "total": 40,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "miss": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "asked": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            }
+          },
+          "false_abstention": {
+            "rows": 773,
+            "status_as_expected": {
+              "count": 767,
+              "total": 773,
+              "rate": 0.992238,
+              "upper_95": 0.996614
+            },
+            "met": {
+              "count": 767,
+              "total": 773,
+              "rate": 0.992238,
+              "upper_95": 0.996614
+            },
+            "misroute": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "false_abstention": {
+              "count": 3,
+              "total": 773,
+              "rate": 0.003881,
+              "upper_95": 0.01
+            },
+            "miss": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "asked": {
+              "count": 3,
+              "total": 773,
+              "rate": 0.003881,
+              "upper_95": 0.01
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            }
+          },
+          "identifier": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 26,
+              "total": 29,
+              "rate": 0.896552,
+              "upper_95": 0.971204
+            },
+            "met": {
+              "count": 20,
+              "total": 23,
+              "rate": 0.869565,
+              "upper_95": 0.963485
+            },
+            "misroute": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "miss": {
+              "count": 3,
+              "total": 23,
+              "rate": 0.130435,
+              "upper_95": 0.303638
+            },
+            "asked": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            }
+          },
+          "informal": {
+            "rows": 27,
+            "status_as_expected": {
+              "count": 19,
+              "total": 27,
+              "rate": 0.703704,
+              "upper_95": 0.843181
+            },
+            "met": {
+              "count": 18,
+              "total": 18,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "miss": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "asked": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            }
+          },
+          "invented": {
+            "rows": 68,
+            "status_as_expected": {
+              "count": 68,
+              "total": 68,
+              "rate": 1.0,
+              "upper_95": 1.0
+            }
+          },
+          "misroute": {
+            "rows": 1030,
+            "status_as_expected": {
+              "count": 944,
+              "total": 1030,
+              "rate": 0.916505,
+              "upper_95": 0.93027
+            },
+            "met": {
+              "count": 944,
+              "total": 1030,
+              "rate": 0.916505,
+              "upper_95": 0.93027
+            },
+            "misroute": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "false_abstention": {
+              "count": 51,
+              "total": 1030,
+              "rate": 0.049515,
+              "upper_95": 0.062116
+            },
+            "miss": {
+              "count": 11,
+              "total": 1030,
+              "rate": 0.01068,
+              "upper_95": 0.017615
+            },
+            "asked": {
+              "count": 16,
+              "total": 1030,
+              "rate": 0.015534,
+              "upper_95": 0.023498
+            },
+            "out_of_coverage": {
+              "count": 8,
+              "total": 1030,
+              "rate": 0.007767,
+              "upper_95": 0.01397
+            }
+          },
+          "typo": {
+            "rows": 75,
+            "status_as_expected": {
+              "count": 68,
+              "total": 75,
+              "rate": 0.906667,
+              "upper_95": 0.955372
+            },
+            "met": {
+              "count": 44,
+              "total": 44,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "miss": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "asked": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            }
+          }
+        }
+      },
+      "knowable_rows": {
+        "collision": {
+          "count": 0,
+          "total": 40,
+          "rate": 0.0,
+          "upper_95": 0.072158
+        },
+        "misroute": {
+          "count": 0,
+          "total": 1897,
+          "rate": 0.0,
+          "upper_95": 0.001578
+        },
+        "misroute_wrong_instrument": {
+          "count": 0,
+          "total": 1897,
+          "rate": 0.0,
+          "upper_95": 0.001578
+        },
+        "miss_heldout": {
+          "count": 11,
+          "total": 1000,
+          "rate": 0.011,
+          "upper_95": 0.018142
+        },
+        "false_abstention": {
+          "count": 55,
+          "total": 1897,
+          "rate": 0.028993,
+          "upper_95": 0.036161
+        },
+        "covered_reported_out_of_coverage": {
+          "count": 8,
+          "total": 2021,
+          "rate": 0.003958,
+          "upper_95": 0.007131
+        },
+        "uncovered_refused": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "bound_on_invented": {
+          "count": 0,
+          "total": 68,
+          "rate": 0.0,
+          "upper_95": 0.043099
+        },
+        "strict_abstention": {
+          "count": 68,
+          "total": 68,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_precision": {
+          "count": 0,
+          "total": 0,
+          "rate": 0.0,
+          "upper_95": 1.0
+        },
+        "typo_auto_correct_recall": {
+          "count": 31,
+          "total": 31,
+          "rate": 1.0,
+          "upper_95": 1.0
+        },
+        "typo_clarify_recall": {
+          "count": 2,
+          "total": 7,
+          "rate": 0.285714,
+          "upper_95": 0.658739
+        },
+        "typo_bound_when_it_should_not": {
+          "count": 4,
+          "total": 22,
+          "rate": 0.181818,
+          "upper_95": 0.369091
+        },
+        "batteries": {
+          "ambiguous": {
+            "rows": 25,
+            "status_as_expected": {
+              "count": 8,
+              "total": 25,
+              "rate": 0.32,
+              "upper_95": 0.503642
+            }
+          },
+          "catalogue": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 22,
+              "total": 29,
+              "rate": 0.758621,
+              "upper_95": 0.880831
+            },
+            "met": {
+              "count": 12,
+              "total": 13,
+              "rate": 0.923077,
+              "upper_95": 0.996062
+            },
+            "misroute": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "false_abstention": {
+              "count": 1,
+              "total": 13,
+              "rate": 0.076923,
+              "upper_95": 0.31634
+            },
+            "miss": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "asked": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 13,
+              "rate": 0.0,
+              "upper_95": 0.205817
+            }
+          },
+          "collision": {
+            "rows": 40,
+            "status_as_expected": {
+              "count": 40,
+              "total": 40,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "met": {
+              "count": 40,
+              "total": 40,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "miss": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "asked": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 40,
+              "rate": 0.0,
+              "upper_95": 0.072158
+            }
+          },
+          "false_abstention": {
+            "rows": 773,
+            "status_as_expected": {
+              "count": 767,
+              "total": 773,
+              "rate": 0.992238,
+              "upper_95": 0.996614
+            },
+            "met": {
+              "count": 767,
+              "total": 773,
+              "rate": 0.992238,
+              "upper_95": 0.996614
+            },
+            "misroute": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "false_abstention": {
+              "count": 3,
+              "total": 773,
+              "rate": 0.003881,
+              "upper_95": 0.01
+            },
+            "miss": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            },
+            "asked": {
+              "count": 3,
+              "total": 773,
+              "rate": 0.003881,
+              "upper_95": 0.01
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 773,
+              "rate": 0.0,
+              "upper_95": 0.003868
+            }
+          },
+          "identifier": {
+            "rows": 29,
+            "status_as_expected": {
+              "count": 26,
+              "total": 29,
+              "rate": 0.896552,
+              "upper_95": 0.971204
+            },
+            "met": {
+              "count": 20,
+              "total": 23,
+              "rate": 0.869565,
+              "upper_95": 0.963485
+            },
+            "misroute": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "miss": {
+              "count": 3,
+              "total": 23,
+              "rate": 0.130435,
+              "upper_95": 0.303638
+            },
+            "asked": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 23,
+              "rate": 0.0,
+              "upper_95": 0.122123
+            }
+          },
+          "informal": {
+            "rows": 27,
+            "status_as_expected": {
+              "count": 19,
+              "total": 27,
+              "rate": 0.703704,
+              "upper_95": 0.843181
+            },
+            "met": {
+              "count": 18,
+              "total": 18,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "miss": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "asked": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 18,
+              "rate": 0.0,
+              "upper_95": 0.153318
+            }
+          },
+          "invented": {
+            "rows": 68,
+            "status_as_expected": {
+              "count": 68,
+              "total": 68,
+              "rate": 1.0,
+              "upper_95": 1.0
+            }
+          },
+          "misroute": {
+            "rows": 1030,
+            "status_as_expected": {
+              "count": 944,
+              "total": 1030,
+              "rate": 0.916505,
+              "upper_95": 0.93027
+            },
+            "met": {
+              "count": 944,
+              "total": 1030,
+              "rate": 0.916505,
+              "upper_95": 0.93027
+            },
+            "misroute": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 1030,
+              "rate": 0.0,
+              "upper_95": 0.002904
+            },
+            "false_abstention": {
+              "count": 51,
+              "total": 1030,
+              "rate": 0.049515,
+              "upper_95": 0.062116
+            },
+            "miss": {
+              "count": 11,
+              "total": 1030,
+              "rate": 0.01068,
+              "upper_95": 0.017615
+            },
+            "asked": {
+              "count": 16,
+              "total": 1030,
+              "rate": 0.015534,
+              "upper_95": 0.023498
+            },
+            "out_of_coverage": {
+              "count": 8,
+              "total": 1030,
+              "rate": 0.007767,
+              "upper_95": 0.01397
+            }
+          },
+          "typo": {
+            "rows": 75,
+            "status_as_expected": {
+              "count": 68,
+              "total": 75,
+              "rate": 0.906667,
+              "upper_95": 0.955372
+            },
+            "met": {
+              "count": 44,
+              "total": 44,
+              "rate": 1.0,
+              "upper_95": 1.0
+            },
+            "misroute": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_instrument": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "wrong_provision": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "false_abstention": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "miss": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "asked": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            },
+            "out_of_coverage": {
+              "count": 0,
+              "total": 44,
+              "rate": 0.0,
+              "upper_95": 0.065819
+            }
+          }
+        }
+      }
+    },
+    "jev_choice": {
+      "3": {
+        "questions": 2050,
+        "correct": 2031,
+        "correct_real_instrument": "1943/1960",
+        "correct_none": "88/90",
+        "picked_an_instrument_when_none_was_right": 2,
+        "unusable_answers": 0
+      },
+      "10": {
+        "questions": 2050,
+        "correct": 2033,
+        "correct_real_instrument": "1944/1960",
+        "correct_none": "89/90",
+        "picked_an_instrument_when_none_was_right": 1,
+        "unusable_answers": 0
+      },
+      "30": {
+        "questions": 2050,
+        "correct": 2023,
+        "correct_real_instrument": "1939/1960",
+        "correct_none": "84/90",
+        "picked_an_instrument_when_none_was_right": 6,
+        "unusable_answers": 0
+      }
+    },
+    "gemini_choice": {
+      "3": {
+        "questions": 2050,
+        "correct": 2037,
+        "correct_real_instrument": "1947/1960",
+        "correct_none": "90/90",
+        "picked_an_instrument_when_none_was_right": 0,
+        "unusable_answers": 0
+      },
+      "10": {
+        "questions": 2050,
+        "correct": 2038,
+        "correct_real_instrument": "1948/1960",
+        "correct_none": "90/90",
+        "picked_an_instrument_when_none_was_right": 0,
+        "unusable_answers": 0
+      },
+      "30": {
+        "questions": 2050,
+        "correct": 2035,
+        "correct_real_instrument": "1948/1960",
+        "correct_none": "87/90",
+        "picked_an_instrument_when_none_was_right": 3,
+        "unusable_answers": 0
+      }
+    }
+  },
+  "determinism": {
+    "gemini_route": {
+      "rows": 200,
+      "rows_whose_answer_changed": 34
+    },
+    "jev_choice": {
+      "rows": 197,
+      "rows_whose_answer_changed": 2
+    }
+  },
+  "latency": {
+    "gemini_floor": {
+      "calls": 300,
+      "p50_ms": 1.735,
+      "p50_ci95_ms": [
+        1.717,
+        1.783
+      ],
+      "p99_ms": 2.844,
+      "p99_ci95_ms": [
+        2.543,
+        2.927
+      ],
+      "max_ms": 2.927
+    },
+    "gemini_route": {
+      "calls": 300,
+      "p50_ms": 13524.322,
+      "p50_ci95_ms": [
+        12089.781,
+        15207.388
+      ],
+      "p99_ms": 191864.462,
+      "p99_ci95_ms": [
+        96651.011,
+        249134.975
+      ],
+      "max_ms": 249134.975
+    },
+    "jev_choice": {
+      "calls": 287,
+      "p50_ms": 507.162,
+      "p50_ci95_ms": [
+        497.138,
+        517.575
+      ],
+      "p99_ms": 2222.48,
+      "p99_ci95_ms": [
+        1776.659,
+        2843.981
+      ],
+      "max_ms": 2843.981
+    },
+    "jev_floor": {
+      "calls": 300,
+      "p50_ms": 102.551,
+      "p50_ci95_ms": [
+        72.333,
+        110.111
+      ],
+      "p99_ms": 1623.742,
+      "p99_ci95_ms": [
+        1237.398,
+        4589.41
+      ],
+      "max_ms": 4589.41
+    },
+    "router_in_process": {
+      "calls": 300,
+      "p50_ms": 1.182,
+      "p50_ci95_ms": [
+        1.143,
+        1.28
+      ],
+      "p99_ms": 6.289,
+      "p99_ci95_ms": [
+        4.225,
+        7.541
+      ],
+      "max_ms": 7.541
+    },
+    "gemini_route_minus_floor": {
+      "calls": 300,
+      "p50_ms": 13522.525,
+      "p50_ci95_ms": [
+        12268.52,
+        15171.801
+      ],
+      "p99_ms": 191862.509,
+      "p99_ci95_ms": [
+        96649.026,
+        249133.336
+      ],
+      "max_ms": 249133.336
+    },
+    "jev_choice_minus_floor": {
+      "calls": 287,
+      "p50_ms": 418.75,
+      "p50_ci95_ms": [
+        395.445,
+        439.771
+      ],
+      "p99_ms": 2073.334,
+      "p99_ci95_ms": [
+        1508.245,
+        2813.457
+      ],
+      "max_ms": 2813.457
+    },
+    "router_service_minus_floor": null
+  },
+  "superseded_failures": {
+    "accuracy": {
+      "count": 378,
+      "errors": {
+        "GeminiError: HTTP 429: {\"error\":{\"code\":\"model_cooldown\",\"last_upstream_error\":\"": 378
+      }
+    },
+    "determinism": {
+      "count": 0,
+      "errors": {}
+    },
+    "latency": {
+      "count": 0,
+      "errors": {}
+    }
+  },
+  "usage": {
+    "gemini_route": {
+      "calls": 2112,
+      "failed": 0,
+      "prompt_tokens_mean": 1343.8,
+      "output_tokens_mean": 143.6,
+      "thinking_tokens_mean": 1923.3,
+      "cost_usd_promotional": 18.4981,
+      "cost_usd_regular": 36.9962,
+      "model_versions": [
+        "gemini-3.8-flash-n"
+      ],
+      "cost_basis": "list price per token; Gemini also at the regular price after the promotion"
+    },
+    "gemini_choice": {
+      "calls": 6150,
+      "failed": 0,
+      "prompt_tokens_mean": 575.5,
+      "output_tokens_mean": 7.9,
+      "thinking_tokens_mean": 142.8,
+      "cost_usd_promotional": 6.1313,
+      "cost_usd_regular": 12.2627,
+      "model_versions": [
+        "gemini-3.8-flash-n"
+      ],
+      "cost_basis": "list price per token; Gemini also at the regular price after the promotion"
+    },
+    "jev_choice": {
+      "calls": 6150,
+      "failed": 0,
+      "input_tokens_mean": 986.1,
+      "cost_usd_reported": 0.254717,
+      "cost_usd_list": 0.254717,
+      "models": [
+        "typesafe/jev-1.13-20260917"
+      ],
+      "cost_basis": "list price per token; Gemini also at the regular price after the promotion"
+    }
+  },
+  "prices": {
+    "gemini_promotional_per_m": {
+      "input": 0.75,
+      "output": 3.75
+    },
+    "gemini_regular_per_m": {
+      "input": 1.5,
+      "output": 7.5
+    },
+    "jev_per_m": {
+      "input": 0.042,
+      "output": 0.0
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "contents": {
+    "battery_seal": {
+      "file": "seals/battery-2026-09-29-v2.json",
+      "seal_sha256": "024da21e432a6ef022f525d1f7135dfbe5b1f634fd0b21a492d53709da1ac32a"
+    },
+    "package_version": "0.1.0.dev0",
+    "results": {
+      "results/compare-uk-2026-10-01/accuracy.jsonl.gz": "4e2992d42eee4e5537ddd6bf1c80658505af48558908127c4b3e60c597996280",
+      "results/compare-uk-2026-10-01/determinism.jsonl.gz": "3f4299eb1682e32da81220e22b275f18b49d14ca76d094070387588959da18cf",
+      "results/compare-uk-2026-10-01/latency.jsonl.gz": "971681b95d1c5af0a9d7109aae9f38d1bb11ab370b6a2dfd5b6103e9daf8ef66",
+      "results/compare-uk-2026-10-01/manifest.json": "36006aa089e2b8d0ed354093ffb4642b6ccf880f61fb8c6ac7e8d313a8610f9b",
+      "results/compare-uk-2026-10-01/summary.json": "e8a3968aee8b3373f86bfca709d8e478e32bcfe1cd078c21a6a52f6932fccdaf"
+    }
+  },
+  "git_commit": "4bed32c1823d29df3b219950f3b89e17dc789327",
+  "kind": "results",
+  "seal_format": 1,
+  "seal_sha256": "b96c5c86dc6e3c05584172e8f0b385865b055e96885bd0740dc5b309c30f3c45",
+  "sealed_at": "2026-10-02T03:24:55+00:00"
+}
