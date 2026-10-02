@@ -430,5 +430,5 @@ The maximum is the same query in every run. It is one of the replayed real citat
 
 The full comparison (accuracy, determinism, cost, latency and data egress) is in `reports/comparison-uk.md`, sealed as `seals/results-compare-2026-10-01.json`. Latency from that run:
 - Jev, p50 507 ms;
-- Gemini through the author's proxy, p50 13.5 s and p99 192 s;
+- Gemini 3.8 Flash (high), p50 13.5 s and p99 192 s. The tail is the model thinking: the slowest call thought 32,497 tokens in 249 s at the model's own rate;
 - the router in process inside the interleaved pass, p50 1.18 ms, slower than the controlled 0.14 ms because every call followed a multi-second network wait.

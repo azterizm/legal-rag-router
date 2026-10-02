@@ -28,6 +28,12 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
 
+- 2026-10-02 (21): **Report wording (your call).**
+  - The model is named **Gemini 3.8 Flash (high)** throughout, since the thinking level matters.
+  - **The slow calls, checked:** the slowest latency-pass calls (173–249 s) thought 24,500–34,300 tokens at 130–150 tokens/s, the model's own rate. They finished normally, and 2 of 4 were correct.
+  - **The proxy:** reaching it took 1.7 ms on the same Mac, so the report no longer says the latency is the proxy's path. How Gemini was reached stays disclosed once, in the run notes.
+  - **A separate observation:** queueing seen under 12-way concurrency is outside the latency figures.
+
 - 2026-10-02 (20): **The proxy client removed; reproduction goes through Google AI Studio (your call).**
   - The proxy routed to Google AI Studio from your own setup, so a reproducer needs the direct API, not your setup. `bench/clients/gemini_proxy.py`, its tests and `scripts/compare_local.sh` are removed.
   - `bench/compare.py` now calls `bench/clients/gemini.py` with `gemini-3.8-flash`, `thinkingLevel: "high"` and the default temperature: the settings of the sealed run. One test call on 2 Oct confirmed that the direct API accepts `thinkingLevel`.
@@ -35,7 +41,7 @@ Newest first. One line per stop: what was finished, and where to resume.
   - The sealed 1 Oct results are unchanged. The report says how Gemini was reached and adds a **Reproducing** section.
 
 - 2026-10-02 (19): **M11-UK done: the comparison is run, scored and sealed.** Reading: `reports/comparison-uk.md`; sealed as `seals/results-compare-2026-10-01.json` (`b96c5c86…`), citing the v2 battery seal; artefacts in `results/compare-uk-2026-10-01/`.
-  - **Gemini on its own** (`gemini-3.8-flash-high` via the author's proxy):
+  - **Gemini 3.8 Flash (high) on its own** (the high thinking level):
     - bound the wrong instrument for 102 of 1,897 real citations (5.4 %);
     - refused 233 (12.3 %);
     - changed its answer between repeats on 17 % of rows;
@@ -48,7 +54,7 @@ Newest first. One line per stop: what was finished, and where to resume.
   - **Choice questions** (right answer always offered): Jev 98.7–99.2 %, Gemini 99.3–99.4 %, nearly flat from 3 to 30 options. The vault's expected decline is not borne out.
   - **Determinism:** the answer changed on Jev 1.0 %, Gemini 17.0 %, the router 0.
   - **Cost per 1,000 queries:** Gemini $8.76 end to end, $1.00 for a choice question; Jev $0.041; the router $0.
-  - **Latency p50 from the Mac:** Jev 507 ms; Gemini 13.5 s through the proxy (p99 192 s); the router 0.14 ms in process, 277 ms as a remote service.
+  - **Latency p50 from the Mac:** Jev 507 ms; Gemini 3.8 Flash (high) 13.5 s (p99 192 s, the tail being 25,000–35,000 thinking tokens at the model's own rate); the router 0.14 ms in process, 277 ms as a remote service.
   - **The run cost, at list price:** Gemini $37.78 promotional ($75.56 regular); Jev $0.30. 378 Gemini calls hit the proxy's 5-hour cooldown and were rerun.
   - **Proposal, not a result:** an LLM pass only on the queries the router leaves unresolved or refuses (12 % of this battery), keeping the index as the resolver. It would keep the hybrid's recall at a fraction of its cost.
   - **Resume:** your reading of the report, then M12 (release), which has ⛔ points (the tag and the PyPI publish).
