@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-10-02
 
 The first release: the United Kingdom, routing and discovery.
 
@@ -29,3 +29,5 @@ The first release: the United Kingdom, routing and discovery.
   latency runs on two machines, and a comparison against Gemini 3.8 Flash (high), Jev and Laya
   (`reports/`).
 - Packaging (hatchling, zero runtime dependencies), CI on Python 3.11–3.14, CodeQL, Dependabot.
+
+[0.1.0]: https://github.com/azterizm/legal-rag-router/releases/tag/v0.1.0

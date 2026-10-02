@@ -12,6 +12,8 @@ authors:
     family-names: Memon
     email: abdullah@memonsystems.com
     affiliation: Memon Systems Ltd
+version: 0.1.0
+date-released: "2026-10-02"
 license: AGPL-3.0-only
 repository-code: "https://github.com/azterizm/legal-rag-router"
 url: "https://memonsystems.com"

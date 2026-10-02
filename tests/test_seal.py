@@ -9,7 +9,16 @@ from pathlib import Path
 
 import pytest
 
-from eval.seal import SealError, canonical, main, seal_battery, verify_battery_seal
+from eval.seal import (
+    SealError,
+    canonical,
+    main,
+    seal_battery,
+    sha256_of,
+    verify_battery_seal,
+    version_change,
+)
+from legal_rag_router import __version__
 from tests.conftest import FIXTURE_INDEX
 
 
@@ -81,6 +90,24 @@ def test_an_edited_seal_is_refused(repo: Path) -> None:
     seal["contents"]["batteries"]["batteries/uk/collision.jsonl"] = "0" * 64
     path.write_text(json.dumps(seal))
     with pytest.raises(SealError, match="has been edited"):
+        verify_battery_seal(path, repo, repo / "index")
+
+
+def test_a_version_change_alone_passes_with_a_note(
+    repo: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    path = _sealed(repo)
+    seal = json.loads(path.read_text())
+    assert version_change(seal) is None
+    seal["contents"]["package_version"] = "0.0.1.dev0"
+    seal["seal_sha256"] = sha256_of(canonical(seal["contents"]))
+    path.write_text(json.dumps(seal))
+    verified = verify_battery_seal(path, repo, repo / "index")
+    assert version_change(verified) == f"sealed at version 0.0.1.dev0, now {__version__}"
+    assert main(["--repo", str(repo), "verify", str(path), "--index", str(repo / "index")]) == 0
+    assert "sealed at version 0.0.1.dev0" in capsys.readouterr().out
+    (repo / "aliases" / "uk.toml").write_text("# changed\n")
+    with pytest.raises(SealError, match="aliases"):
         verify_battery_seal(path, repo, repo / "index")
 
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "legal-rag-router"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Deterministic coordinate pre-routing and epistemic abstention for legal RAG"
 readme = "README.md"
 authors = [{ name = "Abdullah Memon", email = "abdullah@memonsystems.com" }]

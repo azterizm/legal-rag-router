@@ -128,14 +128,30 @@ def _differences(sealed: Mapping[str, Any], now: Mapping[str, Any], path: str = 
     return out
 
 
+def version_change(seal: Mapping[str, Any]) -> str | None:
+    """A note when the package version differs from the one sealed, else ``None``.
+
+    Not a failure on its own (decided 2 Oct 2026, roadmap stop 23): a release renames the
+    version without changing the routing code. Everything else the seal pins (batteries,
+    index files, aliases, the typo policy) must still match.
+    """
+    sealed = seal["contents"].get("package_version")
+    return None if sealed == __version__ else f"sealed at version {sealed}, now {__version__}"
+
+
 def verify_battery_seal(seal_path: Path, repo: Path, index_dir: Path) -> dict[str, Any]:
-    """The seal, if everything it pins is unchanged. Raises :class:`SealError` otherwise."""
+    """The seal, if everything it pins is unchanged. Raises :class:`SealError` otherwise.
+
+    The package version alone may differ (:func:`version_change`).
+    """
     seal = json.loads(seal_path.read_text(encoding="utf-8"))
     if seal.get("kind") not in KINDS or seal.get("seal_format") != SEAL_FORMAT:
         raise SealError(f"{seal_path} is not a format-{SEAL_FORMAT} battery seal")
     if sha256_of(canonical(seal["contents"])) != seal["seal_sha256"]:
         raise SealError(f"{seal_path} has been edited: its contents no longer match its hash")
-    differences = _differences(seal["contents"], battery_contents(repo, index_dir, seal["kind"]))
+    now = battery_contents(repo, index_dir, seal["kind"])
+    now["package_version"] = seal["contents"].get("package_version")
+    differences = _differences(seal["contents"], now)
     if differences:
         raise SealError("the sealed inputs changed:\n  " + "\n  ".join(differences))
     return dict(seal)
@@ -204,7 +220,10 @@ def main(argv: list[str] | None = None) -> int:
                   f"{seal['git_commit'][:12]}: {seal['seal_sha256']} -> {out}")  # fmt: skip
         else:
             seal = verify_battery_seal(args.seal, args.repo, args.index)
-            print(f"OK: {args.seal} matches ({seal['seal_sha256']})")
+            note = version_change(seal)
+            print(
+                f"OK: {args.seal} matches ({seal['seal_sha256']})" + (f"; {note}" if note else "")
+            )
     except SealError as exc:
         print(f"SEAL ERROR: {exc}")
         return 1
