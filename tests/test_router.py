@@ -51,6 +51,8 @@ NOISE_BUDGET_NS = int(NOISE_FLOOR_MS * 2 * 1_000_000 * _SCALE)
 DOUBLING_FACTOR = 3.0 if _SCALE > 1 else 2.5
 """Linear doubling: ≤ 2.5x on a quiet machine, where some classes measure 2.2-2.47x; 3x on CI
 or under coverage (roadmap decision 16, amended 2 Oct 2026). Quadratic growth would be ~4x."""
+MEASURE_ATTEMPTS = 3
+"""A pair over the doubling bound is re-measured; the lowest of up to 3 ratios counts."""
 
 
 @pytest.fixture(scope="module")
@@ -557,7 +559,12 @@ def test_regex_patterns_are_linear() -> None:
 
 @pytest.mark.parametrize("name", sorted(GENERATORS))
 def test_doubling_input_is_linear(name: str) -> None:
-    """Doubling a 4 KB-class input never more than 2.5x's the time (roadmap Q-M7-2)."""
+    """Doubling a 4 KB-class input never more than 2.5x's the time (roadmap Q-M7-2).
+
+    A pair over the bound is measured again, up to MEASURE_ATTEMPTS in all, and the lowest
+    ratio counts (decision 16, amended 17 Oct 2026): shared-runner noise rarely repeats three
+    times, while quadratic growth (~4x) fails every attempt.
+    """
     router = _shared_router()
     text = GENERATORS[name](random.Random(f"20260927:{name}:test"), MAX_QUERY_CHARS)
 
@@ -575,8 +582,13 @@ def test_doubling_input_is_linear(name: str) -> None:
         return min(times[0]), min(times[1])
 
     for n in (MAX_QUERY_CHARS // 4, MAX_QUERY_CHARS // 2):
-        small, large = best_pair(text[:n], text[: 2 * n])
-        assert large <= DOUBLING_FACTOR * max(small, 50_000), (name, n, small, large)
+        attempts = []
+        for _ in range(MEASURE_ATTEMPTS):
+            small, large = best_pair(text[:n], text[: 2 * n])
+            attempts.append((large / max(small, 50_000), small, large))
+            if attempts[-1][0] <= DOUBLING_FACTOR:
+                break
+        assert min(attempts)[0] <= DOUBLING_FACTOR, (name, n, attempts)
 
 
 def test_results_never_carry_query_text_into_coordinates(router: Router) -> None:

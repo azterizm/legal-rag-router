@@ -22,11 +22,13 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated; **0.1.1 released 17 Oct** (stop 30). Stage C (Spain) not started |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released; 0.1.1 on 17 Oct)**, **M13 ✅** |
 | Next step | None scheduled. Stage C (Spain) when you decide |
-| Waiting on you | How to harden the flaky doubling test (stop 31, ⛔ methodology). A decision on Stage C (Spain). Optional: the Dependabot PR |
+| Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-17 (32): **Doubling test hardened (your call: re-measure on fail; decision 16 amended).** A pair over the bound is measured again, up to 3 attempts, and the lowest ratio counts. The bounds are unchanged (2.5× locally, 3× on CI and under coverage). Checked with a fake router: quadratic growth fails all 3 attempts at 4.0×, and linear passes. Suite green on 3.11 and on 3.13 under coverage (twice).
 
 - 2026-10-17 (31): **CI flake on `5089a01` investigated; main green on rerun.**
   - `test_doubling_input_is_linear[digits_and_years]` failed on macOS 3.13 at 3.01× against the 3× CI bound. With `identifier_soup` on `2675ce5` (3.03×), that is 2 of today's 3 pushes, after 10 green runs since `2f89b61`.
@@ -1202,6 +1204,7 @@ M9 docs are written alongside and finished before M10.
 
       The tests guard 2× the fixture floor, plus linear doubling (≤ 2.5×) per class.
       **Amended 2 Oct 2026 (stop 24):** on CI and under coverage, where the floor budget is already scaled, the doubling bound is 3× (still well under the ~4× of quadratic growth). On GitHub's shared runners, classes that measure 2.2–2.47× on a quiet Mac crossed 2.5×. Locally it stays 2.5×, and the test alternates the two sizes with GC paused, best of 15.
+      **Amended 17 Oct 2026 (stops 31–32):** a pair over the bound is measured again, up to 3 attempts in all, and the lowest ratio counts. The bounds are unchanged. macOS 3.13 runners crossed 3× (3.01×, 3.03×) on classes that measure at most 2.4× locally; noise rarely repeats three times, while quadratic growth (~4×) fails every attempt.
     - The 4 KB cap is unchanged. See `docs/measurements.md`.
 13. **Q-M7-1 duplicated source ids (27 Sept):** a citation that resolves to a coordinate in an instrument's `duplicated_provisions` returns `ROUTE_AMBIGUOUS` (which Part?). It is never bound.
 14. **Mixed coverage (27 Sept):** if one citation is out of coverage and the others are bound, the query is `ROUTE_OUT_OF_COVERAGE`, and every citation is listed with its resolution. A recognised citation is never dropped silently.
