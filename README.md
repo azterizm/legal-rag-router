@@ -249,6 +249,9 @@ held out from development; [report](https://github.com/azterizm/legal-rag-router
 | Real law refused | 82 / 1,897 (4.3 %) |
 | Rows with the expected outcome | 1,916 / 2,112 (v1, blind: 1,903 / 2,112) |
 
+1,897 is every row that cites real law, across all the batteries. 1,030 of those are the
+held-out citations from legislation. All 82 refusals fall among the 1,030 (8.0 %).
+
 **Speed** (306,336 calls per pass, 3 passes;
 [measurements](https://github.com/azterizm/legal-rag-router/blob/main/docs/measurements.md)):
 
