@@ -22,11 +22,17 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated; **0.1.1 released 17 Oct** (stop 30). Stage C (Spain) not started |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released; 0.1.1 on 17 Oct)**, **M13 ✅** |
 | Next step | None scheduled. Stage C (Spain) when you decide |
-| Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
+| Waiting on you | How to harden the flaky doubling test (stop 31, ⛔ methodology). A decision on Stage C (Spain). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-17 (31): **CI flake on `5089a01` investigated; main green on rerun.**
+  - `test_doubling_input_is_linear[digits_and_years]` failed on macOS 3.13 at 3.01× against the 3× CI bound. With `identifier_soup` on `2675ce5` (3.03×), that is 2 of today's 3 pushes, after 10 green runs since `2f89b61`.
+  - **Measured: not caused by the grammar change.** The test's own method (best of 15, GC paused) was run 10× per generator on Python 3.13, at `65fb6e4` (before) and on `main` (after). Ratios match on every generator, plain and under coverage (e.g. `digits_and_years`: median 2.10 → 2.12, max 2.20 → 2.25; traced max 2.39 → 2.40). No generator went above 2.6× locally. Stop 30's "fails as often before as after" was checked only against the 2.5× local bound; this measurement replaces it.
+  - Rerunning the failed job passed (run 39012818136).
+  - **Waiting on you (⛔ methodology, decision 16):** whether to harden the test against shared-runner noise. Unpushed until then, so a docs-only push does not rerun the timing test.
 
 - 2026-10-17 (30): **`legal-rag-router 0.1.1` released (your go): "as at" / "as of" dates as `temporal_hint`.** The case study content is not being updated (your call).
   - **Before the push, anonymised:** the CS2 runner and results named the audit battery by its folder, which carries the audited vendor's name (git-ignored in `legal-rag-audit`, so never published). The two unpushed commits were redone: `--battery` is now required and the battery is named only by its sealed hashes. The run was repeated at `995bf3f` with the same outcome (p50 173.9 µs), and the audit evaluator again agreed 12/12. Note: `legal-rag-audit`'s public `scripts/serve_mock.py` already names that vendor next to `pit-era-124-1`; untouched, for you to judge.
