@@ -125,6 +125,12 @@ Ingest reads identity from the file's own `IdURI`, never from its path. **Do not
 
 **Using your own harvester instead of step 3:** write one JSON line per instrument with `coordinate` (e.g. `uk/ukpga/Geo3/47/78`), `series`, `year`, `number` and `title`, as in `router_other_series.jsonl`. `import` replaces the catalogue, so the file must cover every series, `router_other_series.jsonl` included. Then run `import --listing <file>` followed by `import-queue`.
 
+### Point-in-time bench: the Increase of Limits Orders (17 Oct 2026)
+
+`bench/pit/orders/` holds 16 Employment Rights (Increase of Limits) Orders **as made**, SI 2010/2926 to SI 2026/310, fetched from `https://www.legislation.gov.uk/{uksi/year/number}/made/data.xml` by `bench/pit/fetch_orders.py` through `ingest/cache.py` (18 requests on 17 Oct 2026, including two Orders later dropped, at 1 per 5 s, User-Agent naming this repository). They are committed so the limits table (`bench/pit/limits.json`) can be rebuilt and checked offline. Crown copyright, reused under the Open Government Licence v3.0. They are outside the wheel and the sdist.
+
+Why fetched rather than read from `uk_scrap_data/`: revoked Orders are blanked to dots there, and the Act carries only its current sums.
+
 ## BOE (Spain) — Stage C
 
 To be documented when Stage C starts.

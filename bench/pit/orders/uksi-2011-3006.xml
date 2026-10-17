@@ -1,0 +1,366 @@
+<Legislation xmlns="http://www.legislation.gov.uk/namespaces/legislation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006" NumberOfProvisions="4" xsi:schemaLocation="http://www.legislation.gov.uk/namespaces/legislation http://www.legislation.gov.uk/schema/legislation.xsd" SchemaVersion="1.0"><ukm:Metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dct="http://purl.org/dc/terms/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:ukm="http://www.legislation.gov.uk/namespaces/metadata">
+					<dc:identifier>http://www.legislation.gov.uk/uksi/2011/3006/made</dc:identifier><dc:title>The Employment Rights (Increase of Limits) Order 2011</dc:title><dc:subject>Employment terms and conditions</dc:subject><dc:subject>Employment rights</dc:subject><dc:subject>Employment regulations</dc:subject><dc:subject>Employment relations</dc:subject><dc:subject>Trade unions</dc:subject><dc:language>en</dc:language><dc:publisher>King's Printer of Acts of Parliament</dc:publisher><dc:modified>2017-07-19</dc:modified><dc:subject scheme="SIheading">TERMS AND CONDITIONS OF EMPLOYMENT</dc:subject>
+					<dc:description>This Order increases, from 1st February 2012, the limits applying to certain awards of employment tribunals, and other amounts payable under employment legislation, as specified in the Schedule to the Order.</dc:description>
+					<atom:link rel="self" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.xml" type="application/xml"/><atom:link rel="http://www.legislation.gov.uk/def/navigation/resources" href="http://www.legislation.gov.uk/uksi/2011/3006/resources" title="More Resources"/>
+					
+					<atom:link rel="http://www.legislation.gov.uk/def/navigation/memorandum" href="http://www.legislation.gov.uk/uksi/2011/3006/memorandum" title="Explanatory Memorandum"/><atom:link rel="http://www.legislation.gov.uk/def/navigation/memorandum/toc" href="http://www.legislation.gov.uk/uksi/2011/3006/memorandum/contents" title="Explanatory Memorandum Table of Contents"/>
+					
+					<atom:link rel="http://www.legislation.gov.uk/def/navigation/act" href="http://www.legislation.gov.uk/uksi/2011/3006/made" title="whole act"/><atom:link rel="http://www.legislation.gov.uk/def/navigation/introduction" href="http://www.legislation.gov.uk/uksi/2011/3006/introduction/made" title="introduction"/><atom:link rel="http://www.legislation.gov.uk/def/navigation/signature" href="http://www.legislation.gov.uk/uksi/2011/3006/signature/made" title="signature"/><atom:link rel="http://www.legislation.gov.uk/def/navigation/note" href="http://www.legislation.gov.uk/uksi/2011/3006/note/made" title="note"/>
+					<atom:link rel="http://www.legislation.gov.uk/def/navigation/body" href="http://www.legislation.gov.uk/uksi/2011/3006/body/made" title="body"/>
+					<atom:link rel="http://www.legislation.gov.uk/def/navigation/schedules" href="http://www.legislation.gov.uk/uksi/2011/3006/schedules/made" title="schedules"/>
+					
+										
+					
+					
+					
+					<atom:link rel="alternate" type="application/rdf+xml" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.rdf" title="RDF/XML"/><atom:link rel="alternate" type="application/akn+xml" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.akn" title="AKN"/><atom:link rel="alternate" type="application/xhtml+xml" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.xht" title="HTML snippet"/><atom:link rel="alternate" type="text/html" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.htm" title="Website (XHTML) Default View"/><atom:link rel="alternate" type="text/csv" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.csv" title="CSV"/><atom:link rel="alternate" type="application/pdf" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.pdf" title="PDF"/>
+					<atom:link rel="alternate" type="application/akn+xhtml" href="http://www.legislation.gov.uk/uksi/2011/3006/made/data.html" title="HTML5 snippet"/>
+
+					<atom:link rel="alternate" href="http://www.legislation.gov.uk/uksi/2011/3006/pdfs/uksi_20113006_en.pdf" type="application/pdf" title="Original PDF"/>
+					<atom:link rel="http://purl.org/dc/terms/tableOfContents" hreflang="en" href="http://www.legislation.gov.uk/uksi/2011/3006/contents/made" title="Table of Contents"/>
+					
+					<atom:link rel="http://purl.org/dc/terms/hasVersion" href="http://www.legislation.gov.uk/uksi/2011/3006/2012-02-01" title="2012-02-01"/><atom:link rel="http://purl.org/dc/terms/hasVersion" href="http://www.legislation.gov.uk/uksi/2011/3006/2013-02-01" title="2013-02-01"/><atom:link rel="http://purl.org/dc/terms/hasVersion" href="http://www.legislation.gov.uk/uksi/2011/3006" title="current"/>
+					
+					
+					<ukm:SecondaryMetadata><ukm:DocumentClassification>
+<ukm:DocumentCategory Value="secondary"/>
+<ukm:DocumentMainType Value="UnitedKingdomStatutoryInstrument"/>
+<ukm:DocumentStatus Value="final"/>
+<ukm:DocumentMinorType Value="order"/>
+</ukm:DocumentClassification><ukm:Year Value="2011"/><ukm:Number Value="3006"/><ukm:Made Date="2011-12-14"/><ukm:Laid Date="2011-12-16" Class="UnitedKingdomParliament"/><ukm:ComingIntoForce>
+<ukm:DateTime Date="2012-02-01"/></ukm:ComingIntoForce><ukm:ISBN Value="9780111518267"/></ukm:SecondaryMetadata>
+					
+
+                    
+									<ukm:Notes><ukm:Note IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/notes"/><ukm:Alternatives><ukm:Alternative URI="http://www.legislation.gov.uk/uksi/2011/3006/pdfs/uksiem_20113006_en.pdf" Date="2011-12-19" Title="Explanatory Memorandum" Size="16091"/></ukm:Alternatives>       
+								</ukm:Notes> 
+					<ukm:Alternatives><ukm:Alternative URI="http://www.legislation.gov.uk/uksi/2011/3006/pdfs/uksi_20113006_en.pdf" Date="2011-12-19" Size="60797"/></ukm:Alternatives>
+					
+					<ukm:Statistics>
+									<ukm:TotalParagraphs Value="4"/>
+									<ukm:BodyParagraphs Value="4"/>
+									<ukm:ScheduleParagraphs Value="0"/>
+									<ukm:AttachmentParagraphs Value="0"/>
+									<ukm:TotalImages Value="0"/>
+								</ukm:Statistics>
+				</ukm:Metadata><Secondary>
+<SecondaryPrelims DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/introduction/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/introduction">
+<Number>2011 No. 3006</Number>
+<SubjectInformation>
+<Subject>
+<Title>Terms And Conditions Of Employment</Title>
+</Subject>
+</SubjectInformation>
+<Title>The Employment Rights (Increase of Limits) Order 2011</Title>
+<MadeDate>
+<Text>Made</Text>
+<DateText>14th December 2011</DateText>
+</MadeDate>
+<LaidDate>
+<Text>Laid before Parliament</Text>
+<DateText>16th December 2011</DateText>
+</LaidDate>
+<ComingIntoForce>
+<Text>Coming into force</Text>
+<DateText>1st February 2012</DateText>
+</ComingIntoForce>
+<SecondaryPreamble>
+<EnactingText>
+<Para>
+<Text>The Secretary of State makes the following Order in exercise of the powers conferred by section 34 of the Employment Relations Act 1999<FootnoteRef Ref="f00001"/>.</Text></Para>
+</EnactingText>
+</SecondaryPreamble>
+</SecondaryPrelims>
+<Body DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/body/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/body" NumberOfProvisions="4">
+<P1group>
+<Title>Citation, commencement and interpretation</Title>
+<P1 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/1/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/1" id="article-1">
+<Pnumber>1</Pnumber>
+<P1para>
+<P2 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/1/1/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/1/1" id="article-1-1">
+<Pnumber>1</Pnumber>
+<P2para><Text>This Order may be cited as the Employment Rights (Increase of Limits) Order 2011 and shall come into force on 1st February 2012.</Text>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/1/2/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/1/2" id="article-1-2">
+<Pnumber>2</Pnumber>
+<P2para>
+<Text>In this Order—</Text>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/1/2/a/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/1/2/a" id="article-1-2-a">
+<Pnumber>a</Pnumber>
+<P3para>
+<Text>“the <Abbreviation Expansion="Trade Union and Labour Relations (Consolidation) Act 1992 c. 52">1992 Act</Abbreviation>” means the Trade Union and Labour Relations (Consolidation) Act 1992<FootnoteRef Ref="f00002"/>; and</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/1/2/b/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/1/2/b" id="article-1-2-b">
+<Pnumber>b</Pnumber>
+<P3para>
+<Text>“the <Abbreviation Expansion="Employment Rights Act 1996 c. 18">1996 Act</Abbreviation>” means the Employment Rights Act 1996<FootnoteRef Ref="f00003"/>.</Text>
+</P3para></P3>
+</P2para>
+</P2>
+</P1para>
+</P1>
+</P1group>
+<P1group>
+<Title>Revocation</Title>
+<P1 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/2/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/2" id="article-2">
+<Pnumber>2</Pnumber>
+<P1para>
+<Text>The Employment Rights (Increase of Limits) Order 2010<FootnoteRef Ref="f00004"/> is revoked.</Text>
+</P1para>
+</P1>
+</P1group>
+<P1group>
+<Title>Increase of limits</Title>
+<P1 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/3/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/3" id="article-3">
+<Pnumber>3</Pnumber>
+<P1para>
+<Text>In the provisions set out in column 1 of the Schedule to this Order (generally described in column 2), for the sums specified in column 3 substitute the sums specified in column 4.</Text>
+</P1para>
+</P1>
+</P1group>
+<P1group>
+<Title>Transitional provisions</Title>
+<P1 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4" id="article-4">
+<Pnumber>4</Pnumber>
+<P1para>
+<P2 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/1/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/1" id="article-4-1">
+<Pnumber>1</Pnumber>
+<P2para><Text>The revocation in article 2 and the substitutions made by article 3 do not have effect in relation to a case where the appropriate date falls before 1st February 2012.</Text>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2" id="article-4-2">
+<Pnumber>2</Pnumber>
+<P2para>
+<Text>In this article “the appropriate date” means—</Text>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/a/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/a" id="article-4-2-a">
+<Pnumber>a</Pnumber>
+<P3para>
+<Text>in the case of an application made under section 67(1) of the 1992 Act<FootnoteRef Ref="f00005"/> (compensation for unjustifiable discipline by a trade union), the date of the determination infringing the applicant’s right;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/b/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/b" id="article-4-2-b">
+<Pnumber>b</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under section 70C(1) of the 1992 Act<FootnoteRef Ref="f00006"/> (failure by an employer to consult with a trade union on training matters), the date of the failure;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/c/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/c" id="article-4-2-c">
+<Pnumber>c</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under section 137(2) of the 1992 Act (refusal of employment on grounds related to union membership) or section 138(2) of that Act (refusal of service of employment agency on grounds related to union membership), the date of the conduct to which the complaint relates, as determined under section 139 of that Act<FootnoteRef Ref="f00007"/>;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/d/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/d" id="article-4-2-d">
+<Pnumber>d</Pnumber>
+<P3para>
+<Text>in the case of an award under section 145E(2)(b) of the 1992 Act (award to worker in respect of offer made by employer in contravention of section 145A or 145B of that Act<FootnoteRef Ref="f00008"/>), the date of the offer;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/e/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/e" id="article-4-2-e">
+<Pnumber>e</Pnumber>
+<P3para>
+<Text>in the case of an application for an award of compensation under section 176(2) of the 1992 Act<FootnoteRef Ref="f00009"/> (compensation for exclusion or expulsion from a trade union), the date of the exclusion or expulsion from the union;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/f/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/f" id="article-4-2-f">
+<Pnumber>f</Pnumber>
+<P3para>
+<Text>in the case of an award under paragraph 159(1) of Schedule A1 to the 1992 Act<FootnoteRef Ref="f00010"/>, where a worker has suffered a detriment that is the termination of the worker’s contract, the date of the termination;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/g/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/g" id="article-4-2-g">
+<Pnumber>g</Pnumber>
+<P3para>
+<Text>in the case of a guarantee payment to which an employee is entitled under section 28(1) of the 1996 Act (right to guarantee payment in respect of workless day), the day in respect of which the payment is due;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/h/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/h" id="article-4-2-h">
+<Pnumber>h</Pnumber>
+<P3para>
+<Text>in the case of an award of compensation under section 49(1)(b) of the 1996 Act<FootnoteRef Ref="f00011"/> by virtue of section 24(2) of the National Minimum Wage Act 1998<FootnoteRef Ref="f00012"/>, where a worker has suffered a detriment that is the termination of the worker’s contract, the date of the termination;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/i/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/i" id="article-4-2-i">
+<Pnumber>i</Pnumber>
+<P3para>
+<Text>in the case of an award of compensation under section 63J(1)(b) of the 1996 Act<FootnoteRef Ref="f00013"/> (employer’s failure, refusal or part refusal following request in relation to study or training), the date of the failure, refusal or part refusal (as the case may be);</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/j/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/j" id="article-4-2-j">
+<Pnumber>j</Pnumber>
+<P3para>
+<Text>in the case of an award of compensation under section 80I(1)(b) of the 1996 Act<FootnoteRef Ref="f00014"/> (complaint to an employment tribunal relating to an application for contract variation), the date of the failure in relation to the application or of the decision to reject the application;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/k/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/k" id="article-4-2-k">
+<Pnumber>k</Pnumber>
+<P3para>
+<Text>in the case of an award under section 112(4) or (5) of the 1996 Act<FootnoteRef Ref="f00015"/> (award in relation to unfair dismissal), the effective date of termination as defined by section 97 of that Act;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/l/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/l" id="article-4-2-l">
+<Pnumber>l</Pnumber>
+<P3para>
+<Text>in the case of an award under section 117(1) or (3) of the 1996 Act<FootnoteRef Ref="f00016"/>, where an employer has failed to comply fully with the terms of an order for reinstatement or re-engagement or has failed to reinstate or re-engage the complainant in accordance with such an order, the date by which the order for reinstatement (specified under section 114(2)(c) of that Act) or, as the case may be, re-engagement (specified under section 115(2)(f) of that Act), should have been complied with;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/m/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/m" id="article-4-2-m">
+<Pnumber>m</Pnumber>
+<P3para>
+<Text>in the case of entitlement to a redundancy payment by virtue of section 135(1)(a) of the 1996 Act (dismissal by reason of redundancy), the relevant date as defined by section 145 of that Act<FootnoteRef Ref="f00017"/>;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/n/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/n" id="article-4-2-n">
+<Pnumber>n</Pnumber>
+<P3para>
+<Text>in the case of entitlement to a redundancy payment by virtue of section 135(1)(b) of the 1996 Act (eligibility for a redundancy payment by reason of being laid off or kept on short-time), the relevant date as defined by section 153 of that Act;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/o/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/o" id="article-4-2-o">
+<Pnumber>o</Pnumber>
+<P3para>
+<Text>in the case of entitlement to a payment under section 182 of the 1996 Act (payments by the Secretary of State), the appropriate date as defined by section 185 of that Act;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/p/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/p" id="article-4-2-p">
+<Pnumber>p</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under section 11(1) of the Employment Relations Act 1999<FootnoteRef Ref="f00018"/> (failure or threatened failure to allow the worker to be accompanied at the disciplinary or grievance hearing, to allow the companion to address the hearing or confer with the worker, or to postpone the hearing), the date of the failure or threat;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/q/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/q" id="article-4-2-q">
+<Pnumber>q</Pnumber>
+<P3para>
+<Text>in the case of an award made under section 38(2) of the Employment Act 2002<FootnoteRef Ref="f00019"/> (failure to give statement of employment particulars <Abbreviation Expansion="Et cetera" xml:lang="la">etc</Abbreviation>), the date the proceedings to which that section applies were begun;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/r/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/r" id="article-4-2-r">
+<Pnumber>r</Pnumber>
+<P3para>
+<Text>in the case of an increase in an award in pursuance of section 38(3) of the Employment Act 2002 (failure to give statement of employment particulars etc), the date the proceedings to which that section applies were begun;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/s/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/s" id="article-4-2-s">
+<Pnumber>s</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under regulation 15 of the Flexible Working (Procedural Requirements) Regulations 2002<FootnoteRef Ref="f00020"/> (failure or threatened failure to allow an employee to be accompanied at a meeting, to allow the companion to address the meeting or confer with the employee, or to postpone the meeting), the date of the failure or threat;</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/t/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/t" id="article-4-2-t">
+<Pnumber>t</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under paragraph 11(1) of Schedule 6 to the Employment Equality (Age) Regulations 2006<FootnoteRef Ref="f00021"/> (failure of employer to comply with duty to notify employee of date on which he intends employee to retire or of right to make request not to retire on the intended date), the date of the failure; and</Text>
+</P3para></P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/article/4/2/u/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/article/4/2/u" id="article-4-2-u">
+<Pnumber>u</Pnumber>
+<P3para>
+<Text>in the case of a complaint presented under paragraph 12(1) of Schedule 6 to the Employment Equality (Age) Regulations 2006 (failure or threatened failure to allow an employee to be accompanied at a meeting, to allow the companion to address the meeting or confer with the employee, or to postpone the meeting), the date of the failure or threat.</Text>
+</P3para></P3>
+</P2para>
+</P2>
+</P1para>
+</P1>
+</P1group>
+<SignedSection DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/signature/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/signature">
+<Signatory>
+<Signee>
+<PersonName>Edward Davey</PersonName>
+<JobTitle>Minister for Employment Relations, Consumer and Postal Affairs</JobTitle>
+<Department>Department for Business, Innovation and Skills</Department>
+<DateSigned Date="2011-12-14"><DateText>14th December 2011</DateText></DateSigned>
+</Signee>
+</Signatory>
+</SignedSection>
+</Body>
+<Schedules>
+<Schedule DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/schedule/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/schedule" id="schedule">
+<Number>SCHEDULE</Number>
+<Reference>Article 3</Reference>
+
+<ScheduleBody>
+<Tabular Orientation="portrait">
+<table xmlns="http://www.w3.org/1999/xhtml" cols="5">
+<colgroup><col width="32.4pt"/><col width="99pt"/><col width="124.5pt"/><col width="85.3pt"/><col width="85.3pt"/></colgroup>
+<thead><tr><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="2" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Column 1</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Column 2</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Column 3</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Column 4</th></tr><tr><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="2" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Relevant statutory provision</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Subject of provision</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Old limit</th><th xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">New limit</th></tr></thead>
+<tbody><tr><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">1</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Section 145E(3) of the 1992 Act</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">Amount of award for unlawful inducement relating to trade union membership or activities, or for unlawful inducement relating to collective bargaining.</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">£3,300</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-top-style="solid" fo:border-top-width="0.5pt" fo:border-top-color="black">£3,500</td></tr><tr><td colspan="1" rowspan="1">2</td><td colspan="1" rowspan="1">Section 156(1) of the 1992 Act</td><td colspan="1" rowspan="1">Minimum amount of basic award of compensation where dismissal is unfair by virtue of section 152(1) or 153 of the 1992 Act.</td><td colspan="1" rowspan="1">£5,000</td><td colspan="1" rowspan="1">£5,300</td></tr><tr><td colspan="1" rowspan="1">3</td><td colspan="1" rowspan="1">Section 176(6A) of the 1992 Act</td><td colspan="1" rowspan="1">Minimum amount of compensation where individual excluded or expelled from union in contravention of section 174 of the 1992 Act and not admitted or re-admitted by date of tribunal application.</td><td colspan="1" rowspan="1">£7,600</td><td colspan="1" rowspan="1">£8,100</td></tr><tr><td colspan="1" rowspan="1">4</td><td colspan="1" rowspan="1">Section 31(1) of the 1996 Act</td><td colspan="1" rowspan="1">Limit on amount of guarantee payment payable to an employee in respect of any day.</td><td colspan="1" rowspan="1">£22.20</td><td colspan="1" rowspan="1">£23.50</td></tr><tr><td colspan="1" rowspan="1">5</td><td colspan="1" rowspan="1">Section 120(1) of the 1996 Act</td><td colspan="1" rowspan="1">Minimum amount of basic award of compensation where dismissal is unfair by virtue of section 100(1)(a) and (b), 101A(d), 102(1) or 103 of the 1996 Act.</td><td colspan="1" rowspan="1">£5,000</td><td colspan="1" rowspan="1">£5,300</td></tr><tr><td colspan="1" rowspan="1">6</td><td colspan="1" rowspan="1">Section 124(1) of the 1996 Act</td><td colspan="1" rowspan="1">Limit on amount of compensatory award for unfair dismissal.</td><td colspan="1" rowspan="1">£68,400</td><td colspan="1" rowspan="1">£72,300</td></tr><tr><td colspan="1" rowspan="1">7</td><td colspan="1" rowspan="1">Paragraphs (a) and (b) of section 186(1) of the 1996 Act</td><td colspan="1" rowspan="1">Limit on amount in respect of any one week payable to an employee in respect of a debt to which Part XII of the 1996 Act applies and which is referable to a period of time.</td><td colspan="1" rowspan="1">£400</td><td colspan="1" rowspan="1">£430</td></tr><tr><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-bottom-style="solid" fo:border-bottom-width="0.5pt" fo:border-bottom-color="black">8</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-bottom-style="solid" fo:border-bottom-width="0.5pt" fo:border-bottom-color="black">Section 227(1) of the 1996 Act</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-bottom-style="solid" fo:border-bottom-width="0.5pt" fo:border-bottom-color="black">Maximum amount of “a week’s pay” for the purpose of calculating a redundancy payment or for various awards including the basic or additional award of compensation for unfair dismissal.</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-bottom-style="solid" fo:border-bottom-width="0.5pt" fo:border-bottom-color="black">£400</td><td xmlns:fo="http://www.w3.org/1999/XSL/Format" colspan="1" rowspan="1" fo:border-bottom-style="solid" fo:border-bottom-width="0.5pt" fo:border-bottom-color="black">£430</td></tr></tbody>
+</table></Tabular>
+</ScheduleBody>
+</Schedule>
+</Schedules>
+<ExplanatoryNotes DocumentURI="http://www.legislation.gov.uk/uksi/2011/3006/note/made" IdURI="http://www.legislation.gov.uk/id/uksi/2011/3006/note">
+<Title>EXPLANATORY NOTE</Title>
+<Comment>
+<Para><Text>(This note is not part of the Order)</Text></Para>
+</Comment>
+<P><Text>This Order increases, from 1st February 2012, the limits applying to certain awards of employment tribunals, and other amounts payable under employment legislation, as specified in the Schedule to the Order.</Text></P>
+<P><Text Hanging="indented">Under section 34(2) of the Employment Relations Act 1999 (“the <Abbreviation Expansion="Employment Relations Act 1999 c. 26">1999 Act</Abbreviation>”), if the retail prices index for September of a year is higher or lower than the index for the previous September, the Secretary of State is required to change the limits, by Order, by the percentage of the increase or decrease (rounded up as specified in section 34(3) of the 1999 Act). The increases made by this Order reflect the increase in the retail prices index of 5.6% from September 2010 to September 2011.</Text></P>
+<P><Text Hanging="indented">The increases apply where the event giving rise to the entitlement to compensation or other payments occurred on or after 1st February 2012. Limits previously in force under the Employment Rights (Increase of Limits) Order 2010 (<Citation URI="http://www.legislation.gov.uk/id/uksi/2010/2926" id="c00001" Class="UnitedKingdomStatutoryInstrument" Year="2010" Number="2926">S.I. 2010/2926</Citation>) are preserved by article 4 of this Order in relation to cases where the relevant event was before 1st February 2012.</Text></P>
+<P><Text Hanging="indented">A full impact assessment has not been produced for this Order because section 34 of the 1999 Act provides for indexation according to a pre-determined formula linked to the retail prices index.</Text></P>
+</ExplanatoryNotes>
+</Secondary><Footnotes><Footnote id="f00001">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/ukpga/1999/26" id="c00002" Class="UnitedKingdomPublicGeneralAct" Year="1999" Number="0026">1999 c.26</Citation>; section 34(1) was amended by the Employment Relations Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/2004/24" id="c00003" Class="UnitedKingdomPublicGeneralAct" Year="2004" Number="0024">2004 (c.24)</Citation>, section 57(1) and Schedule 1, paragraph 42(1), (2) and (3), section 34(3) was amended by the Employment Relations Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/2004/24" id="c00004" Class="UnitedKingdomPublicGeneralAct" Year="2004" Number="0024">2004 (c.24)</Citation>, section 57(1) and Schedule 1, paragraph 42(1) and (4), and section 34(5) was amended by the Statistics and Registration Service Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/2007/18" id="c00005" Class="UnitedKingdomPublicGeneralAct" Year="2007" Number="0018">2007 (c.18)</Citation>, section 60(1) and Schedule 3, paragraph 11(a) and (b).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00002">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/ukpga/1992/52" id="c00006" Class="UnitedKingdomPublicGeneralAct" Year="1992" Number="0052">1992 c.52</Citation>. Relevant amendments to this Act are noted in the footnotes below.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00003">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/ukpga/1996/18" id="c00007" Class="UnitedKingdomPublicGeneralAct" Year="1996" Number="0018">1996 c.18</Citation>. Relevant amendments to this Act are noted in the footnotes below.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00004">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/uksi/2010/2926" id="c00008" Class="UnitedKingdomStatutoryInstrument" Year="2010" Number="2926">S.I. 2010/2926</Citation>.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00005">
+<FootnoteText>
+<Para><Text>Section 67(1) was amended by the Employment Relations Act 2004, section 34(1) and (2).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00006">
+<FootnoteText>
+<Para><Text>Section 70C was inserted by the Employment Relations Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/1999/26" id="c00009" Class="UnitedKingdomPublicGeneralAct" Year="1999" Number="0026">1999 (c.26)</Citation>, section 5.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00007">
+<FootnoteText>
+<Para><Text>Sections 137(2), 138(2) and 139(1) were amended by the Employment Rights (Dispute Resolution) Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/1998/8" id="c00010" Class="UnitedKingdomPublicGeneralAct" Year="1998" Number="0008">1998 (c.8)</Citation>, section 1(2)(a).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00008">
+<FootnoteText>
+<Para><Text>Sections 145A, 145B and 145E were inserted by the Employment Relations Act 2004, section 29.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00009">
+<FootnoteText>
+<Para><Text>Section 176 was substituted by the Trade Union Reform and Employment Rights Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/1993/19" id="c00011" Class="UnitedKingdomPublicGeneralAct" Year="1993" Number="0019">1993 (c.19)</Citation>, section 14. Section 176(2) was amended by the Employment Relations Act 2004, section 34(7) and (8), section 57(2) and Schedule 2.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00010">
+<FootnoteText>
+<Para><Text>Schedule A1 was inserted by the Employment Relations Act 1999, section 1(1) and (3) and Schedule 1.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00011">
+<FootnoteText>
+<Para><Text>Section 49(1) was amended by the Employment Rights (Dispute Resolution) Act 1998, section 1(2)(a).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00012">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/ukpga/1998/39" id="c00012" Class="UnitedKingdomPublicGeneralAct" Year="1998" Number="0039">1998 c.39</Citation>.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00013">
+<FootnoteText>
+<Para><Text>Section 63J was inserted by the Apprenticeships, Skills, Children and Learning Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/2009/22" id="c00013" Class="UnitedKingdomPublicGeneralAct" Year="2009" Number="0022">2009 (c.22)</Citation>, section 40(2).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00014">
+<FootnoteText>
+<Para><Text>Section 80I was inserted by the Employment Act <Citation URI="http://www.legislation.gov.uk/id/ukpga/2002/22" id="c00014" Class="UnitedKingdomPublicGeneralAct" Year="2002" Number="0022">2002 (c.22)</Citation>, section 47(1) and (2).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00015">
+<FootnoteText>
+<Para><Text>Section 112(4) was amended by the Employment Act 2002, section 53, schedule 7, paragraphs 24 and 36. Section 112(5) was inserted by the Employment Act 2002, section 34(1) and (3).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00016">
+<FootnoteText>
+<Para><Text>Section 117(3) was amended by the Employment Relations Act 1999, section 33(2) and the Employment Act 2002, Schedule 7, paragraph 37.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00017">
+<FootnoteText>
+<Para><Text>Section 145(7) was repealed by the Employment Relations Act 1999, sections 9 and 44, Schedule 4, Part III paragraphs, 1, 5, 25, and Schedule 9, Table 2.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00018">
+<FootnoteText>
+<Para><Text>Section 11(1) was amended by the Employment Relations Act 2004, section 37(2).</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00019">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/ukpga/2002/22" id="c00015" Class="UnitedKingdomPublicGeneralAct" Year="2002" Number="0022">2002 c.22</Citation>.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00020">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/uksi/2002/3207" id="c00016" Class="UnitedKingdomStatutoryInstrument" Year="2002" Number="3207">S.I. 2002/3207</Citation>.</Text></Para>
+</FootnoteText>
+</Footnote><Footnote id="f00021">
+<FootnoteText>
+<Para><Text><Citation URI="http://www.legislation.gov.uk/id/uksi/2006/1031" id="c00017" Class="UnitedKingdomStatutoryInstrument" Year="2006" Number="1031">S.I. 2006/1031</Citation>.</Text></Para>
+</FootnoteText>
+</Footnote></Footnotes></Legislation>
