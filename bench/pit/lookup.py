@@ -133,6 +133,12 @@ class Limits:
     def close(self) -> None:
         self._db.close()
 
+    def __enter__(self) -> Limits:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
+
     def at(self, coordinate: str, on: date) -> Answer:
         if coordinate not in self.coordinates:
             return Answer("NOT_COVERED", coordinate, on.isoformat())

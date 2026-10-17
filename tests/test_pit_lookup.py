@@ -1,6 +1,7 @@
 """Point-in-time lookup (bench/pit): dates, the range query, the chain and the sealed scoring."""
 
 import json
+from collections.abc import Iterator
 from datetime import date, timedelta
 
 import pytest
@@ -19,8 +20,9 @@ CS2_PROBE = (
 
 
 @pytest.fixture(scope="module")
-def limits() -> Limits:
-    return Limits.from_path()
+def limits() -> Iterator[Limits]:
+    with Limits.from_path() as table:
+        yield table
 
 
 @pytest.mark.parametrize(
@@ -87,9 +89,9 @@ def test_the_chain_answers_the_cs2_probe(limits: Limits) -> None:
     assert render(answer).startswith("£68,400. ")
 
 
-def test_no_figure_without_a_date() -> None:
+def test_no_figure_without_a_date(limits: Limits) -> None:
     router = Router.from_path(FIXTURE_INDEX)
-    answer = resolve(router.route("ERA 1996 s.124 as at 2012"), Limits.from_path())
+    answer = resolve(router.route("ERA 1996 s.124 as at 2012"), limits)
     assert answer.status == "IMPRECISE_DATE"
     assert "£" not in render(answer)
 

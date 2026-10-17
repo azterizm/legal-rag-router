@@ -183,10 +183,10 @@ def cold_child(index: Path, probe_text: str) -> dict[str, Any]:
     t0 = time.perf_counter_ns()
     router = Router.from_path(index)
     t1 = time.perf_counter_ns()
-    limits = Limits.from_path()
-    t2 = time.perf_counter_ns()
-    text = render(resolve(router.route(probe_text), limits))
-    t3 = time.perf_counter_ns()
+    with Limits.from_path() as limits:
+        t2 = time.perf_counter_ns()
+        text = render(resolve(router.route(probe_text), limits))
+        t3 = time.perf_counter_ns()
     return {
         "index_load_ms": round((t1 - t0) / 1e6, 2),
         "table_load_ms": round((t2 - t1) / 1e6, 2),
@@ -334,9 +334,8 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(cold_child(args.index, texts[CS2_PROBE])))
         return 0
 
-    with _NetworkGuard() as guard:
+    with _NetworkGuard() as guard, Limits.from_path() as limits:
         router = Router.from_path(args.index)
-        limits = Limits.from_path()
         per_probe: dict[str, Any] = {}
         for pid, text in texts.items():
             result = run_probe(router, limits, text, args.passes)
