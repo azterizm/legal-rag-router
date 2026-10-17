@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- "as at [date]" and "as of [date]" are passed through as `temporal_hint`, before or after the
+  citation (grammar UK-L-07, UK-C-08), e.g. "As at 1 January 2012, … section 124 of the
+  Employment Rights Act 1996?". A year is required, so "as of right" is not a hint. Bindings are
+  unchanged: 0 differences over the 2,112 battery rows and 100,000 swept citations.
+
 ## [0.1.0] - 2026-10-02
 
 The first release: the United Kingdom, routing and discovery.

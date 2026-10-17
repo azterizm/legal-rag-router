@@ -244,7 +244,7 @@ Outcomes:
 | UK-L-04 | Exclusion cues: `except`, `other than`, `apart from`, `excluding`, `save for`, `with the exception of`, `not`, `but not`, `rather than`, `instead of` | The mention straight after (and any list joined to it) goes to `excluded`, and the filter removes it (decision 15). An unclear scope → **A** |
 | UK-L-05 | Dates: `1.3.2007`, `(20.7.1998)`, `1 April 1996`, `6th April 2020` | A date cue. Its year is never an instrument year |
 | UK-L-06 | Extent notes: `(E.W.)`, `(S.)`, `(N.I.)` | Ignored, never a citation |
-| UK-L-07 | Time qualifiers: `as it stood on 1 April 2012`, `as enacted`, `original version` | `temporal_hint`, never a year (UK-C-08) |
+| UK-L-07 | Time qualifiers: `as it stood on 1 April 2012`, `as at 1 January 2012`, `as of 2020`, `as enacted`, `original version`. `as at` / `as of` need a year (optionally with a day and month), so `as of right` is not one | `temporal_hint`, never a year (UK-C-08) |
 
 ### 4.6 Work limits (fail-safe)
 
@@ -283,7 +283,7 @@ These limits keep routing linear in the query length. Past a limit the router ne
 | UK-C-20 | A provision with no connector, when the query names exactly one (non-negated) instrument: "In the Employment Rights Act 1996, what does section 124 cover?" | Linked to that instrument (decision 15). With two or more instruments: **A** |
 | UK-C-21 | A citation resolving to a coordinate the source publishes twice (`duplicated_provisions`) | **A**: "which Part?" (decision 13) |
 | UK-C-22 | One covered and one out-of-coverage citation: "ERA 1996 s.124 and Article 82 UK GDPR" | **O**, with both citations listed (decision 14) |
-| UK-C-08 | Time qualifiers: "as it stood in 2012", "original version", "as enacted" | Raw `temporal_hint`; never read as the instrument year |
+| UK-C-08 | Time qualifiers: "as it stood in 2012", "As at 1 January 2012, … s.124 …", "as of 6 April 2020", "original version", "as enacted" | Raw `temporal_hint`; never read as the instrument year |
 | UK-C-09 | Several citations in one query | **B** with every coordinate |
 | UK-C-10 | Several citations where one abstains | The whole query abstains |
 | UK-C-11 | A bare provision with no instrument or context: `section 124` | **A** over the salient instruments that contain it |

@@ -222,7 +222,14 @@ _CONTEXT_REF_RE: Final = re.compile(
     rf"(?P<t>act|order|regulations|rules|instrument|statute|measure)(?![a-z])"
     rf"(?!\s*,?\s*(?:of\s+)?\(?{_YEAR_RX})"
 )
+_MONTHS: Final = (
+    "january|february|march|april|may|june|july|august|september|october|november|december|"
+    "jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec"
+)
 _DATE: Final = rf"(?:\d{{1,2}}\s+)?(?:[a-z]+\s+)?{_YEAR_RX}"
+# "as at" / "as of" need a real date (a year, optionally with a day and month), so "as of right"
+# is not one (grammar.md UK-L-07).
+_AS_AT_DATE: Final = rf"(?:\d{{1,2}}(?:st|nd|rd|th)?\s+)?(?:(?:{_MONTHS})\.?,?\s+)?{_YEAR_RX}(?!\d)"
 _TEMPORAL_RE: Final = re.compile(
     r"(?<![a-z])(?:"
     r"as\s+(?:it|they)?\s*(?:stood|was|were|in\s+force|originally\s+enacted|enacted|made|amended|"
@@ -230,15 +237,12 @@ _TEMPORAL_RE: Final = re.compile(
     r"|(?:original|enacted|as\s+made|point[-\s]in[-\s]time|historic(?:al)?)\s+(?:version|text|wording|form)"
     rf"|(?:in\s+force|applicable|in\s+effect|that\s+applied)\s+(?:on|at|in|as\s+at|during)\s+{_DATE}"
     rf"|(?:version|text|wording)\s+(?:of|from|as\s+at|at|in)\s+{_DATE}"
+    rf"|as\s+(?:at|of)\s+{_AS_AT_DATE}"
     r"|(?:before|prior\s+to|after|since|until)\s+(?:the\s+)?(?:\d{1,4}\s+)?amendments?"
     r")(?![a-z])"
 )
 # Dates ("1.3.2007", "1 April 1996", "6th April 2020") and territorial extents ("(E.W.)"):
 # never citations, and their years are never instrument years (grammar.md UK-C-12).
-_MONTHS: Final = (
-    "january|february|march|april|may|june|july|august|september|october|november|december|"
-    "jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec"
-)
 _DATE_RE: Final = re.compile(
     r"(?<![\d.])\d{1,2}\s*[./]\s*\d{1,2}\s*[./]\s*(?:1[2-9]|20)\d\d(?!\d)"
     rf"|(?<![a-z\d])\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{_MONTHS})\.?,?\s+(?:1[2-9]|20)\d\d(?!\d)"

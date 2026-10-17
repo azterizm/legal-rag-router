@@ -380,6 +380,40 @@ def test_temporal_hint_is_extracted_not_bound(router: Router) -> None:
 
 
 @pytest.mark.parametrize(
+    ("query", "hint"),
+    [
+        (
+            (
+                "As at 1 January 2012, what was the maximum compensatory award for unfair "
+                "dismissal under section 124 of the Employment Rights Act 1996?"
+            ),
+            "As at 1 January 2012",
+        ),
+        ("s.124 of the Employment Rights Act 1996 as of 6 April 2020", "as of 6 April 2020"),
+        ("ERA 1996 s.124 as at 2012", "as at 2012"),
+        ("as of March 2013, what did ERA 1996 s.124 say", "as of March 2013"),
+    ],
+)
+def test_as_at_and_as_of_dates_are_temporal_hints(router: Router, query: str, hint: str) -> None:
+    result = router.route(query)
+    assert coords(result) == ["uk/ukpga/1996/18/s124"]
+    assert result.temporal_hint == hint
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "s.124 of the Employment Rights Act 1996 as of right",
+        "ERA 1996 s.124 as at the date of dismissal",
+    ],
+)
+def test_as_at_without_a_date_is_no_hint(router: Router, query: str) -> None:
+    result = router.route(query)
+    assert coords(result) == ["uk/ukpga/1996/18/s124"]
+    assert result.temporal_hint is None
+
+
+@pytest.mark.parametrize(
     "query",
     ["unfair dismissal compensation cap", "£124 for 124 employees on 1 April 1996", "", "   "],
 )
