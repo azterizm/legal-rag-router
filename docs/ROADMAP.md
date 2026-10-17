@@ -19,14 +19,28 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 | Field | Value |
 |---|---|
 | Last updated | 2026-10-17 |
-| Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
-| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)**, **M13 ✅** |
-| Next step | None scheduled. "as at" / "as of" is on `main` for the next release (stop 29; no version bump yet). Stage C (Spain) when you decide |
-| Waiting on you | A decision on Stage C (Spain). Your go to correct CS2's SI attribution (portfolio repo, stop 29). Optional: the Dependabot PR |
+| Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated; **0.1.1 released 17 Oct** (stop 30). Stage C (Spain) not started |
+| Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released; 0.1.1 on 17 Oct)**, **M13 ✅** |
+| Next step | None scheduled. Stage C (Spain) when you decide |
+| Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-17 (30): **`legal-rag-router 0.1.1` released (your go): "as at" / "as of" dates as `temporal_hint`.** The case study content is not being updated (your call).
+  - **Before the push, anonymised:** the CS2 runner and results named the audit battery by its folder, which carries the audited vendor's name (git-ignored in `legal-rag-audit`, so never published). The two unpushed commits were redone: `--battery` is now required and the battery is named only by its sealed hashes. The run was repeated at `995bf3f` with the same outcome (p50 173.9 µs), and the audit evaluator again agreed 12/12. Note: `legal-rag-audit`'s public `scripts/serve_mock.py` already names that vendor next to `pit-era-124-1`; untouched, for you to judge.
+  - **CI failed on the first push (`2675ce5`), now fixed (`83926c1`):**
+    - Python 3.13/3.14: the limits table's SQLite connections were never closed, and the resulting `ResourceWarning` failed the next test (the stop-24 class). `Limits` is now a context manager. Reproduced and verified locally on 3.13.
+    - macOS 3.13: `test_doubling_input_is_linear[identifier_soup]` measured 3.03× against the 3× CI bound. It passed on the rerun.
+    - Locally on 3.14, `test_doubling_input_is_linear` fails before the grammar change (`65fb6e4`) as often as after it, so the change did not cause it. The bound is unchanged (⛔ methodology).
+  - **Release:** tag `v0.1.1` on `83926c1`; `release.yml` passed every job (run 39012543734). The draft held the 0.1.0 index assets, byte-identical to the v0.1.0 release (same `SHA256SUMS`).
+  - **Checked against the live release:**
+    - `pip install legal-rag-router==0.1.1` in a clean Python 3.13 venv;
+    - the README's download and checksum commands;
+    - on the downloaded index, the CS2 probe gives `ROUTE_BOUNDED` `uk/ukpga/1996/18/s124` with `temporal_hint` "As at 1 January 2012", and an invented Act is refused;
+    - `gh attestation verify` on the wheel downloaded from PyPI (SLSA provenance v1, `refs/tags/v0.1.1`, `83926c1`).
+  - **Resume:** nothing open from this work. Stage C when you decide.
 
 - 2026-10-17 (29): **CS2 Control 3 built and run on the sealed audit probes (your go on the plan; stop 28's grammar change included).**
   - **Grammar (`057c6a1`):** "as at [date]" / "as of [date]" are passed through as `temporal_hint` (UK-L-07, UK-C-08). A year is required, so "as of right" is not a hint. Against 0.1.0 on the full index: **0 binding changes** over 102,184 queries (2,112 battery rows, the 100,000-citation sweep sample, every harvested citation with "as at"/"as of", the 14 audit probes); 36 hints added, all real dates.
