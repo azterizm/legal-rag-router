@@ -75,7 +75,7 @@ a separate download, attached to each [GitHub release](https://github.com/azteri
 with a `SHA256SUMS` file. Fetch, verify and unpack it with the [GitHub CLI](https://cli.github.com/):
 
 ```bash
-gh release download v0.1.0 -R azterizm/legal-rag-router -p 'index-*.tar.gz' -p 'SHA256SUMS' -D dist
+gh release download v0.1.1 -R azterizm/legal-rag-router -p 'index-*.tar.gz' -p 'SHA256SUMS' -D dist
 (cd dist && sha256sum -c --ignore-missing SHA256SUMS) && mkdir -p data/index && tar -xzf dist/index-*.tar.gz -C data/index
 ```
 
@@ -142,7 +142,7 @@ def answer(query: str) -> str:
             found = router.discover(query)
             return offer_for_confirmation(found.candidates)
         case NextAction.VERIFY_LIVE:
-            return ask_official_registry(result)  # not returned in 0.1.0 (strict mode)
+            return ask_official_registry(result)  # not returned in 0.1 (strict mode)
 ```
 
 `vector_store`, `generate`, `offer_for_confirmation` and `ask_official_registry` are yours. The
@@ -158,7 +158,7 @@ Other fields worth knowing (all on `RouteResult`):
 | `excluded` | Provisions the query excludes: `the Companies Act 2006 except section 172` binds the Act and excludes `s172` |
 | `citations` | Every citation found, with its character span and how it resolved |
 | `repealed` | The bound instrument is repealed. It is still bound, never refused |
-| `temporal_hint` | Text such as "as it stood in 2012", passed through for a point-in-time layer |
+| `temporal_hint` | Text such as "as it stood in 2012" or "As at 1 January 2012", passed through for a point-in-time layer |
 | `index_snapshot`, `latency_ns`, `reason` | The index date, the time taken, and a machine-readable detail for non-bound outcomes |
 
 ### Retrieval: the partition filter
@@ -289,13 +289,10 @@ The tests need no index download: they run on a small real-data fixture index co
 
 ## Roadmap
 
-`0.1.0` is the first release: the United Kingdom, routing and discovery. Planned:
-
-- **Point-in-time phrasing (next release).** 0.1.0 passes "as it stood on 1 April 2012",
-  "as in force on …", "as enacted" and "original version" through as `temporal_hint`, but not
-  "as at 1 January 2012" or "as of 1 January 2012": those queries still bind, with no hint. This
-  is fixed on `main` and ships in the next release. Resolving a date to the version in force
-  stays with your point-in-time layer.
+`0.1` covers the United Kingdom, routing and discovery. `0.1.1` adds "as at 1 January 2012"
+and "as of 1 January 2012" to the phrases passed through as `temporal_hint` (0.1.0 bound those
+queries with no hint). Resolving a date to the version in force stays with your point-in-time
+layer. Planned:
 - **Spain** (BOE): `es/boe/{year}/{number}/{provision…}`, e.g. `es/boe/1885/6627/art42/1/b`.
 - **More domains** through grammar plugins that share the index, the abstention gate and the
   typo tiers: `eu/{reg|dir|dec|judgment}/{year}/{number}`, `us/usc/{title}/{section}`,

@@ -4,7 +4,9 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] - 2026-10-17
+
+Point-in-time phrasing. Same index as 0.1.0 (snapshot 2026-09-28).
 
 ### Added
 - "as at [date]" and "as of [date]" are passed through as `temporal_hint`, before or after the
@@ -38,4 +40,5 @@ The first release: the United Kingdom, routing and discovery.
   (`reports/`).
 - Packaging (hatchling, zero runtime dependencies), CI on Python 3.11–3.14, CodeQL, Dependabot.
 
+[0.1.1]: https://github.com/azterizm/legal-rag-router/releases/tag/v0.1.1
 [0.1.0]: https://github.com/azterizm/legal-rag-router/releases/tag/v0.1.0
