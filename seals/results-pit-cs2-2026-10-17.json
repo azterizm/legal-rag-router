@@ -1,0 +1,21 @@
+{
+  "contents": {
+    "audit_battery": {
+      "ground_truth_sha256": "0b249b5b4752d5ae9b860463d476731a20b05da279a3ea124f4ba705186b4316",
+      "probes_sha256": "08c3b9b5fd9b5274c152738ed23c2d8faa3cb451273ba6bf34a9c5ca3a2d5964",
+      "sealed_at": "2026-08-07T08:51:57Z",
+      "source": "legal-rag-audit battery sealed for CS2 (System C)"
+    },
+    "limits_sha256": "2964c5c23316837fdb5d645dad5b41223d4cc2814c1d085acac5e0bdb1ba0c16",
+    "package_version": "0.1.0",
+    "results": {
+      "results/pit-cs2-2026-10-17.json": "27d8b6ad9c5d76e66e227c7d16fbe5ce1ccaf58595fd93affab4770ff583189d",
+      "results/pit-cs2-2026-10-17.md": "0a5ddd5ebc0e21d4e6f1e18db67044c6823a46521ee32dd5c4d9ad3c1e828190"
+    }
+  },
+  "git_commit": "995bf3fdb1824f177396af3798e05419ab663499",
+  "kind": "results",
+  "seal_format": 1,
+  "seal_sha256": "70f868b80970be783047037e54627753bdaf0bf9728968a5a86217a446ab72fa",
+  "sealed_at": "2026-10-17T06:56:51+00:00"
+}

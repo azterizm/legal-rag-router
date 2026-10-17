@@ -41,6 +41,7 @@ verify only at their own commits (tags `battery-seal-2026-09-29` and `concept-se
 | [`../reports/comparison-uk.md`](../reports/comparison-uk.md) | The router against Gemini 3.8 Flash (high), Jev and Laya: accuracy, determinism, cost, latency, data leaving the network, and how to reproduce it |
 | [`../reports/discovery-uk.md`](../reports/discovery-uk.md) | The sealed test run of concept discovery |
 | [`../reports/coverage-sweep-uk.md`](../reports/coverage-sweep-uk.md) | 100,000 real citations from the statute book, routed, with the shapes the router misses ([Stage A version](../reports/coverage-sweep-uk-stageA.md)) |
+| [`../results/pit-cs2-2026-10-17.md`](../results/pit-cs2-2026-10-17.md) | Point-in-time lookup (CS2 Control 3, `bench/pit/`, outside the wheel): the August 2026 audit's 12 sealed point-in-time probes through the router, its `temporal_hint` and a limits table built from the Increase of Limits Orders as made. Sealed in `../seals/results-pit-cs2-2026-10-17.json` |
 
 The raw outputs sit beside them: `../results/` (sealed runs and the comparison) and
 `../bench/results/` (latency, Row B and Laya measurements).

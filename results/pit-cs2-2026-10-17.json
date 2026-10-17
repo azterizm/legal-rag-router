@@ -1,0 +1,633 @@
+{
+ "run_date": "2026-10-17",
+ "run_at": "2026-10-17T06:56:51+00:00",
+ "battery": {
+  "source": "legal-rag-audit battery sealed for CS2 (System C)",
+  "probes_sha256": "08c3b9b5fd9b5274c152738ed23c2d8faa3cb451273ba6bf34a9c5ca3a2d5964",
+  "ground_truth_sha256": "0b249b5b4752d5ae9b860463d476731a20b05da279a3ea124f4ba705186b4316",
+  "sealed_at": "2026-08-07T08:51:57Z"
+ },
+ "limits_sha256": "2964c5c23316837fdb5d645dad5b41223d4cc2814c1d085acac5e0bdb1ba0c16",
+ "router_version": "0.1.0",
+ "index_snapshot": "2026-09-28",
+ "git_commit": "995bf3fdb1824f177396af3798e05419ab663499",
+ "passes": 1000,
+ "network_attempts": 0,
+ "llm_calls": 0,
+ "tool_calls": 0,
+ "environment": {
+  "machine": "Darwin arm64 (Apple M4)",
+  "python": "3.11.15"
+ },
+ "probe_texts": {
+  "pit-era-108-1": "As at 1 January 2011, how long did an employee have to have been continuously employed before section 94 of the Employment Rights Act 1996 applied to their dismissal?",
+  "pit-era-108-2": "How long must an employee have been continuously employed before section 94 of the Employment Rights Act 1996 applies to their dismissal?",
+  "pit-era-124-1": "As at 1 January 2012, what was the maximum compensatory award for unfair dismissal under section 124 of the Employment Rights Act 1996?",
+  "pit-era-124-2": "As at 1 January 2014, what was the maximum compensatory award for unfair dismissal under section 124 of the Employment Rights Act 1996?",
+  "pit-era-227-1": "As at 1 June 2014, what was the maximum amount of a week's pay for calculating a redundancy payment or a basic award under section 227 of the Employment Rights Act 1996?",
+  "pit-era-227-2": "As at 1 June 2020, what was the maximum amount of a week's pay for calculating a redundancy payment or a basic award under section 227 of the Employment Rights Act 1996?",
+  "pit-era-186-1": "As at 1 January 2014, what was the weekly limit on a debt payable by the Secretary of State to an employee of an insolvent employer under section 186 of the Employment Rights Act 1996?",
+  "pit-era-186-2": "As at 1 January 2019, what was the weekly limit on a debt payable by the Secretary of State to an employee of an insolvent employer under section 186 of the Employment Rights Act 1996?",
+  "pit-ca-382-1": "As at 1 January 2014, what was the maximum turnover a company could have and still qualify as a small company under section 382 of the Companies Act 2006?",
+  "pit-ca-382-2": "As at 1 January 2019, what was the maximum turnover a company could have and still qualify as a small company under section 382 of the Companies Act 2006?",
+  "pit-ca-465-1": "As at 1 January 2014, what was the maximum turnover for a company to qualify as medium-sized under section 465 of the Companies Act 2006?",
+  "pit-ca-465-2": "As at 1 January 2019, what was the maximum turnover for a company to qualify as medium-sized under section 465 of the Companies Act 2006?"
+ },
+ "probes": {
+  "pit-era-108-1": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s94"
+   ],
+   "temporal_hint": "As at 1 January 2011",
+   "answer": {
+    "status": "NOT_COVERED",
+    "coordinate": "uk/ukpga/1996/18/s94",
+    "on": "2011-01-01",
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NOT_COVERED (uk/ukpga/1996/18/s94).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 168.75,
+     "p99_us": 188.42,
+     "max_us": 244.12
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 5.38,
+     "p99_us": 6.21,
+     "max_us": 12.62
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 174.21,
+     "p99_us": 194.12,
+     "max_us": 253.33
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  },
+  "pit-era-108-2": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s94"
+   ],
+   "temporal_hint": null,
+   "answer": {
+    "status": "NO_DATE",
+    "coordinate": "uk/ukpga/1996/18/s94",
+    "on": null,
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NO_DATE (uk/ukpga/1996/18/s94).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 159.96,
+     "p99_us": 172.21,
+     "max_us": 177.71
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 1.54,
+     "p99_us": 1.71,
+     "max_us": 1.75
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 161.46,
+     "p99_us": 173.79,
+     "max_us": 179.25
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  },
+  "pit-era-124-1": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s124"
+   ],
+   "temporal_hint": "As at 1 January 2012",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s124",
+    "on": "2012-01-01",
+    "amount": "£68,400",
+    "si": "uk/uksi/2010/2926",
+    "title": "The Employment Rights (Increase of Limits) Order 2010",
+    "valid_from": "2011-02-01",
+    "valid_to": "2012-02-01",
+    "provision": "Section 124(1) of the 1996 Act",
+    "caveat": null,
+    "transitional": "The revocations in article 2 and the substitutions made by article 3 do not have effect in relation to a case where the appropriate date falls before 1st February 2011."
+   },
+   "text": "£68,400. Section 124(1) of the 1996 Act (Employment Rights Act 1996), as at 2012-01-01: set by The Employment Rights (Increase of Limits) Order 2010 (uk/uksi/2010/2926), in force 2011-02-01 to 2012-01-31.",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 161.71,
+     "p99_us": 178.96,
+     "max_us": 333.21
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 12.29,
+     "p99_us": 18.21,
+     "max_us": 485.21
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 173.92,
+     "p99_us": 192.29,
+     "max_us": 663.25
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£68,400"
+    ]
+   }
+  },
+  "pit-era-124-2": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s124"
+   ],
+   "temporal_hint": "As at 1 January 2014",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s124",
+    "on": "2014-01-01",
+    "amount": "£74,200",
+    "si": "uk/uksi/2012/3007",
+    "title": "The Employment Rights (Increase of Limits) Order 2012",
+    "valid_from": "2013-02-01",
+    "valid_to": "2014-04-06",
+    "provision": "Section 124(1) of the 1996 Act",
+    "caveat": "From 29 July 2013 the compensatory award is capped at the lower of this sum and 52 weeks' pay (s.124(1ZA), inserted by SI 2013/1949).",
+    "transitional": "The revocation in article 2 and the substitutions made by article 3 do not have effect in relation to a case where the appropriate date falls before 1st February 2013."
+   },
+   "text": "£74,200. Section 124(1) of the 1996 Act (Employment Rights Act 1996), as at 2014-01-01: set by The Employment Rights (Increase of Limits) Order 2012 (uk/uksi/2012/3007), in force 2013-02-01 to 2014-04-05. From 29 July 2013 the compensatory award is capped at the lower of this sum and 52 weeks' pay (s.124(1ZA), inserted by SI 2013/1949).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 162.42,
+     "p99_us": 173.79,
+     "max_us": 181.83
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 12.5,
+     "p99_us": 13.83,
+     "max_us": 18.71
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 174.58,
+     "p99_us": 186.71,
+     "max_us": 195.83
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£74,200"
+    ]
+   }
+  },
+  "pit-era-227-1": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s227"
+   ],
+   "temporal_hint": "As at 1 June 2014",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s227",
+    "on": "2014-06-01",
+    "amount": "£464",
+    "si": "uk/uksi/2014/382",
+    "title": "The Employment Rights (Increase of Limits) Order 2014",
+    "valid_from": "2014-04-06",
+    "valid_to": "2015-04-06",
+    "provision": "Section 227(1) of the 1996 Act",
+    "caveat": null,
+    "transitional": "The revocation in article 2 and the substitutions made in article 3 do not have effect in relation to a case where the appropriate date falls before 6th April 2014."
+   },
+   "text": "£464. Section 227(1) of the 1996 Act (Employment Rights Act 1996), as at 2014-06-01: set by The Employment Rights (Increase of Limits) Order 2014 (uk/uksi/2014/382), in force 2014-04-06 to 2015-04-05.",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 181.33,
+     "p99_us": 192.54,
+     "max_us": 213.17
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 12.71,
+     "p99_us": 13.46,
+     "max_us": 19.21
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 194.0,
+     "p99_us": 205.75,
+     "max_us": 228.29
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£464"
+    ]
+   }
+  },
+  "pit-era-227-2": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s227"
+   ],
+   "temporal_hint": "As at 1 June 2020",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s227",
+    "on": "2020-06-01",
+    "amount": "£538",
+    "si": "uk/uksi/2020/205",
+    "title": "The Employment Rights (Increase of Limits) Order 2020",
+    "valid_from": "2020-04-06",
+    "valid_to": "2021-04-06",
+    "provision": "Section 227(1) of the 1996 Act",
+    "caveat": null,
+    "transitional": "The revocation in article 2 and the substitution made in article 3 do not have effect in relation to a case where the appropriate date falls before 6th April 2020."
+   },
+   "text": "£538. Section 227(1) of the 1996 Act (Employment Rights Act 1996), as at 2020-06-01: set by The Employment Rights (Increase of Limits) Order 2020 (uk/uksi/2020/205), in force 2020-04-06 to 2021-04-05.",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 182.88,
+     "p99_us": 194.17,
+     "max_us": 202.79
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 13.21,
+     "p99_us": 14.58,
+     "max_us": 22.75
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 196.04,
+     "p99_us": 207.29,
+     "max_us": 215.71
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£538"
+    ]
+   }
+  },
+  "pit-era-186-1": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s186"
+   ],
+   "temporal_hint": "As at 1 January 2014",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s186",
+    "on": "2014-01-01",
+    "amount": "£450",
+    "si": "uk/uksi/2012/3007",
+    "title": "The Employment Rights (Increase of Limits) Order 2012",
+    "valid_from": "2013-02-01",
+    "valid_to": "2014-04-06",
+    "provision": "Paragraphs (a) and (b) of section 186(1) of the 1996 Act",
+    "caveat": null,
+    "transitional": "The revocation in article 2 and the substitutions made by article 3 do not have effect in relation to a case where the appropriate date falls before 1st February 2013."
+   },
+   "text": "£450. Paragraphs (a) and (b) of section 186(1) of the 1996 Act (Employment Rights Act 1996), as at 2014-01-01: set by The Employment Rights (Increase of Limits) Order 2012 (uk/uksi/2012/3007), in force 2013-02-01 to 2014-04-05.",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 188.38,
+     "p99_us": 201.54,
+     "max_us": 229.08
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 12.92,
+     "p99_us": 14.5,
+     "max_us": 21.67
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 201.25,
+     "p99_us": 214.67,
+     "max_us": 244.54
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£450"
+    ]
+   }
+  },
+  "pit-era-186-2": {
+   "coordinate": [
+    "uk/ukpga/1996/18/s186"
+   ],
+   "temporal_hint": "As at 1 January 2019",
+   "answer": {
+    "status": "FOUND",
+    "coordinate": "uk/ukpga/1996/18/s186",
+    "on": "2019-01-01",
+    "amount": "£508",
+    "si": "uk/uksi/2018/194",
+    "title": "The Employment Rights (Increase of Limits) Order 2018",
+    "valid_from": "2018-04-06",
+    "valid_to": "2019-04-06",
+    "provision": "Paragraphs (a) and (b) of section 186(1) of the 1996 Act",
+    "caveat": null,
+    "transitional": "The revocation in article 2 and the substitutions made in article 3 do not have effect in relation to a case where the appropriate date falls before 6th April 2018."
+   },
+   "text": "£508. Paragraphs (a) and (b) of section 186(1) of the 1996 Act (Employment Rights Act 1996), as at 2019-01-01: set by The Employment Rights (Increase of Limits) Order 2018 (uk/uksi/2018/194), in force 2018-04-06 to 2019-04-05.",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 187.21,
+     "p99_us": 201.12,
+     "max_us": 234.12
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 13.21,
+     "p99_us": 16.67,
+     "max_us": 24.58
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 200.25,
+     "p99_us": 214.62,
+     "max_us": 258.71
+    }
+   },
+   "score": {
+    "status": "pass",
+    "outcome": "version_correct",
+    "appeared": [
+     "£508"
+    ]
+   }
+  },
+  "pit-ca-382-1": {
+   "coordinate": [
+    "uk/ukpga/2006/46/s382"
+   ],
+   "temporal_hint": "As at 1 January 2014",
+   "answer": {
+    "status": "NOT_COVERED",
+    "coordinate": "uk/ukpga/2006/46/s382",
+    "on": "2014-01-01",
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NOT_COVERED (uk/ukpga/2006/46/s382).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 314.92,
+     "p99_us": 331.79,
+     "max_us": 372.21
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 5.71,
+     "p99_us": 6.12,
+     "max_us": 14.96
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 320.46,
+     "p99_us": 337.88,
+     "max_us": 378.54
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  },
+  "pit-ca-382-2": {
+   "coordinate": [
+    "uk/ukpga/2006/46/s382"
+   ],
+   "temporal_hint": "As at 1 January 2019",
+   "answer": {
+    "status": "NOT_COVERED",
+    "coordinate": "uk/ukpga/2006/46/s382",
+    "on": "2019-01-01",
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NOT_COVERED (uk/ukpga/2006/46/s382).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 315.79,
+     "p99_us": 332.12,
+     "max_us": 335.75
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 5.67,
+     "p99_us": 6.08,
+     "max_us": 14.29
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 321.29,
+     "p99_us": 338.08,
+     "max_us": 342.75
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  },
+  "pit-ca-465-1": {
+   "coordinate": [
+    "uk/ukpga/2006/46/s465"
+   ],
+   "temporal_hint": "As at 1 January 2014",
+   "answer": {
+    "status": "NOT_COVERED",
+    "coordinate": "uk/ukpga/2006/46/s465",
+    "on": "2014-01-01",
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NOT_COVERED (uk/ukpga/2006/46/s465).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 312.38,
+     "p99_us": 332.79,
+     "max_us": 407.58
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 5.71,
+     "p99_us": 7.46,
+     "max_us": 94.0
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 318.08,
+     "p99_us": 338.67,
+     "max_us": 493.25
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  },
+  "pit-ca-465-2": {
+   "coordinate": [
+    "uk/ukpga/2006/46/s465"
+   ],
+   "temporal_hint": "As at 1 January 2019",
+   "answer": {
+    "status": "NOT_COVERED",
+    "coordinate": "uk/ukpga/2006/46/s465",
+    "on": "2019-01-01",
+    "amount": null,
+    "si": null,
+    "title": null,
+    "valid_from": null,
+    "valid_to": null,
+    "provision": null,
+    "caveat": null,
+    "transitional": null
+   },
+   "text": "No figure: NOT_COVERED (uk/ukpga/2006/46/s465).",
+   "distinct_answers": 1,
+   "latency": {
+    "route": {
+     "calls": 1000,
+     "p50_us": 317.21,
+     "p99_us": 332.29,
+     "max_us": 363.71
+    },
+    "lookup": {
+     "calls": 1000,
+     "p50_us": 5.79,
+     "p99_us": 6.17,
+     "max_us": 7.46
+    },
+    "total": {
+     "calls": 1000,
+     "p50_us": 323.0,
+     "p99_us": 338.33,
+     "max_us": 370.79
+    }
+   },
+   "score": {
+    "status": "not_captured",
+    "outcome": "no_version_returned",
+    "appeared": []
+   }
+  }
+ },
+ "cold_starts": [
+  {
+   "index_load_ms": 137.3,
+   "table_load_ms": 0.38,
+   "first_answer_ms": 0.792,
+   "text": "£68,400. Section 124(1) of the 1996 Act (Employment Rights Act 1996), as at 2012-01-01: set by The Employment Rights (Increase of Limits) Order 2010 (uk/uksi/2010/2926), in force 2011-02-01 to 2012-01-31.",
+   "process_wall_ms": 192.3
+  },
+  {
+   "index_load_ms": 132.84,
+   "table_load_ms": 0.38,
+   "first_answer_ms": 0.766,
+   "text": "£68,400. Section 124(1) of the 1996 Act (Employment Rights Act 1996), as at 2012-01-01: set by The Employment Rights (Increase of Limits) Order 2010 (uk/uksi/2010/2926), in force 2011-02-01 to 2012-01-31.",
+   "process_wall_ms": 185.0
+  },
+  {
+   "index_load_ms": 132.95,
+   "table_load_ms": 0.38,
+   "first_answer_ms": 0.77,
+   "text": "£68,400. Section 124(1) of the 1996 Act (Employment Rights Act 1996), as at 2012-01-01: set by The Employment Rights (Increase of Limits) Order 2010 (uk/uksi/2010/2926), in force 2011-02-01 to 2012-01-31.",
+   "process_wall_ms": 186.4
+  }
+ ],
+ "summary": {
+  "probes": 12,
+  "covered": 6,
+  "covered_pass": 6,
+  "not_covered": 6,
+  "all_deterministic": true,
+  "cold_answers_match": true
+ }
+}

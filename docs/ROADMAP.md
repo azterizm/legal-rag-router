@@ -18,15 +18,31 @@ Legend: 🧑 = needs you (an account, hardware, money or approval) · ⛔ = halt
 
 | Field | Value |
 |---|---|
-| Last updated | 2026-10-02 |
+| Last updated | 2026-10-17 |
 | Current stage | **Phase 1 for the UK complete** (stops 26–27): `legal-rag-router 0.1.0` released (PyPI, GitHub) and the vault updated. Stage C (Spain) not started |
 | Current milestone | M0 ✅, M1 ✅ (UK), M2 ✅ (UK), M3-UK ✅, M4-UK ✅, **M5-UK ✅**, M6 ✅ (UK, full data), **M7-UK ✅ (full index: 100k sweep, p99 1.88 ms over 100,000 real queries)**, **M8-UK ✅ (sealed: `battery-seal-2026-09-29`; v2 `battery-seal-2026-09-29-v2`)**, **M10-UK ✅**, **M11-UK ✅**, **M9 ✅**, **M12 ✅ (0.1.0 released)**, **M13 ✅** |
-| Next step | None scheduled. Planned for the next release: "as at" / "as of" dates as `temporal_hint` (stop 28). Stage C (Spain) when you decide |
-| Waiting on you | A decision on Stage C (Spain). Optional: the Dependabot PR |
+| Next step | None scheduled. "as at" / "as of" is on `main` for the next release (stop 29; no version bump yet). Stage C (Spain) when you decide |
+| Waiting on you | A decision on Stage C (Spain). Your go to correct CS2's SI attribution (portfolio repo, stop 29). Optional: the Dependabot PR |
 | Blocked | Nothing |
 
 ### Stop log
 Newest first. One line per stop: what was finished, and where to resume.
+
+- 2026-10-17 (29): **CS2 Control 3 built and run on the sealed audit probes (your go on the plan; stop 28's grammar change included).**
+  - **Grammar (`057c6a1`):** "as at [date]" / "as of [date]" are passed through as `temporal_hint` (UK-L-07, UK-C-08). A year is required, so "as of right" is not a hint. Against 0.1.0 on the full index: **0 binding changes** over 102,184 queries (2,112 battery rows, the 100,000-citation sweep sample, every harvested citation with "as at"/"as of", the 14 audit probes); 36 hints added, all real dates.
+  - **Limits table (`feae650`, `bench/pit/`, outside the wheel):** 48 rows (ERA 1996 s.124, s.186, s.227 across 16 Increase of Limits Orders, SI 2010/2926 to SI 2026/310), copied from each Order's Schedule as made with the XML's SHA-256. The build checks commencement dates (article 1 against the metadata), the old-limit chain and the revocation chain. 18 GETs to legislation.gov.uk; the Orders are committed under OGL v3.0 (`docs/sources.md`).
+  - **Findings:**
+    - **SI 2010/2926 set £68,400 (from 1 Feb 2011); SI 2011/3006 set £72,300 (from 1 Feb 2012).** CS2 §2, §5 and §7 name SI 2011/3006 for £68,400. The sealed ground truth names no SI, so the audit's scoring is unaffected. Correcting CS2 needs your go.
+    - The table starts on 1 Feb 2011. s.186 and s.227 were also raised by SI 2009/1903 (1 Oct 2009), which the chain check caught.
+  - **Run (`results/pit-cs2-2026-10-17.md`, sealed `seals/results-pit-cs2-2026-10-17.json`, at `995bf3f`; Apple M4):**
+    - the CS2 probe answers **£68,400, SI 2010/2926** on all 1,000 passes;
+    - router + lookup p50 173.9 µs, p99 192.3 µs; 0 LLM calls, 0 tool calls, 0 network attempts;
+    - 3 cold starts (index load about 133 ms) gave the same answer.
+    - All 12 sealed point-in-time probes: the 6 the table covers pass; the 6 it does not cover (s.94/s.108, Companies Act s.382/s.465) get no figure.
+    - The audit's own `PointInTimeEvaluator` agrees on 12 of 12.
+  - **Register:** the 6 covered probes are **Measured** on a battery sealed before this work, against labels we did not write. The table was built knowing which sections the battery asks about, though it holds every Order from 2011 to 2026, not only the probe dates.
+  - **Side effect, repaired:** an offline `uv run` in `~/Code/legal-rag-audit` deleted its `.venv`. It was rebuilt per its CONTRIBUTING (`requirements/dev.txt` + editable install) and the stray `uv.lock` removed; that repo's only change is your existing `scaffolder.py` edit.
+  - **Resume:** your call on the CS2 corrections and on publishing the right-hand column; the next router release (0.1.1 or 0.2.0) needs your go.
 
 - 2026-10-02 (28): **Gap found: "as at" / "as of" dates are not read as `temporal_hint` (your call: planned for the next release).**
   - Found while checking a portfolio case study whose probe is "As at 1 January 2012, … section 124 of the Employment Rights Act 1996?". 0.1.0 binds `uk/ukpga/1996/18/s124` but sets no `temporal_hint`.
