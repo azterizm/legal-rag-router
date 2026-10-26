@@ -1,6 +1,6 @@
 # legal-rag-router
 
-**Deterministic citation routing and epistemic abstention for legal RAG.**
+**Sends a query to the exact legal source it cites before vector search runs, or refuses. No model, no network.**
 
 [![CI](https://github.com/azterizm/legal-rag-router/actions/workflows/ci.yml/badge.svg)](https://github.com/azterizm/legal-rag-router/actions/workflows/ci.yml)
 [![Python 3.11–3.14](https://img.shields.io/badge/python-3.11%E2%80%933.14-blue)](https://github.com/azterizm/legal-rag-router/blob/main/pyproject.toml)
@@ -21,8 +21,25 @@ to the same input every time.
   → EPISTEMIC_ABSTENTION_INSTRUMENT_NOT_FOUND                 refuse: no such Act
 ```
 
-*Built by [Abdullah Memon](https://memonsystems.com) at [Memon Systems Ltd](https://memonsystems.com).
-Need it in your stack? See [Consultancy](#consultancy).*
+## Results
+
+Sealed run on 2,112 labelled queries, 1,897 of them citing real UK law:
+
+| Measure | Result |
+|---|---|
+| Real citations sent to the wrong source | 0 of 1,897 |
+| Invented law accepted | 0 of 68 |
+| Real law refused | 82 of 1,897 (4.3 %) |
+| Time per query, Apple M4 | 0.14 ms median, 2.10 ms p99 |
+
+**How to check it.** The test batteries were hashed before the router ran on them once, and the
+results after. Seals: [`seals/`](https://github.com/azterizm/legal-rag-router/tree/main/seals). Report:
+[`reports/sealed-run-uk.md`](https://github.com/azterizm/legal-rag-router/blob/main/reports/sealed-run-uk.md).
+
+**What it does not show.** UK legislation only. All 82 refusals fall among the 1,030 citations
+held out from development (8.0 %). The 2 ms p99 target is missed on both machines tested.
+
+*Built by [Abdullah Memon](https://memonsystems.com) at [Memon Systems Ltd](https://memonsystems.com).*
 
 ## Contents
 
@@ -32,7 +49,7 @@ Need it in your stack? See [Consultancy](#consultancy).*
   [follow-ups](#follow-ups-context) · [scope](#scope-jurisdictions) · [logging](#logging-and-privacy) ·
   [errors](#errors-and-failure-behaviour)
 - [Evidence](#evidence) · [Documentation](#documentation) · [Development](#development) ·
-  [Roadmap](#roadmap) · [Consultancy](#consultancy) · [Citing](#citing) · [Licence](#licence-and-attribution)
+  [Roadmap](#roadmap) · [Contact](#contact) · [Citing](#citing) · [Licence](#licence-and-attribution)
 
 ## Why
 
@@ -305,14 +322,10 @@ layer. Planned:
 
 The build record, with every decision, is [`docs/ROADMAP.md`](https://github.com/azterizm/legal-rag-router/blob/main/docs/ROADMAP.md).
 
-## Consultancy
+## Contact
 
 `legal-rag-router` is built and maintained by **Abdullah Memon** at
-**[Memon Systems Ltd](https://memonsystems.com)**, which designs and audits retrieval systems for
-legal and other regulated domains. If you want help putting it into production, adding a
-jurisdiction or document type, or testing whether your own legal RAG binds, refuses and isolates
-as it should, see [engagements](https://memonsystems.com/engagements) or write to
-abdullah@memonsystems.com.
+**[Memon Systems Ltd](https://memonsystems.com)**.
 
 Bug reports and questions about the library are welcome as
 [GitHub issues](https://github.com/azterizm/legal-rag-router/issues). Security reports go by
